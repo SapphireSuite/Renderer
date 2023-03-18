@@ -1,0 +1,22 @@
+// Copyright (c) 2023 Sapphire's Suite. All Rights Reserved.
+
+#include <Debug/Exception_DX12.hpp>
+
+namespace SA
+{
+	namespace DX12
+	{
+		Exception_DX12::Exception_DX12(
+			BaseInfo _info,
+			HRESULT _hrRes,
+			std::wstring _predStr,
+			std::wstring _details
+		) noexcept :
+			Exception(std::move(_info),
+				SUCCEEDED(_hrRes),
+				std::move(_predStr) + L" => SUCCEEDED",
+				std::move(_details))
+		{
+		}
+	}
+}
