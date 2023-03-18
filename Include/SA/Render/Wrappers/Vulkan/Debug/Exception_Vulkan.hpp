@@ -15,7 +15,7 @@ namespace SA
 		{
 		public:
 			Exception_Vulkan(
-				BaseInfo _infos,
+				BaseInfo _info,
 				VkResult _vkRes,
 				std::wstring _predStr,
 				std::wstring _details = L""
@@ -25,8 +25,8 @@ namespace SA
 
 		/// \cond Internal
 
-		#define __SA_CREATE_EXCEPTION_Vulkan(_baseInfos, _vkFunc, ...) SA::VK::Exception_Vulkan(\
-			_baseInfos,\
+		#define __SA_CREATE_EXCEPTION_Vulkan(_baseInfo, _vkFunc, ...) SA::VK::Exception_Vulkan(\
+			_baseInfo,\
 			_vkFunc,\
 			SA_WSTR(_vkFunc),\
 			##__VA_ARGS__\
