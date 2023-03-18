@@ -20,6 +20,7 @@ Makefile
 # CMake cloned repo
 googletest/
 googlebenchmark/
+Logger/
 
 # Build and Temp files.
 [Bb]uild/
