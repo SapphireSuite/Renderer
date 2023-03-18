@@ -4,6 +4,8 @@
 
 int main()
 {
+	SA::Debug::InitDefaultLogger();
+
 	SA::VK::Instance instance;
 
 	instance.Create();

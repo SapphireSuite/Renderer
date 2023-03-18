@@ -8,21 +8,18 @@
 #include <d3d12.h>
 #include <dxgi1_6.h>
 
-namespace SA
+namespace SA::DX12
 {
-	namespace DX12
+	class Factory
 	{
-		class Factory
-		{
-			IDXGIFactory6* mHandle = nullptr;
+		IDXGIFactory6* mHandle = nullptr;
 
-		public:
-			void Create();
-			void Destroy();
+	public:
+		void Create();
+		void Destroy();
 
-			IDXGIFactory6* operator->() const;
-		};
-	}
+		IDXGIFactory6* operator->() const;
+	};
 }
 
 #endif	// SAPPHIRE_RENDER_DX12_FACTORY_GUARD

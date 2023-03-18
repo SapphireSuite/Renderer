@@ -9,27 +9,24 @@
 
 #include "VulkanAPI.hpp"
 
-namespace SA
+namespace SA::VK
 {
-	namespace VK
+	class Instance
 	{
-		class Instance
-		{
-			VkInstance mHandle = VK_NULL_HANDLE;
+		VkInstance mHandle = VK_NULL_HANDLE;
 
 	#if SA_VK_VALIDATION_LAYERS
 
-			VkDebugUtilsMessengerEXT mDebugMessenger = nullptr;
+		VkDebugUtilsMessengerEXT mDebugMessenger = nullptr;
 
 	#endif
 
-		public:
-			void Create(std::vector<const char*> _extensions = std::vector<const char*>());
-			void Destroy();
+	public:
+		void Create(std::vector<const char*> _extensions = std::vector<const char*>());
+		void Destroy();
 
-			operator VkInstance() const noexcept;
-		};
-	}
+		operator VkInstance() const noexcept;
+	};
 }
 
 #endif // SAPPHIRE_RENDER_VK_INSTANCE_GUARD
