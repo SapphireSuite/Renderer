@@ -18,19 +18,17 @@ namespace SA
 		public:
 			Exception_DX12(BaseInfo _info,
 				HRESULT _hrRes,
-				std::wstring _predStr,
-				std::wstring _details = L""
+				std::wstring _predStr
 			) noexcept;
 		};
 
 
 		/// \cond Internal
 
-		#define __SA_CREATE_EXCEPTION_DX12(_baseInfo, _hrRes, ...) SA::DX12::Exception_DX12(\
+		#define __SA_CREATE_EXCEPTION_DX12(_baseInfo, _hrRes) SA::DX12::Exception_DX12(\
 			_baseInfo,\
 			_hrRes,\
-			SA_WSTR(_hrRes),\
-			##__VA_ARGS__\
+			SA_WSTR(_hrRes)\
 		)
 
 		/// \endcond

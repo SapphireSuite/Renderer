@@ -12,13 +12,11 @@ namespace SA
 		Exception_Vulkan::Exception_Vulkan(
 			BaseInfo _info,
 			VkResult _vkRes,
-			std::wstring _predStr,
-			std::wstring _details
+			std::wstring _predStr
 		) noexcept :
 			Exception(std::move(_info),
 				_vkRes == VkResult::VK_SUCCESS,
-				_predStr + L" must return VkResult::VK_SUCCESS",
-				std::move(_details))
+				_predStr + L" must return VkResult::VK_SUCCESS")
 		{
 		}
 	}

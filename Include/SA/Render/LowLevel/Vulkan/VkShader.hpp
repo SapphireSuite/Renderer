@@ -7,7 +7,7 @@
 
 #include "VulkanAPI.hpp"
 
-#include <SA/Render/Wrappers/Base/RawShader.hpp>
+#include <SA/Render/LowLevel/Common/RawShader.hpp>
 
 namespace SA::VK
 {

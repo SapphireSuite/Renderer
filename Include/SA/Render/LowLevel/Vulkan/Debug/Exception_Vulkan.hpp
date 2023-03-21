@@ -17,19 +17,17 @@ namespace SA
 			Exception_Vulkan(
 				BaseInfo _info,
 				VkResult _vkRes,
-				std::wstring _predStr,
-				std::wstring _details = L""
+				std::wstring _predStr
 			) noexcept;
 		};
 
 
 		/// \cond Internal
 
-		#define __SA_CREATE_EXCEPTION_Vulkan(_baseInfo, _vkFunc, ...) SA::VK::Exception_Vulkan(\
+		#define __SA_CREATE_EXCEPTION_Vulkan(_baseInfo, _vkFunc) SA::VK::Exception_Vulkan(\
 			_baseInfo,\
 			_vkFunc,\
-			SA_WSTR(_vkFunc),\
-			##__VA_ARGS__\
+			SA_WSTR(_vkFunc)\
 		)
 
 		/// \endcond
