@@ -15,7 +15,7 @@ namespace SA::VK
 		shaderModuleCreateInfo.codeSize = _raw.data.size() * sizeof(decltype(_raw.data)::value_type);
 		shaderModuleCreateInfo.pCode = _raw.data.data();
 
-		SA_VK_ASSERT(vkCreateShaderModule(_device, &shaderModuleCreateInfo, nullptr, &mHandle));
+		SA_VK_API(vkCreateShaderModule(_device, &shaderModuleCreateInfo, nullptr, &mHandle));
 		
 		SA_LOG(L"Shader created", Info, SA.Render.Vulkan, (L"Handle [%1]", mHandle));
 	}
@@ -24,7 +24,7 @@ namespace SA::VK
 	{
 		SA_LOG_RAII(L"Shader destroyed", Info, SA.Render.Vulkan, (L"Handle [%1]", mHandle));
 
-		vkDestroyShaderModule(_device, mHandle, nullptr);
+		SA_VK_API(vkDestroyShaderModule(_device, mHandle, nullptr));
 		mHandle = VK_NULL_HANDLE;
 	}
 }

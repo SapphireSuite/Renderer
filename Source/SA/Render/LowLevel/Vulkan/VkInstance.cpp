@@ -47,14 +47,14 @@ namespace SA::VK
 
 	#endif
 
-		SA_VK_ASSERT(vkCreateInstance(&instanceInfos, nullptr, &mHandle));
+		SA_VK_API(vkCreateInstance(&instanceInfos, nullptr, &mHandle));
 
 	#if SA_VK_VALIDATION_LAYERS
 		{
 			auto createDebugFunc = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(mHandle, "vkCreateDebugUtilsMessengerEXT");
 			SA_ASSERT((Nullptr, createDebugFunc), SA.Render.Vulkan, L"Extension PFN_vkCreateDebugUtilsMessengerEXT missing!");
 
-			SA_VK_ASSERT(createDebugFunc(mHandle, &debugUtilscreateInfo, nullptr, &mDebugMessenger), L"Failed to create vulkan debug messenger!");
+			SA_VK_API(createDebugFunc(mHandle, &debugUtilscreateInfo, nullptr, &mDebugMessenger), L"Failed to create vulkan debug messenger!");
 		
 			SA_LOG(L"Debug Messenger created.", Info, SA.Render.Vulkan, (L"Handle [%1]", mDebugMessenger));
 		}
@@ -79,7 +79,7 @@ namespace SA::VK
 		}
 	#endif
 
-		vkDestroyInstance(mHandle, nullptr);
+		SA_VK_API(vkDestroyInstance(mHandle, nullptr));
 		mHandle = VK_NULL_HANDLE;
 	}
 
