@@ -5,20 +5,21 @@
 #ifndef SAPPHIRE_RENDER_DX12_FACTORY_GUARD
 #define SAPPHIRE_RENDER_DX12_FACTORY_GUARD
 
-#include <d3d12.h>
-#include <dxgi1_6.h>
+#include "DX12API.hpp"
 
 namespace SA::DX12
 {
+	using DXFactoryT = IDXGIFactory6*;
+
 	class Factory
 	{
-		IDXGIFactory6* mHandle = nullptr;
+		DXFactoryT mHandle = nullptr;
 
 	public:
 		void Create();
 		void Destroy();
 
-		IDXGIFactory6* operator->() const;
+		DXFactoryT operator->() const;
 	};
 }
 

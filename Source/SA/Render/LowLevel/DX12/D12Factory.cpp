@@ -2,8 +2,6 @@
 
 #include "D12Factory.hpp"
 
-#include <Debug/Debug.hpp>
-
 namespace SA::DX12
 {
 	void Factory::Create()
@@ -17,7 +15,7 @@ namespace SA::DX12
 
 	#endif
 
-		SA_DX12_ASSERT(CreateDXGIFactory2(dxgiFactoryFlags, IID_PPV_ARGS(&mHandle)), L"Failed to create DX12 factory.");
+		SA_DX12_API(CreateDXGIFactory2(dxgiFactoryFlags, IID_PPV_ARGS(&mHandle)), L"Failed to create DX12 factory.");
 
 		SA_LOG(L"Factory created.", Info, SA.Render.DX12, (L"Handle [%1]", mHandle));
 	}
@@ -30,7 +28,7 @@ namespace SA::DX12
 		mHandle = nullptr;
 	}
 
-	IDXGIFactory6* Factory::operator->() const
+	DXFactoryT Factory::operator->() const
 	{
 		return mHandle;
 	}
