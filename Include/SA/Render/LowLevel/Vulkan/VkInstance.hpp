@@ -9,8 +9,13 @@
 
 #include "VulkanAPI.hpp"
 
+#include "Device/VkDeviceInfo.hpp"
+#include "Device/VkDeviceRequirements.hpp"
+
 namespace SA::VK
 {
+	class WindowSurface;
+	
 	class Instance
 	{
 		VkInstance mHandle = VK_NULL_HANDLE;
@@ -22,8 +27,19 @@ namespace SA::VK
 	#endif
 
 	public:
-		void Create(std::vector<const char*> _extensions = std::vector<const char*>());
+		/**
+		 * @brief Create the Vulkan instance.
+		 * 
+		 * @param _vkExtensions \b Vulkan-only required extensions.
+		 */
+		void Create(std::vector<const char*> _vkExtensions = std::vector<const char*>());
+
+		/**
+		 * @brief Destroy the Vulkan instance.
+		 */
 		void Destroy();
+
+		std::vector<DeviceInfo> QueryDeviceInfos(const DeviceRequirements& _reqs = DeviceRequirements{});
 
 		operator VkInstance() const noexcept;
 	};

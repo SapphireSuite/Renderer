@@ -3,10 +3,11 @@
 #include <VkInstance.hpp>
 
 #include "Debug/VkValidationLayers.hpp"
+#include "Device/VkDevice.hpp"
 
 namespace SA::VK
 {
-	void Instance::Create(std::vector<const char*> _extensions)
+	void Instance::Create(std::vector<const char*> _vkExtensions)
 	{
 		VkApplicationInfo appInfos{};
 		appInfos.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -19,7 +20,7 @@ namespace SA::VK
 
 	#if SA_VK_VALIDATION_LAYERS
 
-		_extensions.push_back("VK_EXT_debug_utils");
+		_vkExtensions.push_back("VK_EXT_debug_utils");
 
 	#endif
 
@@ -32,8 +33,8 @@ namespace SA::VK
 		instanceInfos.enabledLayerCount = 0;
 		instanceInfos.ppEnabledLayerNames = nullptr;
 
-		instanceInfos.enabledExtensionCount = static_cast<uint32_t>(_extensions.size());
-		instanceInfos.ppEnabledExtensionNames = _extensions.data();
+		instanceInfos.enabledExtensionCount = static_cast<uint32_t>(_vkExtensions.size());
+		instanceInfos.ppEnabledExtensionNames = _vkExtensions.data();
 
 	#if SA_VK_VALIDATION_LAYERS
 
@@ -81,6 +82,12 @@ namespace SA::VK
 
 		SA_VK_API(vkDestroyInstance(mHandle, nullptr));
 		mHandle = VK_NULL_HANDLE;
+	}
+
+
+	std::vector<DeviceInfo> Instance::QueryDeviceInfos(const DeviceRequirements& _reqs)
+	{
+		return Device::QueryDeviceInfos(*this, _reqs);
 	}
 
 
