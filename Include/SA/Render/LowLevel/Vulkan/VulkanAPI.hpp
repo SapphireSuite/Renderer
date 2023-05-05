@@ -26,7 +26,7 @@
 *	https://developer.nvidia.com/blog/vulkan-dos-donts/
 */
 
-#if SA_DEBUG || SA_LOG_RELEASE_OPT || defined(SA_DOXIGEN)
+#if SA_RENDER_API_TRACKING || defined(SA_DOXIGEN)
 
 	/**
 	 * \def SA_VK_API(_vkFunc, ...) 

@@ -53,6 +53,15 @@ if(SA_RENDER_VALIDATION_LAYER_RELEASE_OPT)
 
 endif()
 
+### API Tracking
+option(SA_RENDER_API_TRACKING_OPT "Enable API call tracking" OFF)
+
+if(SA_RENDER_API_TRACKING_OPT)
+
+	target_compile_definitions(SA_Render_LowLevel_Common PUBLIC SA_RENDER_API_TRACKING=1)
+
+endif()
+
 
 ## Vulkan Wrapper
 option(SA_RENDER_VULKAN_OPT "Should compile Vulkan wrapper" ON)

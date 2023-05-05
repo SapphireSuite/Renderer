@@ -19,7 +19,7 @@
 
 #include "Debug/Debug.hpp"
 
-#if SA_DEBUG || SA_LOG_RELEASE_OPT || defined(SA_DOXIGEN)
+#if SA_RENDER_API_TRACKING || defined(SA_DOXIGEN)
 
 	/**
 	 * \def SA_DX12_API(_dxFunc, ...) 
