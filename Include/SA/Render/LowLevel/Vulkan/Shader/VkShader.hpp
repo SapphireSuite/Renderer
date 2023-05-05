@@ -5,9 +5,9 @@
 #ifndef SAPPHIRE_RENDER_VK_SHADER_GUARD
 #define SAPPHIRE_RENDER_VK_SHADER_GUARD
 
-#include "VulkanAPI.hpp"
+#include <SA/Render/LowLevel/Vulkan/VulkanAPI.hpp>
 
-#include <SA/Render/LowLevel/Common/RawShader.hpp>
+#include <SA/Render/LowLevel/Common/Shader/RawShader.hpp>
 
 namespace SA::VK
 {

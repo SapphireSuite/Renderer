@@ -1,8 +1,8 @@
 // Copyright (c) 2023 Sapphire's Suite. All Rights Reserved.
 
-#include <VkShader.hpp>
+#include <Shader/VkShader.hpp>
 
-#include <VkDevice.hpp>
+#include <Device/VkDevice.hpp>
 
 namespace SA::VK
 {
