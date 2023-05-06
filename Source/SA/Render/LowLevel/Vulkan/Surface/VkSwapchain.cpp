@@ -12,21 +12,21 @@ namespace SA::VK
 {
 //{ Swapchain KHR
 
-	void Swapchain::CreateSwapChainKHR(const Device& _device, const Surface& _surface)
+	void Swapchain::CreateSwapChainKHR(const Device& _device,
+		const Surface& _surface,
+		const SurfaceSupportDetails& _details,
+		const VkSurfaceFormatKHR& _surfaceFormat)
 	{
-		const SurfaceSupportDetails details = _surface.QuerySupportDetails(_device);
-		const VkSurfaceFormatKHR surfaceFormat = details.ChooseSwapSurfaceFormat();
-		const VkPresentModeKHR presentMode = details.ChooseSwapPresentMode();
-		
-		mExtent = details.ChooseSwapExtent();
+		const VkPresentModeKHR presentMode = _details.ChooseSwapPresentMode();
+		mExtent = _details.ChooseSwapExtent();
 
 	//{ Image num
 
 		// Min image count to avoid driver blocking.
-		uint32_t imageNum = details.capabilities.minImageCount + 1;
+		uint32_t imageNum = _details.capabilities.minImageCount + 1;
 
-		if(details.capabilities.maxImageCount > 0 && imageNum > details.capabilities.maxImageCount)
-			imageNum = details.capabilities.maxImageCount;
+		if(_details.capabilities.maxImageCount > 0 && imageNum > _details.capabilities.maxImageCount)
+			imageNum = _details.capabilities.maxImageCount;
 
 		mFrames.resize(imageNum);
 
@@ -39,15 +39,15 @@ namespace SA::VK
 		createInfo.flags = 0u;
 		createInfo.surface = _surface;
 		createInfo.minImageCount = imageNum;
-		createInfo.imageFormat = surfaceFormat.format;
-		createInfo.imageColorSpace = surfaceFormat.colorSpace;
+		createInfo.imageFormat = _surfaceFormat.format;
+		createInfo.imageColorSpace = _surfaceFormat.colorSpace;
 		createInfo.imageExtent = VkExtent2D{ mExtent.x, mExtent.y };
 		createInfo.imageArrayLayers = 1u;
 		createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 		createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
 		createInfo.queueFamilyIndexCount = 0u;
 		createInfo.pQueueFamilyIndices = nullptr;
-		createInfo.preTransform = details.capabilities.currentTransform;
+		createInfo.preTransform = _details.capabilities.currentTransform;
 		createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
 		createInfo.presentMode = presentMode;
 		createInfo.clipped = VK_TRUE;
@@ -80,6 +80,57 @@ namespace SA::VK
 
 		SA_VK_API(vkDestroySwapchainKHR(_device, mHandle, nullptr));
 		mHandle = VK_NULL_HANDLE;
+		mFrames.clear();
+	}
+
+//}
+
+
+//{ Image View
+
+	void Swapchain::CreateImageView(const Device& _device, VkFormat _format)
+	{
+		uint32_t imageNum = GetImageNum();
+		
+		std::vector<VkImage> images;
+		images.resize(imageNum);
+		
+		SA_VK_API(vkGetSwapchainImagesKHR(_device, mHandle, &imageNum, images.data()));
+
+		VkImageViewCreateInfo createInfo{};
+		createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+		createInfo.pNext = nullptr;
+		createInfo.flags = 0;
+		// createInfo.image; // Set in loop.
+		createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+		createInfo.format = _format;
+		createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+		createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+		createInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+		createInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+		createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		createInfo.subresourceRange.baseMipLevel = 0;
+		createInfo.subresourceRange.levelCount = 1;
+		createInfo.subresourceRange.baseArrayLayer = 0;
+		createInfo.subresourceRange.layerCount = 1;
+
+		for(uint32_t i = 0; i < imageNum; ++i)
+		{
+			createInfo.image = images[i];
+
+			SA_VK_API(vkCreateImageView(_device, &createInfo, nullptr, &mFrames[i].imageView),
+				L"Failed to create Swapchain image view");
+
+			SA_LOG(L"Swapchain ImageView created.", Info, SA.Render.Vulkan, ("Handle [%1]", mFrames[i].imageView));
+		}
+	}
+	
+	void Swapchain::DestroyImageView(const Device& _device)
+	{
+		for(auto& frame : mFrames)
+		{
+			SA_VK_API(vkDestroyImageView(_device, frame.imageView, nullptr));
+		}
 	}
 
 //}
@@ -128,15 +179,21 @@ namespace SA::VK
 
 //}
 
+
 	void Swapchain::Create(const Device& _device, const Surface& _surface)
 	{
-		CreateSwapChainKHR(_device, _surface);
+		const SurfaceSupportDetails details = _surface.QuerySupportDetails(_device);
+		const VkSurfaceFormatKHR surfaceFormat = details.ChooseSwapSurfaceFormat();
+
+		CreateSwapChainKHR(_device, _surface, details, surfaceFormat);
+		CreateImageView(_device, surfaceFormat.format);
 		CreateSynchronisation(_device);
 	}
 	
 	void Swapchain::Destroy(const Device& _device)
 	{
 		DestroySynchronisation(_device);
+		DestroyImageView(_device);
 		DestroySwapChainKHR(_device);
 	}
 

@@ -14,6 +14,7 @@ namespace SA::VK
 	class Device;
 	class Surface;
 	class CommandBuffer;
+	struct SurfaceSupportDetails;
 
 	class Swapchain
 	{
@@ -21,8 +22,20 @@ namespace SA::VK
 
 		VkSwapchainKHR mHandle = VK_NULL_HANDLE;
 
-		void CreateSwapChainKHR(const Device& _device, const Surface& _surface);
+		void CreateSwapChainKHR(const Device& _device,
+			const Surface& _surface,
+			const SurfaceSupportDetails& _details,
+			const VkSurfaceFormatKHR& _surfaceFormat);
 		void DestroySwapChainKHR(const Device& _device);
+
+
+//}
+
+
+//{ Image View
+
+		void CreateImageView(const Device& _device, VkFormat _format);
+		void DestroyImageView(const Device& _device);
 
 //}
 
@@ -41,6 +54,7 @@ namespace SA::VK
 
 //}
 
+
 //{ Frame
 
 		uint32_t mFrameIndex = 0u;
@@ -48,6 +62,7 @@ namespace SA::VK
 
 		struct Frame
 		{
+			VkImageView imageView;
 			Synchronisation sync;
 		};
 
