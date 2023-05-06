@@ -18,7 +18,7 @@ add_executable(SA_RenderProto_VK "main.cpp")
 # Dependencies
 
 ### Add library dependencies.
-target_link_libraries(SA_RenderProto_VK PRIVATE SA_Render)
+target_link_libraries(SA_RenderProto_VK PRIVATE SA_Render glfw)
 
 
 

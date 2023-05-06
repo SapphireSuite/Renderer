@@ -21,6 +21,7 @@ Makefile
 googletest/
 googlebenchmark/
 Logger/
+glfw/
 
 # Build and Temp files.
 [Bb]uild/
