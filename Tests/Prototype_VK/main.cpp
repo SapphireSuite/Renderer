@@ -6,6 +6,7 @@
 #include <SA/Render/LowLevel/Vulkan/Device/VkDevice.hpp>
 #include <SA/Render/LowLevel/Vulkan/Surface/VkWindowSurface.hpp>
 #include <SA/Render/LowLevel/Vulkan/Surface/VkSurface.hpp>
+#include <SA/Render/LowLevel/Vulkan/Device/Command/VkCommandPool.hpp>
 
 // Must be included after vulkan.
 #include <GLFW/glfw3.h>
@@ -16,6 +17,8 @@ SA::VK::Instance instance;
 SA::VK::WindowSurface winSurface;
 SA::VK::Device device;
 SA::VK::Surface surface;
+SA::VK::CommandPool cmdPool;
+std::vector<SA::VK::CommandBuffer> cmdBuffers;
 
 void GLFWErrorCallback(int32_t error, const char* description)
 {
@@ -74,6 +77,13 @@ void Init()
 		{
 			surface.Create(device, winSurface);
 		}
+
+		// Cmd Buffers
+		{
+			cmdPool.Create(device, device.queueMgr.graphics[0].GetFamilyIndex());
+
+			cmdBuffers = cmdPool.AllocateMultiple(device, surface.swapchain.GetImageNum());
+		}
 	}
 }
 
@@ -81,6 +91,8 @@ void Uninit()
 {
 	// Render
 	{
+		cmdPool.Destroy(device);
+
 		surface.Destroy(device);
 
 		device.Destroy();
@@ -98,11 +110,17 @@ void Uninit()
 
 void Loop()
 {
-	// surface.swapchain.Begin(device);
+	// const uint32_t frameIndex = surface.swapchain.Begin(device);
+
+	// SA::VK::CommandBuffer& cmdBuffer = cmdBuffers[frameIndex];
+
+	// cmdBuffer.Begin();
 
 
 
-	// surface.swapchain.End(device);
+	// cmdBuffer.End();
+
+	// surface.swapchain.End(device, {cmdBuffer});
 }
 
 int main()

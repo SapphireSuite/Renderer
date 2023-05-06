@@ -13,6 +13,7 @@ namespace SA::VK
 {
 	class Device;
 	class Surface;
+	class CommandBuffer;
 
 	class Swapchain
 	{
@@ -59,10 +60,13 @@ namespace SA::VK
 		void Create(const Device& _device, const Surface& _surface);
 		void Destroy(const Device& _device);
 
+		/// Get number of image (frame-buffering num).
+		uint32_t GetImageNum() const noexcept;
+
 //{ Render
 
-		void Begin(const Device& _device);
-		void End(const Device& _device);
+		uint32_t Begin(const Device& _device);
+		void End(const Device& _device, const std::vector<CommandBuffer>& _cmdBuffers);
 
 //}
 	};

@@ -3,6 +3,7 @@
 #include <Surface/VkSwapchain.hpp>
 
 #include <Device/VkDevice.hpp>
+#include <Device/Command/VkCommandBuffer.hpp>
 
 #include <Surface/VkSurface.hpp>
 #include <Surface/VkSurfaceSupportDetails.hpp>
@@ -139,10 +140,14 @@ namespace SA::VK
 		DestroySwapChainKHR(_device);
 	}
 
+	uint32_t Swapchain::GetImageNum() const noexcept
+	{
+		return mFrames.size();
+	}
 
 //{ Render
 
-	void Swapchain::Begin(const Device& _device)
+	uint32_t Swapchain::Begin(const Device& _device)
 	{
 		Frame& frame = mFrames[mFrameIndex];
 
@@ -154,9 +159,11 @@ namespace SA::VK
 
 		SA_VK_API(vkAcquireNextImageKHR(_device, mHandle, UINT64_MAX, frame.sync.acquireSemaphore, VK_NULL_HANDLE, &mImageIndex),
 			L"Failed to aquire next image!");
+
+		return mFrameIndex;
 	}
 
-	void Swapchain::End(const Device& _device)
+	void Swapchain::End(const Device& _device, const std::vector<CommandBuffer>& _cmdBuffers)
 	{
 		Frame& frame = mFrames[mFrameIndex];
 
@@ -170,8 +177,8 @@ namespace SA::VK
 			submitInfo.waitSemaphoreCount = 1u;
 			submitInfo.pWaitSemaphores = &frame.sync.acquireSemaphore;
 			submitInfo.pWaitDstStageMask = &waitStages;
-			// submitInfo.commandBufferCount = 1u;
-			// submitInfo.pCommandBuffers = reinterpret_cast<const VkCommandBuffer*>(&frame.cmd); // Warning: Unsafe.
+			submitInfo.commandBufferCount = _cmdBuffers.size();
+			submitInfo.pCommandBuffers = reinterpret_cast<const VkCommandBuffer*>(_cmdBuffers.data()); // Warning: Unsafe.
 			submitInfo.signalSemaphoreCount = 1u;
 			submitInfo.pSignalSemaphores = &frame.sync.presentSemaphore;
 
