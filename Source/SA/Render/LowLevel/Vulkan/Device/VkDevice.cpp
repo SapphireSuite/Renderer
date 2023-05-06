@@ -19,7 +19,7 @@ namespace SA::VK
 		mPhysical = _info.physicalDevice;
 		mFeatures = _info.physicalFeatures;
 
-		std::vector<VkDeviceQueueCreateInfo> queueCreateInfos; // TODO
+		std::vector<VkDeviceQueueCreateInfo> queueCreateInfos = _info.GetQueueCreateInfos();
 
 		VkDeviceCreateInfo deviceCreateInfo{};
 		deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
@@ -50,7 +50,8 @@ namespace SA::VK
 		SA_VK_API(vkGetPhysicalDeviceMemoryProperties(mPhysical, &mMemProperties));
 
 		SA_LOG(L"Device created.", Info, SA.Render.Vulkan,
-			(L"Physical {Name: %1, ID: %2, Handle: %3}, Logical [%4]", _info.name, _info.ID, mPhysical, mLogical));
+			(L"Physical {Name: %1, ID: %2, Handle: %3}, Logical [%4]",
+			_info.physicalProperties.deviceName, _info.physicalProperties.deviceID, mPhysical, mLogical));
 	}
 
 	void Device::Destroy()
@@ -97,16 +98,17 @@ namespace SA::VK
 
 			info.physicalDevice = phDevice;
 			SA_VK_API(vkGetPhysicalDeviceFeatures(info.physicalDevice, &info.physicalFeatures));
+			SA_VK_API(vkGetPhysicalDeviceProperties(info.physicalDevice, &info.physicalProperties));
 
 			info.vkRequiredExts = _reqs.vkRequiredExts;
 
 			// Is physical device suitable?
-			if(info.CheckExtensionSupport() && info.CheckFeatureSupport(_reqs.features))
+			if(info.CheckExtensionSupport() &&
+				info.CheckFeatureSupport(_reqs.features) &&
+				info.QueryQueueFamilies(_reqs.GetWindowSurface(), _reqs.queue) >= 0)
 			{
 				if(_reqs.bEnableRequiredFeaturesOnly)
 					info.physicalFeatures = _reqs.features;
-
-				// TODO: Queue Families.
 
 				info.Evaluate();
 				deviceInfos.emplace_back(info);

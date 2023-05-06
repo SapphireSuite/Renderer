@@ -12,14 +12,6 @@ namespace SA
 {
 	struct RenderDeviceInfo
 	{
-		std::string name;
-
-		/// Device ID.
-		uint32_t ID = uint32_t(-1);
-
-		/// Vendor ID.
-		uint32_t vendorID = uint32_t(-1);
-
 		/// Performance/Feature score used to sort devices.
 		uint32_t score = 0;
 

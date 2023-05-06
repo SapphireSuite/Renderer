@@ -43,7 +43,7 @@ namespace SA::VK
 		return mWinSurface;
 	}
 	
-	void DeviceRequirements::SetWindowSurface(WindowSurface* _winSurface)
+	void DeviceRequirements::SetWindowSurface(WindowSurface* _winSurface, bool bSetPresentQueue)
 	{
 		if(mWinSurface == _winSurface)
 			return;
@@ -62,12 +62,18 @@ namespace SA::VK
 			// Add Extension.
 			for(auto winReqExt : windowRequieredExts)
 				AddUniqueExtension(winReqExt);
+
+			if(bSetPresentQueue)
+				++queue.presentNum;
 		}
 		else
 		{
 			// Remove Extension.
 			for(auto winReqExt : windowRequieredExts)
 				RemoveExtension(winReqExt);
+
+			if(bSetPresentQueue)
+				--queue.presentNum;
 		}
 	//}
 	}

@@ -3,9 +3,47 @@
 #include <cstring>
 
 #include <Device/VkDeviceInfo.hpp>
+#include <Device/VkDeviceRequirements.hpp>
+#include <Device/Queue/VkQueueRequirements.hpp>
+
+#include <Surface/VkWindowSurface.hpp>
 
 namespace SA::VK
 {
+//{ Physical Device
+
+	void DeviceInfo::Evaluate()
+	{
+		// Source: https://vulkan-tutorial.com/Drawing_a_triangle/Setup/Physical_devices_and_queue_families
+	
+	//{ Features score.
+
+		const VkBool32* const bSuppFeatures = reinterpret_cast<const VkBool32*>(&physicalFeatures);
+		constexpr size_t featureCount = sizeof(physicalFeatures) / sizeof(VkBool32);
+
+		for(size_t i = 0; i < featureCount; ++i)
+		{
+			if(bSuppFeatures[i])
+				score += 10;
+		}
+	//}
+
+	//{ Properties score
+	
+		if(physicalProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
+			score += 1000;
+
+		// Maximum possible size of textures affects graphics quality
+		score += physicalProperties.limits.maxImageDimension2D;
+
+		// TODO: Implement more score based on properties.
+
+	//}
+	}
+
+//}
+
+
 //{ Extension
 	bool IsExtensionSupported(const std::vector<VkExtensionProperties>& _vkSupportedExts,
 		const char* _vkExt) noexcept
@@ -67,8 +105,112 @@ namespace SA::VK
 //}
 
 
-	void DeviceInfo::Evaluate()
+//{ Queue Families
+
+	int DeviceInfo::QueryQueueFamilies(const WindowSurface* _winSurface, QueueRequirements _queueReqs) noexcept
 	{
-		// TODO: Implement score: https://vulkan-tutorial.com/Drawing_a_triangle/Setup/Physical_devices_and_queue_families
+		SA_ASSERT((Default, physicalDevice != VK_NULL_HANDLE), SA.Render.Vulkan, L"Query queue families of a null physical device!");
+		SA_ASSERT((Default, !((_queueReqs.presentNum > 0) ^ (_winSurface != nullptr))),
+			SA.Render.Vulkan, L"QueueType::Present requiere a valid RenderSurface as parameter!");
+
+	//{ Query queue families
+		uint32_t queueFamilyCount = 0;
+		SA_VK_API(vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, nullptr));
+
+		std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+		SA_VK_API(vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, queueFamilies.data()));
+	//}
+
+		for(size_t i = 0u; i < queueFamilies.size() && !_queueReqs.IsEmpty(); ++i)
+			AddFamily(_winSurface, _queueReqs, queueFamilies[i], i);
+
+
+		return _queueReqs.GetCompletedCode();
 	}
+
+	void DeviceInfo::AddFamily(const WindowSurface* _winSurface,
+		QueueRequirements& _queueReqs,
+		const VkQueueFamilyProperties& _family,
+		uint32_t _famIndex) noexcept
+	{
+		// TODO: Allow queue with same index but lower device score?
+
+		QueueMgrInfo::IndexInfo info;
+		info.index = _famIndex;
+
+		// Graphics family.
+		if (_queueReqs.graphicNum > 0 && (_family.queueFlags & VK_QUEUE_GRAPHICS_BIT))
+			EmplaceFamily(_family, queueMgr.graphics, _queueReqs.graphicNum, info, _famIndex, 1.0f);
+
+
+		// Compute family.
+		if (_queueReqs.computeNum > 0 && (_family.queueFlags & VK_QUEUE_COMPUTE_BIT))
+			EmplaceFamily(_family, queueMgr.compute, _queueReqs.computeNum, info, _famIndex, 1.0f);
+
+
+		// Present family.
+		if(_queueReqs.presentNum > 0)
+		{
+			VkBool32 presentSupport = false;
+			SA_VK_API(vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, _famIndex, *_winSurface, &presentSupport));
+
+			if(presentSupport)
+				EmplaceFamily(_family, queueMgr.present, _queueReqs.presentNum, info, _famIndex, 0.75f);
+		}
+
+
+		// Transfer family.
+		if(_queueReqs.transferNum > 0 && (_family.queueFlags & VK_QUEUE_TRANSFER_BIT))
+			EmplaceFamily(_family, queueMgr.present, _queueReqs.transferNum, info, _famIndex, 0.5f);
+
+
+		if(info.num != 0)
+			queueMgr.indexInfos.push_back(info);
+	}
+
+	void DeviceInfo::EmplaceFamily(const VkQueueFamilyProperties& _vkFamily,
+		QueueMgrInfo::FamilyInfo& _famInfo,
+		uint32_t& _reqNum,
+		QueueMgrInfo::IndexInfo& _currInfo,
+		uint32_t _famIndex,
+		float _priority)
+	{
+			const uint32_t num = std::min(_reqNum, _vkFamily.queueCount - _currInfo.num);
+
+			for (uint32_t i = _currInfo.num; i < _currInfo.num + num; ++i)
+			{
+				_currInfo.queuePriorities.push_back(_priority);
+				_famInfo.queues.emplace_back(_famIndex, i);
+
+				// Add score for each queue.
+				score += 100;
+			}
+
+			_currInfo.num += num;
+			_reqNum -= num;
+	}
+
+	std::vector<VkDeviceQueueCreateInfo> DeviceInfo::GetQueueCreateInfos() const
+	{
+		std::vector<VkDeviceQueueCreateInfo> result;
+		result.reserve(queueMgr.indexInfos.size());
+
+		for (auto& indexInfo : queueMgr.indexInfos)
+		{
+			// Create new queue create infos.
+			VkDeviceQueueCreateInfo queueInfos{};
+			queueInfos.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+			queueInfos.pNext = nullptr;
+			queueInfos.flags = 0;
+			queueInfos.queueFamilyIndex = indexInfo.index;
+			queueInfos.queueCount = indexInfo.num;
+			queueInfos.pQueuePriorities = indexInfo.queuePriorities.data();
+
+			result.emplace_back(queueInfos);
+		}
+
+		return result;
+	}
+
+//}
 }

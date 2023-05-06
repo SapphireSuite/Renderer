@@ -10,6 +10,7 @@
 #include <SA/Render/LowLevel/Common/Device/RenderDeviceRequirements.hpp>
 
 #include <SA/Render/LowLevel/Vulkan/VulkanAPI.hpp>
+#include <SA/Render/LowLevel/Vulkan/Device/Queue/VkQueueRequirements.hpp>
 
 namespace SA::VK
 {
@@ -42,12 +43,18 @@ namespace SA::VK
 	//{ Window Surface
 
 		WindowSurface* GetWindowSurface() const noexcept;
-		void SetWindowSurface(WindowSurface* _winSurface = nullptr);
+		void SetWindowSurface(WindowSurface* _winSurface = nullptr, bool bSetPresentQueue = true);
 
 	private:
 		/// Window surface required support (if any).
 		WindowSurface* mWinSurface = nullptr;
 		
+	//}
+
+	//{ Queue
+	
+	public:
+		QueueRequirements queue;
 	//}
 	};
 }
