@@ -5,6 +5,7 @@
 #include <SA/Render/LowLevel/Vulkan/VkInstance.hpp>
 #include <SA/Render/LowLevel/Vulkan/Device/VkDevice.hpp>
 #include <SA/Render/LowLevel/Vulkan/Surface/VkWindowSurface.hpp>
+#include <SA/Render/LowLevel/Vulkan/Surface/VkSurface.hpp>
 
 // Must be included after vulkan.
 #include <GLFW/glfw3.h>
@@ -14,6 +15,7 @@ GLFWwindow* window = nullptr;
 SA::VK::Instance instance;
 SA::VK::WindowSurface winSurface;
 SA::VK::Device device;
+SA::VK::Surface surface;
 
 void GLFWErrorCallback(int32_t error, const char* description)
 {
@@ -67,15 +69,26 @@ void Init()
 			std::vector<SA::VK::DeviceInfo> deviceInfos = instance.QueryDeviceInfos(deviceReqs);
 			device.Create(deviceInfos[0]);
 		}
+
+		// Surface
+		{
+			surface.Create(device, winSurface);
+		}
 	}
 }
 
 void Uninit()
 {
-	vkDestroySurfaceKHR(instance, winSurface, nullptr);
+	// Render
+	{
+		surface.Destroy(device);
 
-	device.Destroy();
-	instance.Destroy();
+		device.Destroy();
+
+		vkDestroySurfaceKHR(instance, winSurface, nullptr);
+		
+		instance.Destroy();
+	}
 
 	// GLFW
 	{
@@ -85,6 +98,11 @@ void Uninit()
 
 void Loop()
 {
+	// surface.swapchain.Begin(device);
+
+
+
+	// surface.swapchain.End(device);
 }
 
 int main()

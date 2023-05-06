@@ -3,3 +3,4 @@
 # Entrypoints
 
 SA_FetchModule(Logger)
+SA_FetchModule(Maths)

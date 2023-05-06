@@ -39,7 +39,7 @@ SA_TargetSources(SA_Render_LowLevel_Common
 )
 
 ### Link dependencies.
-target_link_libraries(SA_Render_LowLevel_Common PUBLIC SA_Logger)
+target_link_libraries(SA_Render_LowLevel_Common PUBLIC SA_Logger SA_Maths)
 
 ### Link to main lib.
 target_link_libraries(SA_Render_LowLevel INTERFACE SA_Render_LowLevel_Common)
