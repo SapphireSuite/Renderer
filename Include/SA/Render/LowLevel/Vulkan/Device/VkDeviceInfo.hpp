@@ -7,7 +7,7 @@
 
 #include <SA/Render/LowLevel/Common/Device/RenderDeviceInfo.hpp>
 
-#include <SA/Render/LowLevel/Vulkan/VulkanAPI.hpp>
+#include "Queue/VkQueueMgrInfo.hpp"
 
 namespace SA::VK
 {
@@ -57,35 +57,8 @@ namespace SA::VK
 	//{ Queue Families
 
 	public:
-		struct QueueMgrInfo
-		{
-			struct FamilyInfo
-			{
-				struct QueueInfo
-				{
-					uint32_t familyIndex = 0;
-					uint32_t queueIndex = 0;
-				};
-
-				std::vector<QueueInfo> queues;
-			};
-
-			FamilyInfo graphics;
-			FamilyInfo compute;
-			FamilyInfo transfer;
-			FamilyInfo present;
-
-
-			struct IndexInfo
-			{
-				uint32_t index = ~uint32_t();
-				uint32_t num = 0u;
-				
-				std::vector<float> queuePriorities;
-			};
-
-			std::vector<IndexInfo> indexInfos;
-		} queueMgr;
+		QueueMgrInfo queueMgr;
+		QueueMgrIndexInfo queueMgrIndex;
 
 	private:
 		int QueryQueueFamilies(const WindowSurface* _winSurface, QueueRequirements _queueReqs);
@@ -96,13 +69,11 @@ namespace SA::VK
 			uint32_t _famIndex) noexcept;
 	
 		void EmplaceFamily(const VkQueueFamilyProperties& _vkFamily,
-			QueueMgrInfo::FamilyInfo& _famInfo,
+			QueueFamilyInfo& _famInfo,
 			uint32_t& _reqNum,
-			QueueMgrInfo::IndexInfo& _currInfo,
+			QueueFamilyIndexInfo& _famIndexInfo,
 			uint32_t _famIndex,
 			float _priority);
-
-		std::vector<VkDeviceQueueCreateInfo> GetQueueCreateInfos() const;
 
 	//}
 	};

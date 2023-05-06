@@ -133,12 +133,12 @@ namespace SA::VK
 		const VkQueueFamilyProperties& _family,
 		uint32_t _famIndex) noexcept
 	{
-		QueueMgrInfo::IndexInfo info;
+		QueueFamilyIndexInfo info;
 		info.index = _famIndex;
 
 		// Graphics family.
-		if (_queueReqs.graphicNum > 0 && (_family.queueFlags & VK_QUEUE_GRAPHICS_BIT))
-			EmplaceFamily(_family, queueMgr.graphics, _queueReqs.graphicNum, info, _famIndex, 1.0f);
+		if (_queueReqs.graphicsNum > 0 && (_family.queueFlags & VK_QUEUE_GRAPHICS_BIT))
+			EmplaceFamily(_family, queueMgr.graphics, _queueReqs.graphicsNum, info, _famIndex, 1.0f);
 
 
 		// Compute family.
@@ -159,55 +159,33 @@ namespace SA::VK
 
 		// Transfer family.
 		if(_queueReqs.transferNum > 0 && (_family.queueFlags & VK_QUEUE_TRANSFER_BIT))
-			EmplaceFamily(_family, queueMgr.present, _queueReqs.transferNum, info, _famIndex, 0.5f);
+			EmplaceFamily(_family, queueMgr.transfer, _queueReqs.transferNum, info, _famIndex, 0.5f);
 
 
 		if(info.num != 0)
-			queueMgr.indexInfos.push_back(info);
+			queueMgrIndex.familyInfos.push_back(info);
 	}
 
 	void DeviceInfo::EmplaceFamily(const VkQueueFamilyProperties& _vkFamily,
-		QueueMgrInfo::FamilyInfo& _famInfo,
+		QueueFamilyInfo& _famInfo,
 		uint32_t& _reqNum,
-		QueueMgrInfo::IndexInfo& _currInfo,
+		QueueFamilyIndexInfo& _famIndexInfo,
 		uint32_t _famIndex,
 		float _priority)
 	{
-			const uint32_t num = std::min(_reqNum, _vkFamily.queueCount - _currInfo.num);
+			const uint32_t num = std::min(_reqNum, _vkFamily.queueCount - _famIndexInfo.num);
 
-			for (uint32_t i = _currInfo.num; i < _currInfo.num + num; ++i)
+			for (uint32_t i = _famIndexInfo.num; i < _famIndexInfo.num + num; ++i)
 			{
-				_currInfo.queuePriorities.push_back(_priority);
+				_famIndexInfo.queuePriorities.push_back(_priority);
 				_famInfo.queues.emplace_back(_famIndex, i);
 
 				// Add score for each queue.
 				score += 100;
 			}
 
-			_currInfo.num += num;
+			_famIndexInfo.num += num;
 			_reqNum -= num;
-	}
-
-	std::vector<VkDeviceQueueCreateInfo> DeviceInfo::GetQueueCreateInfos() const
-	{
-		std::vector<VkDeviceQueueCreateInfo> result;
-		result.reserve(queueMgr.indexInfos.size());
-
-		for (auto& indexInfo : queueMgr.indexInfos)
-		{
-			// Create new queue create infos.
-			VkDeviceQueueCreateInfo queueInfos{};
-			queueInfos.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-			queueInfos.pNext = nullptr;
-			queueInfos.flags = 0;
-			queueInfos.queueFamilyIndex = indexInfo.index;
-			queueInfos.queueCount = indexInfo.num;
-			queueInfos.pQueuePriorities = indexInfo.queuePriorities.data();
-
-			result.emplace_back(queueInfos);
-		}
-
-		return result;
 	}
 
 //}

@@ -11,8 +11,8 @@ namespace SA::VK
 {
 	struct QueueRequirements
 	{
-		/// Number of graphic queues required.
-		uint32_t graphicNum = 1;
+		/// Number of graphics queues required.
+		uint32_t graphicsNum = 1;
 		
 		/// Number of compute queues required.
 		uint32_t computeNum = 1;
@@ -29,11 +29,11 @@ namespace SA::VK
 		*/
 		bool bStrictRequirement = false;
 
-		static QueueRequirements GraphicOnly;
-		static QueueRequirements GraphicCompute;
-		static QueueRequirements GraphicPresent;
-		static QueueRequirements GraphicComputePresent;
-		static QueueRequirements GraphicComputePresentTransfer;
+		static QueueRequirements GraphicsOnly;
+		static QueueRequirements GraphicsCompute;
+		static QueueRequirements GraphicsPresent;
+		static QueueRequirements GraphicsComputePresent;
+		static QueueRequirements GraphicsComputePresentTransfer;
 
 		bool IsEmpty() const noexcept;
 		int GetCompletedCode() const noexcept;

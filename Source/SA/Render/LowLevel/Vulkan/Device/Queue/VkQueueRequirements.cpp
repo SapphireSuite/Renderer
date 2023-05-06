@@ -4,15 +4,15 @@
 
 namespace SA::VK
 {
-	QueueRequirements QueueRequirements::GraphicOnly{ 1, 0, 0, 0 };
-	QueueRequirements QueueRequirements::GraphicCompute{ 1 , 1, 0, 0 };
-	QueueRequirements QueueRequirements::GraphicPresent{ 1, 0, 0, 1 };
-	QueueRequirements QueueRequirements::GraphicComputePresent{ 1, 1, 0, 1 };
-	QueueRequirements QueueRequirements::GraphicComputePresentTransfer{ 1, 1, 1, 1 };
+	QueueRequirements QueueRequirements::GraphicsOnly{ 1, 0, 0, 0 };
+	QueueRequirements QueueRequirements::GraphicsCompute{ 1 , 1, 0, 0 };
+	QueueRequirements QueueRequirements::GraphicsPresent{ 1, 0, 0, 1 };
+	QueueRequirements QueueRequirements::GraphicsComputePresent{ 1, 1, 0, 1 };
+	QueueRequirements QueueRequirements::GraphicsComputePresentTransfer{ 1, 1, 1, 1 };
 
 	bool QueueRequirements::IsEmpty() const noexcept
 	{
-		return graphicNum == 0 &&
+		return graphicsNum == 0 &&
 			computeNum == 0 &&
 			transferNum == 0 &&
 			presentNum == 0;

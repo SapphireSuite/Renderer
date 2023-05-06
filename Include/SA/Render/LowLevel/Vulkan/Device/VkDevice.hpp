@@ -9,6 +9,7 @@
 
 #include "VkDeviceInfo.hpp"
 #include "VkDeviceRequirements.hpp"
+#include "Queue/VkQueueMgr.hpp"
 
 namespace SA::VK
 {
@@ -28,6 +29,8 @@ namespace SA::VK
 		VkPhysicalDeviceMemoryProperties mMemProperties;
 
 	public:
+		QueueMgr queueMgr;
+
 		const VkPhysicalDeviceMemoryProperties& GetMemoryProperties() const noexcept;
 
 		void Create(const DeviceInfo& _info);

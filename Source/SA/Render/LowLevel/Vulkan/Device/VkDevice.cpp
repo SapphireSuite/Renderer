@@ -19,7 +19,7 @@ namespace SA::VK
 		mPhysical = _info.physicalDevice;
 		mFeatures = _info.physicalFeatures;
 
-		std::vector<VkDeviceQueueCreateInfo> queueCreateInfos = _info.GetQueueCreateInfos();
+		std::vector<VkDeviceQueueCreateInfo> queueCreateInfos = _info.queueMgrIndex.GetQueueCreateInfos();
 
 		VkDeviceCreateInfo deviceCreateInfo{};
 		deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
@@ -49,6 +49,8 @@ namespace SA::VK
 
 		SA_VK_API(vkGetPhysicalDeviceMemoryProperties(mPhysical, &mMemProperties));
 
+		queueMgr.Create(*this, _info.queueMgr);
+
 		SA_LOG(L"Device created.", Info, SA.Render.Vulkan,
 			(L"Physical {Name: %1, ID: %2, Handle: %3}, Logical [%4]",
 			_info.physicalProperties.deviceName, _info.physicalProperties.deviceID, mPhysical, mLogical));
@@ -60,6 +62,8 @@ namespace SA::VK
 			(L"Physical [%1], Logical [%2]", mPhysical, mLogical));
 
 		WaitIdle();
+
+		queueMgr.Destroy();
 
 		SA_VK_API(vkDestroyDevice(mLogical, nullptr));
 
