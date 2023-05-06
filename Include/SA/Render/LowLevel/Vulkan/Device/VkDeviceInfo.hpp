@@ -88,7 +88,7 @@ namespace SA::VK
 		} queueMgr;
 
 	private:
-		int QueryQueueFamilies(const WindowSurface* _winSurface, QueueRequirements _queueReqs) noexcept;
+		int QueryQueueFamilies(const WindowSurface* _winSurface, QueueRequirements _queueReqs);
 
 		void AddFamily(const WindowSurface* _winSurface,
 			QueueRequirements& _queueReqs,

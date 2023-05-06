@@ -107,7 +107,7 @@ namespace SA::VK
 
 //{ Queue Families
 
-	int DeviceInfo::QueryQueueFamilies(const WindowSurface* _winSurface, QueueRequirements _queueReqs) noexcept
+	int DeviceInfo::QueryQueueFamilies(const WindowSurface* _winSurface, QueueRequirements _queueReqs)
 	{
 		SA_ASSERT((Default, physicalDevice != VK_NULL_HANDLE), SA.Render.Vulkan, L"Query queue families of a null physical device!");
 		SA_ASSERT((Default, !((_queueReqs.presentNum > 0) ^ (_winSurface != nullptr))),
@@ -133,8 +133,6 @@ namespace SA::VK
 		const VkQueueFamilyProperties& _family,
 		uint32_t _famIndex) noexcept
 	{
-		// TODO: Allow queue with same index but lower device score?
-
 		QueueMgrInfo::IndexInfo info;
 		info.index = _famIndex;
 

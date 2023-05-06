@@ -15,6 +15,7 @@ namespace SA
 		/// Performance/Feature score used to sort devices.
 		uint32_t score = 0;
 
+		/// Sort by descending-order score
 		static bool SortByScore(const RenderDeviceInfo& _lhs, const RenderDeviceInfo& _rhs) noexcept;
 	};
 }
