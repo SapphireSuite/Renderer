@@ -144,6 +144,30 @@ if(SA_RENDER_OPENGL_OPT)
 endif()
 
 
+## RHI
+option(SA_RENDER_RHI_OPT "Should compile RHI" ON)
+
+if(SA_RENDER_RHI_OPT)
+
+	add_library(SA_Render_RHI STATIC)
+	SA_ConfigureTarget(SA_Render_RHI)
+	SA_TargetSources(SA_Render_RHI
+		PUBLIC_SRC_DIR "Include/SA/Render/RHI"
+		PUBLIC_INCL_DIR "OFF"
+		PRIVATE_SRC_DIR "Source/SA/Render/RHI"
+	)
+
+	### Link dependencies.
+	target_link_libraries(SA_Render_RHI
+		PUBLIC SA_Render_LowLevel
+	)
+
+	### Link to main lib.
+	target_link_libraries(SA_Render INTERFACE SA_Render_RHI)
+
+endif()
+
+
 
 # Options
 
