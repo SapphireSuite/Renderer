@@ -5,15 +5,14 @@
 #include <Device/VkDevice.hpp>
 #include <Device/Command/VkCommandBuffer.hpp>
 
-#include <Surface/VkSurface.hpp>
-#include <Surface/VkSurfaceSupportDetails.hpp>
+#include <Surface/VkWindowSurface.hpp>
 
 namespace SA::VK
 {
 //{ Swapchain KHR
 
 	void Swapchain::CreateSwapChainKHR(const Device& _device,
-		const Surface& _surface,
+		const WindowSurface& _surface,
 		const SurfaceSupportDetails& _details,
 		const VkSurfaceFormatKHR& _surfaceFormat)
 	{
@@ -88,6 +87,7 @@ namespace SA::VK
 
 //{ Image View
 
+/*
 	void Swapchain::CreateImageView(const Device& _device, VkFormat _format)
 	{
 		uint32_t imageNum = GetImageNum();
@@ -133,6 +133,7 @@ namespace SA::VK
 		}
 	}
 
+*/
 //}
 
 
@@ -180,20 +181,20 @@ namespace SA::VK
 //}
 
 
-	void Swapchain::Create(const Device& _device, const Surface& _surface)
+	void Swapchain::Create(const Device& _device, const WindowSurface& _surface)
 	{
 		const SurfaceSupportDetails details = _surface.QuerySupportDetails(_device);
 		const VkSurfaceFormatKHR surfaceFormat = details.ChooseSwapSurfaceFormat();
 
 		CreateSwapChainKHR(_device, _surface, details, surfaceFormat);
-		CreateImageView(_device, surfaceFormat.format);
+		//CreateImageView(_device, surfaceFormat.format);
 		CreateSynchronisation(_device);
 	}
 	
 	void Swapchain::Destroy(const Device& _device)
 	{
 		DestroySynchronisation(_device);
-		DestroyImageView(_device);
+		//DestroyImageView(_device);
 		DestroySwapChainKHR(_device);
 	}
 

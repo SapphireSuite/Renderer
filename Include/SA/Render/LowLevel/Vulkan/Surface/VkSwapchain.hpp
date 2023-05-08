@@ -12,7 +12,7 @@
 namespace SA::VK
 {
 	class Device;
-	class Surface;
+	class WindowSurface;
 	class CommandBuffer;
 	struct SurfaceSupportDetails;
 
@@ -23,7 +23,7 @@ namespace SA::VK
 		VkSwapchainKHR mHandle = VK_NULL_HANDLE;
 
 		void CreateSwapChainKHR(const Device& _device,
-			const Surface& _surface,
+			const WindowSurface& _surface,
 			const SurfaceSupportDetails& _details,
 			const VkSurfaceFormatKHR& _surfaceFormat);
 		void DestroySwapChainKHR(const Device& _device);
@@ -34,8 +34,8 @@ namespace SA::VK
 
 //{ Image View
 
-		void CreateImageView(const Device& _device, VkFormat _format);
-		void DestroyImageView(const Device& _device);
+		// void CreateImageView(const Device& _device, VkFormat _format);
+		// void DestroyImageView(const Device& _device);
 
 //}
 
@@ -62,7 +62,7 @@ namespace SA::VK
 
 		struct Frame
 		{
-			VkImageView imageView;
+			// VkImageView imageView;
 			Synchronisation sync;
 		};
 
@@ -72,7 +72,7 @@ namespace SA::VK
 		Vec2ui mExtent;
 
 	public:
-		void Create(const Device& _device, const Surface& _surface);
+		void Create(const Device& _device, const WindowSurface& _surface);
 		void Destroy(const Device& _device);
 
 		/// Get number of image (frame-buffering num).

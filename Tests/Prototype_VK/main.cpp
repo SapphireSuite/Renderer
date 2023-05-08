@@ -5,7 +5,7 @@
 #include <SA/Render/LowLevel/Vulkan/VkInstance.hpp>
 #include <SA/Render/LowLevel/Vulkan/Device/VkDevice.hpp>
 #include <SA/Render/LowLevel/Vulkan/Surface/VkWindowSurface.hpp>
-#include <SA/Render/LowLevel/Vulkan/Surface/VkSurface.hpp>
+#include <SA/Render/LowLevel/Vulkan/Surface/VkSwapchain.hpp>
 #include <SA/Render/LowLevel/Vulkan/Device/Command/VkCommandPool.hpp>
 
 // Must be included after vulkan.
@@ -16,7 +16,7 @@ GLFWwindow* window = nullptr;
 SA::VK::Instance instance;
 SA::VK::WindowSurface winSurface;
 SA::VK::Device device;
-SA::VK::Surface surface;
+SA::VK::Swapchain swapchain;
 SA::VK::CommandPool cmdPool;
 std::vector<SA::VK::CommandBuffer> cmdBuffers;
 
@@ -63,7 +63,11 @@ void Init()
 
 		// Window Surface
 		{
-			glfwCreateWindowSurface(instance, window, nullptr, reinterpret_cast<VkSurfaceKHR*>(&winSurface));
+			VkSurfaceKHR glfwsurface;
+			glfwCreateWindowSurface(instance, window, nullptr, &glfwsurface);
+			
+			winSurface.InitializeHandle(std::move(glfwsurface));
+
 			deviceReqs.SetWindowSurface(&winSurface);
 		}
 
@@ -73,16 +77,16 @@ void Init()
 			device.Create(deviceInfos[0]);
 		}
 
-		// Surface
+		// Swapchain
 		{
-			surface.Create(device, winSurface);
+			swapchain.Create(device, winSurface);
 		}
 
 		// Cmd Buffers
 		{
 			cmdPool.Create(device, device.queueMgr.graphics[0].GetFamilyIndex());
 
-			cmdBuffers = cmdPool.AllocateMultiple(device, surface.swapchain.GetImageNum());
+			cmdBuffers = cmdPool.AllocateMultiple(device, swapchain.GetImageNum());
 		}
 	}
 }
@@ -93,11 +97,11 @@ void Uninit()
 	{
 		cmdPool.Destroy(device);
 
-		surface.Destroy(device);
+		swapchain.Destroy(device);
 
 		device.Destroy();
 
-		vkDestroySurfaceKHR(instance, winSurface, nullptr);
+		winSurface.Destroy(instance);
 		
 		instance.Destroy();
 	}
@@ -110,7 +114,7 @@ void Uninit()
 
 void Loop()
 {
-	// const uint32_t frameIndex = surface.swapchain.Begin(device);
+	// const uint32_t frameIndex = swapchain.Begin(device);
 
 	// SA::VK::CommandBuffer& cmdBuffer = cmdBuffers[frameIndex];
 
@@ -120,7 +124,7 @@ void Loop()
 
 	// cmdBuffer.End();
 
-	// surface.swapchain.End(device, {cmdBuffer});
+	// swapchain.End(device, {cmdBuffer});
 }
 
 int main()
