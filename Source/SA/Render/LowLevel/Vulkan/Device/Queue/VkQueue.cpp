@@ -4,7 +4,7 @@
 
 #include <Device/VkDevice.hpp>
 
-namespace SA::VK
+namespace SA::RND::VK
 {
 	uint32_t Queue::GetFamilyIndex() const noexcept
 	{

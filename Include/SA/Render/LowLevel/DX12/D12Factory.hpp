@@ -7,7 +7,7 @@
 
 #include "DX12API.hpp"
 
-namespace SA::DX12
+namespace SA::RND::DX12
 {
 	using DXFactoryT = IDXGIFactory6*;
 

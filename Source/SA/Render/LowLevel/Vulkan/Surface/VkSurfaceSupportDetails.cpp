@@ -2,7 +2,7 @@
 
 #include <Surface/VkSurfaceSupportDetails.hpp>
 
-namespace SA::VK
+namespace SA::RND::VK
 {
 	VkSurfaceFormatKHR SurfaceSupportDetails::ChooseSwapSurfaceFormat() const
 	{

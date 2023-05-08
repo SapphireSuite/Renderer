@@ -11,7 +11,7 @@ namespace SA
 {
 	class AWindow;
 
-	namespace VK
+	namespace RND::VK
 	{
 		class Instance;
 

@@ -4,7 +4,7 @@
 
 #include <Device/VkDevice.hpp>
 
-namespace SA::VK
+namespace SA::RND::VK
 {
 	void CommandPool::Create(const Device& _device, uint32_t _queueFamilyIndex)
 	{

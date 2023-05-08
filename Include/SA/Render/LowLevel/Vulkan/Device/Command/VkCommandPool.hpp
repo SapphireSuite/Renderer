@@ -7,7 +7,7 @@
 
 #include "VkCommandBuffer.hpp"
 
-namespace SA::VK
+namespace SA::RND::VK
 {
 	class Device;
 

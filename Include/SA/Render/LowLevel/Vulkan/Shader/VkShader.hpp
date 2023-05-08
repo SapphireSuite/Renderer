@@ -9,7 +9,7 @@
 
 #include <SA/Render/LowLevel/Common/Shader/RawShader.hpp>
 
-namespace SA::VK
+namespace SA::RND::VK
 {
 	class Device;
 

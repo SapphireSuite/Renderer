@@ -5,19 +5,16 @@
 
 #include <Debug/Exception_Vulkan.hpp>
 
-namespace SA
+namespace SA::RND::VK
 {
-	namespace VK
+	Exception_Vulkan::Exception_Vulkan(
+		BaseInfo _info,
+		VkResult _vkRes,
+		std::wstring _predStr
+	) noexcept :
+		Exception(std::move(_info),
+			_vkRes == VkResult::VK_SUCCESS,
+			_predStr + L" must return VkResult::VK_SUCCESS")
 	{
-		Exception_Vulkan::Exception_Vulkan(
-			BaseInfo _info,
-			VkResult _vkRes,
-			std::wstring _predStr
-		) noexcept :
-			Exception(std::move(_info),
-				_vkRes == VkResult::VK_SUCCESS,
-				_predStr + L" must return VkResult::VK_SUCCESS")
-		{
-		}
 	}
 }

@@ -8,7 +8,7 @@
 #include "VkQueueFamilyMgr.hpp"
 #include "VkQueueMgrInfo.hpp"
 
-namespace SA::VK
+namespace SA::RND::VK
 {
 	class Device;
 

@@ -2,7 +2,7 @@
 
 #include <Device/Queue/VkQueueMgrInfo.hpp>
 
-namespace SA::VK
+namespace SA::RND::VK
 {
 	std::vector<VkDeviceQueueCreateInfo> QueueMgrIndexInfo::GetQueueCreateInfos() const
 	{

@@ -9,28 +9,25 @@
 
 #if SA_VK_VALIDATION_LAYERS || defined(SA_DOXYGEN)
 
-namespace SA
+namespace SA::RND::VK
 {
-	namespace VK
+	class ValidationLayers
 	{
-		class ValidationLayers
-		{
-		public:
-			~ValidationLayers() = delete;
+	public:
+		~ValidationLayers() = delete;
 
-			static VkDebugUtilsMessengerCreateInfoEXT GetDebugUtilsMessengerCreateInfo() noexcept;
+		static VkDebugUtilsMessengerCreateInfoEXT GetDebugUtilsMessengerCreateInfo() noexcept;
 
-			static uint32_t GetLayerNum() noexcept;
-			static const char* const* GetLayerNames() noexcept;
+		static uint32_t GetLayerNum() noexcept;
+		static const char* const* GetLayerNames() noexcept;
 
-			static bool CheckValidationSupport() noexcept;
+		static bool CheckValidationSupport() noexcept;
 
-			static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-				VkDebugUtilsMessageTypeFlagsEXT messageType,
-				const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-				void* pUserData);
-		};
-	}
+		static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+			VkDebugUtilsMessageTypeFlagsEXT messageType,
+			const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+			void* pUserData);
+	};
 }
 
 #endif

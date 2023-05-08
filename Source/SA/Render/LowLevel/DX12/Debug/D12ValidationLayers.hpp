@@ -7,23 +7,20 @@
 
 #include <d3d12.h>
 
-namespace SA
+namespace SA::RND::DX12
 {
-	namespace DX12
+	class ValidationLayers
 	{
-		class ValidationLayers
-		{
-		public:
-			static void Initialize();
-			static void Uninitialize();
+	public:
+		static void Initialize();
+		static void Uninitialize();
 
-			static void DebugCallback(D3D12_MESSAGE_CATEGORY _category,
-				D3D12_MESSAGE_SEVERITY _severity,
-				D3D12_MESSAGE_ID _ID,
-				LPCSTR _description,
-				void* _context);
-		};
-	}
+		static void DebugCallback(D3D12_MESSAGE_CATEGORY _category,
+			D3D12_MESSAGE_SEVERITY _severity,
+			D3D12_MESSAGE_ID _ID,
+			LPCSTR _description,
+			void* _context);
+	};
 }
 
 #endif // SAPPHIRE_RENDER_DX12_VALIDATION_LAYERS_GUARD

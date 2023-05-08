@@ -9,7 +9,7 @@
 
 #include <SA/Support/API/Windows.hpp>
 
-namespace SA
+namespace SA::RND
 {
 	namespace DX12
 	{

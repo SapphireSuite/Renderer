@@ -7,7 +7,7 @@
 
 #include <cstdint>
 
-namespace SA::VK
+namespace SA::RND::VK
 {
 	struct QueueRequirements
 	{

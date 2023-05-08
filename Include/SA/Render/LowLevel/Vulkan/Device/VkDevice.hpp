@@ -11,7 +11,7 @@
 #include "VkDeviceRequirements.hpp"
 #include "Queue/VkQueueMgr.hpp"
 
-namespace SA::VK
+namespace SA::RND::VK
 {
 	class Instance;
 	class WindowSurface;

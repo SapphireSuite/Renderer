@@ -2,7 +2,7 @@
 
 #include <Device/Queue/VkQueueFamilyMgr.hpp>
 
-namespace SA::VK
+namespace SA::RND::VK
 {
 	void QueueFamilyMgr::Create(const Device& _device, const QueueFamilyInfo& _info)
 	{

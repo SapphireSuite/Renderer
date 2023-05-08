@@ -7,7 +7,7 @@
 
 #include <SA/Logger/Exceptions/Exception.hpp>
 
-namespace SA
+namespace SA::RND
 {
 	namespace VK
 	{

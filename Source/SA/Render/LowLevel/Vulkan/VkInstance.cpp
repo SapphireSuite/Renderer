@@ -5,7 +5,7 @@
 #include "Debug/VkValidationLayers.hpp"
 #include "Device/VkDevice.hpp"
 
-namespace SA::VK
+namespace SA::RND::VK
 {
 	void Instance::Create(std::vector<const char*> _vkExtensions)
 	{

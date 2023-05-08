@@ -9,7 +9,7 @@
 
 #include "VkQueueFamilyInfo.hpp"
 
-namespace SA::VK
+namespace SA::RND::VK
 {
 	struct QueueMgrInfo
 	{

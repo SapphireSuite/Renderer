@@ -5,16 +5,16 @@
 #ifndef SAPPHIRE_RENDER_VK_DEVICE_INFO_GUARD
 #define SAPPHIRE_RENDER_VK_DEVICE_INFO_GUARD
 
-#include <SA/Render/LowLevel/Common/Device/RenderDeviceInfo.hpp>
+#include <SA/Render/LowLevel/Common/Device/DeviceInfo.hpp>
 
 #include "Queue/VkQueueMgrInfo.hpp"
 
-namespace SA::VK
+namespace SA::RND::VK
 {
 	class WindowSurface;
 	struct QueueRequirements;
 
-	struct DeviceInfo : public RenderDeviceInfo
+	struct DeviceInfo : public RND::DeviceInfo
 	{
 		friend class Device;
 

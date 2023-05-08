@@ -7,18 +7,19 @@
 #include <SA/Render/LowLevel/Vulkan/Surface/VkWindowSurface.hpp>
 #include <SA/Render/LowLevel/Vulkan/Surface/VkSwapchain.hpp>
 #include <SA/Render/LowLevel/Vulkan/Device/Command/VkCommandPool.hpp>
+using namespace SA::RND;
 
 // Must be included after vulkan.
 #include <GLFW/glfw3.h>
 
 GLFWwindow* window = nullptr;
 
-SA::VK::Instance instance;
-SA::VK::WindowSurface winSurface;
-SA::VK::Device device;
-SA::VK::Swapchain swapchain;
-SA::VK::CommandPool cmdPool;
-std::vector<SA::VK::CommandBuffer> cmdBuffers;
+VK::Instance instance;
+VK::WindowSurface winSurface;
+VK::Device device;
+VK::Swapchain swapchain;
+VK::CommandPool cmdPool;
+std::vector<VK::CommandBuffer> cmdBuffers;
 
 void GLFWErrorCallback(int32_t error, const char* description)
 {
@@ -59,7 +60,7 @@ void Init()
 			instance.Create(vkExts);
 		}
 
-		SA::VK::DeviceRequirements deviceReqs;
+		VK::DeviceRequirements deviceReqs;
 
 		// Window Surface
 		{
@@ -73,7 +74,7 @@ void Init()
 
 		// Device
 		{
-			std::vector<SA::VK::DeviceInfo> deviceInfos = instance.QueryDeviceInfos(deviceReqs);
+			std::vector<VK::DeviceInfo> deviceInfos = instance.QueryDeviceInfos(deviceReqs);
 			device.Create(deviceInfos[0]);
 		}
 

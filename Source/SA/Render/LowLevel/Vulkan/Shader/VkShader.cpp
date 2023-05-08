@@ -4,7 +4,7 @@
 
 #include <Device/VkDevice.hpp>
 
-namespace SA::VK
+namespace SA::RND::VK
 {
 	void Shader::Create(const Device& _device, const RawShader& _raw)
 	{

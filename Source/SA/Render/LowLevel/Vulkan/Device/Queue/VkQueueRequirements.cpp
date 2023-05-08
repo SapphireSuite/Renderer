@@ -2,7 +2,7 @@
 
 #include <Device/Queue/VkQueueRequirements.hpp>
 
-namespace SA::VK
+namespace SA::RND::VK
 {
 	QueueRequirements QueueRequirements::GraphicsOnly{ 1, 0, 0, 0 };
 	QueueRequirements QueueRequirements::GraphicsCompute{ 1 , 1, 0, 0 };

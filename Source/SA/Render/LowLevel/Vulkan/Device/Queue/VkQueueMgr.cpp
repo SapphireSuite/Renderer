@@ -2,7 +2,7 @@
 
 #include <Device/Queue/VkQueueMgr.hpp>
 
-namespace SA::VK
+namespace SA::RND::VK
 {
 	QueueMgr::QueueMgr()
 	{

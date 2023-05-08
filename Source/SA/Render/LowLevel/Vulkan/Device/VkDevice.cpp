@@ -6,7 +6,7 @@
 
 #include "../Debug/VkValidationLayers.hpp"
 
-namespace SA::VK
+namespace SA::RND::VK
 {
 	const VkPhysicalDeviceMemoryProperties& Device::GetMemoryProperties() const noexcept
 	{

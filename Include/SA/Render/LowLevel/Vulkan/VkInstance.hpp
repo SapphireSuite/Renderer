@@ -12,7 +12,7 @@
 #include "Device/VkDeviceInfo.hpp"
 #include "Device/VkDeviceRequirements.hpp"
 
-namespace SA::VK
+namespace SA::RND::VK
 {
 	class WindowSurface;
 	

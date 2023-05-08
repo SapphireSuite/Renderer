@@ -8,7 +8,7 @@
 #include <d3d12.h>
 #include <string_view>
 
-namespace SA
+namespace SA::RND
 {
 	namespace DX12
 	{

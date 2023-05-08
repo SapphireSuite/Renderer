@@ -2,7 +2,7 @@
 
 #include "D12Factory.hpp"
 
-namespace SA::DX12
+namespace SA::RND::DX12
 {
 	void Factory::Create()
 	{

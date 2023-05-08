@@ -7,7 +7,7 @@
 
 #include <SA/Render/LowLevel/Vulkan/VulkanAPI.hpp>
 
-namespace SA::VK
+namespace SA::RND::VK
 {
 	class CommandBuffer
 	{

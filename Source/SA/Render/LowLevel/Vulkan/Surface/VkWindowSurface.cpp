@@ -4,7 +4,7 @@
 
 #include <VkInstance.hpp>
 
-namespace SA::VK
+namespace SA::RND::VK
 {
 	void WindowSurface::InitializeHandle(VkSurfaceKHR&& _handle)
 	{
