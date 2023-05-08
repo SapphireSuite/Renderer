@@ -70,7 +70,7 @@ namespace SA::VK
 			L"Failed to query physical graphic device extension properties.");
 	//}
 
-		for(auto reqExt : vkRequiredExts)
+		for(auto reqExt : vkRequiredExtensions)
 		{
 			if(!IsExtensionSupported(vkSupportedExts, reqExt))
 				return false;

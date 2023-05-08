@@ -21,7 +21,7 @@ namespace SA::VK
 	//{ Extensions
 
 		/// \b Vulkan-only required extensions.
-		std::vector<const char*> vkRequiredExts;
+		std::vector<const char*> vkRequiredExtensions;
 
 		void AddUniqueExtension(const char* _vkExt);
 		bool RemoveExtension(const char* _vkExt);

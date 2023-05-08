@@ -10,22 +10,22 @@ namespace SA::VK
 
 	void DeviceRequirements::AddUniqueExtension(const char* _vkExt)
 	{
-		for(auto vkReqExt : vkRequiredExts)
+		for(auto vkReqExt : vkRequiredExtensions)
 		{
 			if(std::strcmp(vkReqExt, _vkExt) == 0)
 				return;
 		}
 
-		vkRequiredExts.push_back(_vkExt);
+		vkRequiredExtensions.push_back(_vkExt);
 	}
 
 	bool DeviceRequirements::RemoveExtension(const char* _vkExt)
 	{
-		for(auto it = vkRequiredExts.begin(); it != vkRequiredExts.end(); ++it)
+		for(auto it = vkRequiredExtensions.begin(); it != vkRequiredExtensions.end(); ++it)
 		{
 			if(std::strcmp(*it, _vkExt) == 0)
 			{
-				vkRequiredExts.erase(it);
+				vkRequiredExtensions.erase(it);
 				return true;
 			}
 		}

@@ -40,8 +40,8 @@ namespace SA::VK
 
 #endif
 
-		deviceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(_info.vkRequiredExts.size());
-		deviceCreateInfo.ppEnabledExtensionNames = _info.vkRequiredExts.data();
+		deviceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(_info.vkRequiredExtensions.size());
+		deviceCreateInfo.ppEnabledExtensionNames = _info.vkRequiredExtensions.data();
 		deviceCreateInfo.pEnabledFeatures = &mFeatures;
 
 		SA_VK_API(vkCreateDevice(mPhysical, &deviceCreateInfo, nullptr, &mLogical),
@@ -104,7 +104,7 @@ namespace SA::VK
 			SA_VK_API(vkGetPhysicalDeviceFeatures(info.physicalDevice, &info.physicalFeatures));
 			SA_VK_API(vkGetPhysicalDeviceProperties(info.physicalDevice, &info.physicalProperties));
 
-			info.vkRequiredExts = _reqs.vkRequiredExts;
+			info.vkRequiredExtensions = _reqs.vkRequiredExtensions;
 
 			// Is physical device suitable?
 			if(info.CheckExtensionSupport() &&

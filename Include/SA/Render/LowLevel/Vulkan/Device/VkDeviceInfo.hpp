@@ -35,7 +35,7 @@ namespace SA::VK
 	
 	public:
 		/// \b Vulkan-only required extensions.
-		std::vector<const char*> vkRequiredExts;
+		std::vector<const char*> vkRequiredExtensions;
 
 	private:
 		bool CheckExtensionSupport() const noexcept;
