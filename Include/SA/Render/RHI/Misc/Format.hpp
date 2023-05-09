@@ -376,6 +376,20 @@ namespace SA::RND
 //{ R64G64B64
 
 			/// Unsigned int 64-bit 3-RGB-channel.
+			R64G64B64_UINT,
+			
+			/// Signed int 64-bit 3-RGB-channel.
+			R64G64B64_SINT,
+
+			/// Signed float 64-bit 3-RGB-channel.
+			R64G64B64_SFLOAT,
+
+//}
+
+
+//{ R64G64B64
+
+			/// Unsigned int 64-bit 3-RGB-channel.
 			R64G64B64A64_UINT,
 			
 			/// Signed int 64-bit 3-RGB-channel.
@@ -385,7 +399,34 @@ namespace SA::RND
 			R64G64B64A64_SFLOAT,
 
 //}
+
+
+//{ Depth
+
+			/// Unsigned normalized 16-bit float 1-Depth-channel.
+			D16_UNORM,
+
+			/// Signed float 32-bit 1-Depth-channel.
+			D32_SFLOAT,
+
+			/// Unsigned int 8-bit 1-Stencil-channel.
+			S8_UINT,
+
+			/// Unsigned normalized 16-bit float 1-Depth-channel + Unsigned int 8-bit 1-Stencil-channel.
+			D16_UNORM_S8_UINT,
+
+			/// Unsigned normalized 24-bit float 1-Depth-channel + Unsigned int 8-bit 1-Stencil-channel.
+			D24_UNORM_S8_UINT,
+
+			/// Signed float 32-bit 1-Depth-channel + Unsigned int 8-bit 1-Stencil-channel.
+			D32_SFLOAT_S8_UINT,
+
+//}
 		};
+
+		bool IsDepthFormat(Format _format);
+
+		bool IsPresentFormat(Format _format);
 	}
 	
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL

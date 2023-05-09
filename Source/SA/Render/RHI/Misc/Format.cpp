@@ -4,6 +4,24 @@
 
 namespace SA::RND
 {
+	namespace RHI
+	{
+		bool IsDepthFormat(Format _format)
+		{
+			return _format >= Format::D16_UNORM && _format <= Format::D32_SFLOAT_S8_UINT;
+		}
+
+		bool IsPresentFormat(Format _format)
+		{
+			return _format == Format::R8_SRGB ||
+				_format == Format::R8G8_SRGB ||
+				_format == Format::R8G8B8_SRGB ||
+				_format == Format::B8G8R8_SRGB ||
+				_format == Format::R8G8B8A8_SRGB ||
+				_format == Format::B8G8R8A8_SRGB;
+		}
+	}
+
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
 	namespace VK
@@ -11,6 +29,8 @@ namespace SA::RND
 		VkFormat API_GetFormat(RHI::Format _format)
 		{
 			static const VkFormat vkFormatIndexMap[] = {
+    			VK_FORMAT_UNDEFINED,
+
 				VK_FORMAT_R8_UNORM,
 				VK_FORMAT_R8_SNORM,
 				VK_FORMAT_R8_USCALED,
@@ -122,6 +142,13 @@ namespace SA::RND
 				VK_FORMAT_R64G64B64A64_UINT,
 				VK_FORMAT_R64G64B64A64_SINT,
 				VK_FORMAT_R64G64B64A64_SFLOAT,
+
+				VK_FORMAT_D16_UNORM,
+				VK_FORMAT_D32_SFLOAT,
+				VK_FORMAT_S8_UINT,
+				VK_FORMAT_D16_UNORM_S8_UINT,
+				VK_FORMAT_D24_UNORM_S8_UINT,
+				VK_FORMAT_D32_SFLOAT_S8_UINT,
 			};
 
 			const uint32_t index = static_cast<uint32_t>(_format);

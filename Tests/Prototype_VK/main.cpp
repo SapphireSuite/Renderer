@@ -7,6 +7,8 @@
 #include <SA/Render/LowLevel/Vulkan/Surface/VkWindowSurface.hpp>
 #include <SA/Render/LowLevel/Vulkan/Surface/VkSwapchain.hpp>
 #include <SA/Render/LowLevel/Vulkan/Device/Command/VkCommandPool.hpp>
+#include <SA/Render/LowLevel/Vulkan/Pass/VkRenderPass.hpp>
+#include <SA/Render/RHI/Pass/Descriptors/PassDescriptor.hpp>
 using namespace SA::RND;
 
 // Must be included after vulkan.
@@ -19,6 +21,7 @@ VK::WindowSurface winSurface;
 VK::Device device;
 VK::Swapchain swapchain;
 VK::CommandPool cmdPool;
+VK::RenderPass renderPass;
 std::vector<VK::CommandBuffer> cmdBuffers;
 
 void GLFWErrorCallback(int32_t error, const char* description)
@@ -89,6 +92,81 @@ void Init()
 
 			cmdBuffers = cmdPool.AllocateMultiple(device, swapchain.GetImageNum());
 		}
+
+		// Render Pass
+		{
+			RHI::PassDescriptor passDesc;
+
+			constexpr bool bDepth = true;
+			constexpr bool bMSAA = true;
+
+			// Forward
+			if (false)
+			{
+				auto& mainSubpassDesc = passDesc.subPassDescs.emplace_back();
+
+				if(bMSAA)
+					mainSubpassDesc.sampling = RHI::SampleBits::Sample8Bits;
+
+				// Color and present attachment.
+				auto& colorAttachDesc = mainSubpassDesc.attachmentDescs.emplace_back();
+				colorAttachDesc.format = RHI::Format::B8G8R8A8_SRGB;
+
+				if(bDepth)
+				{
+					auto& depthAttachDesc = mainSubpassDesc.attachmentDescs.emplace_back();
+					depthAttachDesc.format = RHI::Format::D16_UNORM;
+				}
+			}
+			else if(true) // Deferred
+			{
+				passDesc.subPassDescs.reserve(2u);
+
+				// PBR Subpass
+				{
+					auto& pbrSubpassDesc = passDesc.subPassDescs.emplace_back();
+
+					if(bMSAA)
+						pbrSubpassDesc.sampling = RHI::SampleBits::Sample8Bits;
+
+					// Deferred position attachment.
+					auto& posAttachDesc = pbrSubpassDesc.attachmentDescs.emplace_back();
+					posAttachDesc.bInputNext = true;
+
+					// Deferred normal attachment.
+					auto& normAttachDesc = pbrSubpassDesc.attachmentDescs.emplace_back();
+					normAttachDesc.bInputNext = true;
+
+					// Deferred albedo attachment.
+					auto& albedoAttachDesc = pbrSubpassDesc.attachmentDescs.emplace_back();
+					albedoAttachDesc.bInputNext = true;
+
+					// Deferred PBR (Metallic, Roughness, Ambiant occlusion) attachment.
+					auto& pbrAttachDesc = pbrSubpassDesc.attachmentDescs.emplace_back();
+					pbrAttachDesc.bInputNext = true;
+
+					if(bDepth)
+					{
+						auto& depthAttachDesc = pbrSubpassDesc.attachmentDescs.emplace_back();
+						depthAttachDesc.format = RHI::Format::D16_UNORM;
+					}
+				}
+
+				// Present Subpass
+				{
+					auto& presentSubpassDesc = passDesc.subPassDescs.emplace_back();
+
+					if(bMSAA)
+						presentSubpassDesc.sampling = RHI::SampleBits::Sample8Bits;
+
+					auto& presentAttachDesc = presentSubpassDesc.attachmentDescs.emplace_back();
+					presentAttachDesc.format = RHI::Format::B8G8R8A8_SRGB;
+				}
+			}
+
+
+			renderPass.Create(device, VK::API_MakeRenderPassDescriptor(passDesc));
+		}
 	}
 }
 
@@ -96,6 +174,8 @@ void Uninit()
 {
 	// Render
 	{
+		renderPass.Destroy(device);
+
 		cmdPool.Destroy(device);
 
 		swapchain.Destroy(device);

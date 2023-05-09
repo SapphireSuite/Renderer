@@ -178,7 +178,7 @@ namespace SA::RND::VK
 			for (uint32_t i = _famIndexInfo.num; i < _famIndexInfo.num + num; ++i)
 			{
 				_famIndexInfo.queuePriorities.push_back(_priority);
-				_famInfo.queues.emplace_back(_famIndex, i);
+				_famInfo.queues.emplace_back(QueueInfo{ _famIndex, i });
 
 				// Add score for each queue.
 				score += 100;
