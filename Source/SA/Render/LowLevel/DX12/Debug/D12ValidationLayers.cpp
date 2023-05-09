@@ -43,7 +43,7 @@ namespace SA::RND::DX12
 			dxgiDebug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_FLAGS(DXGI_DEBUG_RLO_ALL | DXGI_DEBUG_RLO_IGNORE_INTERNAL));
 			dxgiDebug->Release();
 			
-			SA_LOG(L"Validation layer uninitialized.", Infos, SA.Render.DX12);
+			SA_LOG(L"Validation layer uninitialized.", Info, SA.Render.DX12);
 		}
 		else
 			SA_LOG(L"Validation layer uninitialized failed.", Error, SA.Render.DX12);
@@ -101,7 +101,7 @@ namespace SA::RND::DX12
 			break;
 		}
 
-		std::wstring dets = SA::Intl::StringFormat(L"ID [%1]\tCategory [%2]", static_cast<int>(_ID), categoryStr);
+		std::wstring dets = SA::StringFormat(L"ID [%1]\tCategory [%2]", static_cast<int>(_ID), categoryStr);
 
 		switch (_severity)
 		{
@@ -115,7 +115,7 @@ namespace SA::RND::DX12
 			SA_LOG(_description, Warning, SA.Render.DX12.ValidationLayers, std::move(dets));
 			break;
 		case D3D12_MESSAGE_SEVERITY_INFO:
-			SA_LOG(_description, Infos, SA.Render.DX12.ValidationLayers, std::move(dets));
+			SA_LOG(_description, Info, SA.Render.DX12.ValidationLayers, std::move(dets));
 			break;
 		case D3D12_MESSAGE_SEVERITY_MESSAGE:
 		default:
