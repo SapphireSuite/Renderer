@@ -9,7 +9,7 @@
 	#include <SA/Render/LowLevel/Vulkan/VulkanAPI.hpp>
 #endif
 
-namespace SA
+namespace SA::RND
 {
 	struct Color
 	{
