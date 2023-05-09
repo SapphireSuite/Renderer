@@ -121,7 +121,7 @@ namespace SA::RND::VK
 		SA_VK_API(vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, queueFamilies.data()));
 	//}
 
-		for(size_t i = 0u; i < queueFamilies.size() && !_queueReqs.IsEmpty(); ++i)
+		for(uint32_t i = 0u; i < queueFamilies.size() && !_queueReqs.IsEmpty(); ++i)
 			AddFamily(_winSurface, _queueReqs, queueFamilies[i], i);
 
 

@@ -31,7 +31,7 @@ namespace SA::RND
 
 	namespace VK
 	{
-		VkAttachmentLoadOp API_GetAttachmentLoadOp(const RHI::SubPassAttachmentLoadMode _mode) noexcept;
+		VkAttachmentLoadOp API_GetAttachmentLoadOp(const RHI::SubPassAttachmentLoadMode _mode);
 	}
 
 #endif

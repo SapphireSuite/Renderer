@@ -200,7 +200,7 @@ namespace SA::RND::VK
 
 	uint32_t Swapchain::GetImageNum() const noexcept
 	{
-		return mFrames.size();
+		return static_cast<uint32_t>(mFrames.size());
 	}
 
 //{ Render
@@ -235,7 +235,7 @@ namespace SA::RND::VK
 			submitInfo.waitSemaphoreCount = 1u;
 			submitInfo.pWaitSemaphores = &frame.sync.acquireSemaphore;
 			submitInfo.pWaitDstStageMask = &waitStages;
-			submitInfo.commandBufferCount = _cmdBuffers.size();
+			submitInfo.commandBufferCount = static_cast<uint32_t>(_cmdBuffers.size());
 			submitInfo.pCommandBuffers = reinterpret_cast<const VkCommandBuffer*>(_cmdBuffers.data()); // Warning: Unsafe.
 			submitInfo.signalSemaphoreCount = 1u;
 			submitInfo.pSignalSemaphores = &frame.sync.presentSemaphore;
