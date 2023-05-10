@@ -110,7 +110,7 @@ void Init()
 
 				// Color and present attachment.
 				auto& colorAttachDesc = mainSubpassDesc.attachmentDescs.emplace_back();
-				colorAttachDesc.format = RHI::Format::B8G8R8A8_SRGB;
+				colorAttachDesc.format = VK::API_GetFormat(swapchain.GetFormat());
 
 				if(bDepth)
 				{
@@ -160,7 +160,7 @@ void Init()
 						presentSubpassDesc.sampling = RHI::SampleBits::Sample8Bits;
 
 					auto& presentAttachDesc = presentSubpassDesc.attachmentDescs.emplace_back();
-					presentAttachDesc.format = RHI::Format::B8G8R8A8_SRGB;
+					presentAttachDesc.format = VK::API_GetFormat(swapchain.GetFormat());
 				}
 			}
 

@@ -69,6 +69,7 @@ namespace SA::RND::VK
 		std::vector<Frame> mFrames;
 //}
 
+		VkFormat mFormat;
 		Vec2ui mExtent;
 
 	public:
@@ -77,6 +78,8 @@ namespace SA::RND::VK
 
 		/// Get number of image (frame-buffering num).
 		uint32_t GetImageNum() const noexcept;
+
+		VkFormat GetFormat() const noexcept;
 
 //{ Render
 

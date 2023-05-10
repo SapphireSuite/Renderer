@@ -433,7 +433,8 @@ namespace SA::RND
 
 	namespace VK
 	{
-		VkFormat API_GetFormat(RHI::Format _format);
+		VkFormat API_GetFormat(RHI::Format _rhiFormat);
+		RHI::Format API_GetFormat(VkFormat _vkFormat);
 	}
 
 #endif

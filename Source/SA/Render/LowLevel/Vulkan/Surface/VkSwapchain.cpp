@@ -18,6 +18,7 @@ namespace SA::RND::VK
 	{
 		const VkPresentModeKHR presentMode = _details.ChooseSwapPresentMode();
 		mExtent = _details.ChooseSwapExtent();
+		mFormat = _surfaceFormat.format;
 
 	//{ Image num
 
@@ -201,6 +202,11 @@ namespace SA::RND::VK
 	uint32_t Swapchain::GetImageNum() const noexcept
 	{
 		return static_cast<uint32_t>(mFrames.size());
+	}
+
+	VkFormat Swapchain::GetFormat() const noexcept
+	{
+		return mFormat;
 	}
 
 //{ Render
