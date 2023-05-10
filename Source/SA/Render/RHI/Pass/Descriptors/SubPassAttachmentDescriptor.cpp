@@ -70,7 +70,11 @@ namespace SA::RND
 			}
 
 			if(_RHIsubpassAttach.bInputNext)
-				_inputAttachmentRefs.push_back(VkAttachmentReference{ attachIndex, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL });
+			{
+				// Last attachment added: current or resolved.
+				const uint32_t inputAttachIndex = static_cast<uint32_t>(_subpassAttachments.size() - 1);
+				_inputAttachmentRefs.push_back(VkAttachmentReference{ inputAttachIndex, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL });
+			}
 		}
 	}
 
