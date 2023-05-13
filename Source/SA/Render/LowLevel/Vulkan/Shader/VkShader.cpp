@@ -27,4 +27,9 @@ namespace SA::RND::VK
 		SA_VK_API(vkDestroyShaderModule(_device, mHandle, nullptr));
 		mHandle = VK_NULL_HANDLE;
 	}
+
+	Shader::operator VkShaderModule() const noexcept
+	{
+		return mHandle;
+	}
 }

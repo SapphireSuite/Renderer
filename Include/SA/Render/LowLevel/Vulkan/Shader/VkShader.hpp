@@ -20,6 +20,8 @@ namespace SA::RND::VK
 	public:
 		void Create(const Device& _device, const RawShader& _raw);
 		void Destroy(const Device& _device);
+
+		operator VkShaderModule() const noexcept;
 	};
 }
 
