@@ -24,6 +24,8 @@ namespace SA::RND::VK
 		void Create(const Device& _device, const QueueFamilyInfo& _info);
 		void Destroy();
 
+		uint32_t GetQueueNum() const noexcept;
+
 		const Queue& GetQueue(uint32_t _index) const;
 		const Queue& operator[](uint32_t _index) const;
 	};

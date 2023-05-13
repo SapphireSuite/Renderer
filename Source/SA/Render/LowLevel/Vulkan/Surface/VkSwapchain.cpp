@@ -229,6 +229,14 @@ namespace SA::RND::VK
 
 	void Swapchain::End(const Device& _device, const std::vector<CommandBuffer>& _cmdBuffers)
 	{
+		const Queue& graphics = _device.queueMgr.graphics[0];
+		const Queue& present =_device.queueMgr.present.GetQueueNum() > 0 ? _device.queueMgr.present[0] : graphics;
+
+		End(graphics, present, _cmdBuffers);
+	}
+
+	void Swapchain::End(const Queue& _graphicsQueue, const Queue& _presentQueue, const std::vector<CommandBuffer>& _cmdBuffers)
+	{
 		Frame& frame = mFrames[mFrameIndex];
 
 		// Submit graphics.
@@ -246,7 +254,7 @@ namespace SA::RND::VK
 			submitInfo.signalSemaphoreCount = 1u;
 			submitInfo.pSignalSemaphores = &frame.sync.presentSemaphore;
 
-			SA_VK_API(vkQueueSubmit(_device.queueMgr.graphics[0], 1, &submitInfo, frame.sync.fence),
+			SA_VK_API(vkQueueSubmit(_graphicsQueue, 1, &submitInfo, frame.sync.fence),
 				L"Failed to submit to graphics queue!");
 		}
 
@@ -262,8 +270,7 @@ namespace SA::RND::VK
 			presentInfo.pImageIndices = &mImageIndex;
 			presentInfo.pResults = nullptr;
 
-			// TODO: Implement if no present queue.
-			SA_VK_API(vkQueuePresentKHR(_device.queueMgr.present[0], &presentInfo),
+			SA_VK_API(vkQueuePresentKHR(_presentQueue, &presentInfo),
 				L"Failed to submit present queue!")
 		}
 

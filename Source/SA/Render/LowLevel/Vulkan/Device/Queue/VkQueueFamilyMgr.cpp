@@ -25,6 +25,11 @@ namespace SA::RND::VK
 	}
 
 
+	uint32_t QueueFamilyMgr::GetQueueNum() const noexcept
+	{
+		return static_cast<uint32_t>(mQueues.size());
+	}
+
 	const Queue& QueueFamilyMgr::GetQueue(uint32_t _index) const
 	{
 		SA_ASSERT((OutOfArrayRange, _index, mQueues), SA.Render.Vulkan, L"Queue index out of family range");

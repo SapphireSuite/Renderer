@@ -12,6 +12,7 @@
 namespace SA::RND::VK
 {
 	class Device;
+	class Queue;
 	class WindowSurface;
 	class CommandBuffer;
 	struct SurfaceSupportDetails;
@@ -85,6 +86,7 @@ namespace SA::RND::VK
 
 		uint32_t Begin(const Device& _device);
 		void End(const Device& _device, const std::vector<CommandBuffer>& _cmdBuffers);
+		void End(const Queue& _graphicsQueue, const Queue& _presentQueue, const std::vector<CommandBuffer>& _cmdBuffers);
 
 //}
 	};
