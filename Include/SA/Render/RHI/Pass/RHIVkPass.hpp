@@ -18,7 +18,7 @@ namespace SA::RND::RHI
 		VK::RenderPass mHandle;
 
 	public:
-		const VK::RenderPass& API_Vulkan() const override final;
+		const VK::RenderPass* API_Vulkan() const override final;
 	};
 }
 

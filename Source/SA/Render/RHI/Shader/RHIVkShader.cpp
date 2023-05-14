@@ -6,9 +6,9 @@
 
 namespace SA::RND::RHI
 {
-	const VK::Shader& VkShader::API_Vulkan() const
+	const VK::Shader* VkShader::API_Vulkan() const
 	{
-		return mHandle;
+		return &mHandle;
 	}
 }
 

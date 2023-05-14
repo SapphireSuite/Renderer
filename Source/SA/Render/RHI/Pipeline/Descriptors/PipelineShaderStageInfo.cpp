@@ -15,7 +15,7 @@ namespace SA::RND
 			vkInfo.pNext = nullptr;
 			vkInfo.flags = 0u;
 			vkInfo.stage = API_GetShaderStage(_info.stage);
-			vkInfo.module = _info.shader->API_Vulkan();
+			vkInfo.module = *_info.shader->API_Vulkan();
 			vkInfo.pName = _info.entry.c_str();
 			vkInfo.pSpecializationInfo = nullptr;
 

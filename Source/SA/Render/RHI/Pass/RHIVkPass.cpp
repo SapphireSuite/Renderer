@@ -6,9 +6,9 @@
 
 namespace SA::RND::RHI
 {
-	const VK::RenderPass& VkPass::API_Vulkan() const
+	const VK::RenderPass* VkPass::API_Vulkan() const
 	{
-		return mHandle;
+		return &mHandle;
 	}
 }
 

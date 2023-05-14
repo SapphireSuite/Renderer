@@ -18,7 +18,7 @@ namespace SA::RND::RHI
 	public:
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
-		virtual const VK::Shader& API_Vulkan() const;
+		virtual const VK::Shader* API_Vulkan() const;
 #endif
 	};
 }

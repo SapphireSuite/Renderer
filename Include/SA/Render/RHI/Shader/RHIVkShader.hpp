@@ -18,7 +18,7 @@ namespace SA::RND::RHI
 		VK::Shader mHandle;
 		
 	public:
-		const VK::Shader& API_Vulkan() const override final;
+		const VK::Shader* API_Vulkan() const override final;
 	};
 }
 
