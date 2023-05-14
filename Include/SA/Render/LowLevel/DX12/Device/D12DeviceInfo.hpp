@@ -13,10 +13,17 @@ namespace SA::RND::DX12
 {
 	struct DeviceInfo : public RND::DeviceInfo
 	{
+//{ Physical Device
+
 		DXGI_ADAPTER_DESC2 desc;
 		PhysicalDevice physicalDevice = nullptr;
 
 		void SetPhysicalDevice(PhysicalDevice _device);
+
+//}
+
+		/// Evaluate device to compute score.
+		void Evaluate();
 	};
 }
 

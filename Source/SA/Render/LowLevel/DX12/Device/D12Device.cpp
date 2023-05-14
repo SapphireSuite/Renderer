@@ -78,31 +78,17 @@ namespace SA::RND::DX12
 		UINT index = 0;
 		PhysicalDevice adapter = nullptr;
 
-		// GPU
+		while (SUCCEEDED(_factory->EnumAdapterByGpuPreference(index, DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE, IID_PPV_ARGS(&adapter))))
 		{
-			while (SUCCEEDED(_factory->EnumAdapterByGpuPreference(index, DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE, IID_PPV_ARGS(&adapter))))
+
+			if (CheckDX12Support(adapter))
 			{
-
-				if (CheckDX12Support(adapter))
-				{
-					DeviceInfo& info = result.emplace_back();
-					info.SetPhysicalDevice(adapter);
-					info.score += 1000;
-				}
-
-				++index;
+				DeviceInfo& info = result.emplace_back();
+				info.SetPhysicalDevice(adapter);
+				info.Evaluate();
 			}
-		}
 
-		// Wrap Adapter
-		{
-			SA_DX12_API(_factory->EnumWarpAdapter(IID_PPV_ARGS(&adapter)), L"Query wrap adapter failed!");
-			
-			DeviceInfo info;
-			info.SetPhysicalDevice(adapter);
-
-			if (CheckDX12Support(adapter) && bool(info.desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE))
-				result.emplace_back(info);
+			++index;
 		}
 		
 

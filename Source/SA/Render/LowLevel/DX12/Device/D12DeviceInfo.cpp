@@ -10,4 +10,11 @@ namespace SA::RND::DX12
 
 		physicalDevice->GetDesc2(&desc);
 	}
+
+	void DeviceInfo::Evaluate()
+	{
+		// Not CGPU
+		if((desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE) == 0)
+			score += 1000;
+	}
 }
