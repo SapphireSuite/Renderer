@@ -2,6 +2,9 @@
 
 #include "D12Factory.hpp"
 
+#include "Debug/D12ValidationLayers.hpp"
+#include <Device/D12Device.hpp>
+
 namespace SA::RND::DX12
 {
 	void Factory::Create()
@@ -9,6 +12,8 @@ namespace SA::RND::DX12
 		UINT dxgiFactoryFlags = 0;
 
 	#if SA_DX12_VALIDATION_LAYERS
+
+		ValidationLayers::Initialize();
 
 		// Enable additional debug layers.
 		dxgiFactoryFlags |= DXGI_CREATE_FACTORY_DEBUG;
@@ -26,6 +31,17 @@ namespace SA::RND::DX12
 
 		mHandle->Release();
 		mHandle = nullptr;
+
+	#if SA_DX12_VALIDATION_LAYERS
+
+		ValidationLayers::Uninitialize();
+
+	#endif
+	}
+
+	std::vector<DeviceInfo> Factory::QueryDeviceInfos()
+	{
+		return Device::QueryDeviceInfos(*this);
 	}
 
 	DXFactoryT Factory::operator->() const

@@ -7,6 +7,8 @@
 
 #include "DX12API.hpp"
 
+#include "Device/D12DeviceInfo.hpp"
+
 namespace SA::RND::DX12
 {
 	using DXFactoryT = IDXGIFactory6*;
@@ -18,6 +20,8 @@ namespace SA::RND::DX12
 	public:
 		void Create();
 		void Destroy();
+
+		std::vector<DeviceInfo> QueryDeviceInfos();
 
 		DXFactoryT operator->() const;
 	};
