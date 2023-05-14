@@ -68,7 +68,7 @@ option(SA_RENDER_VULKAN_OPT "Should compile Vulkan wrapper" ON)
 
 if(SA_RENDER_VULKAN_OPT)
 
-	find_package(Vulkan REQUIRED FATAL_ERROR)
+	find_package(Vulkan REQUIRED)
 
 	add_library(SA_Render_LowLevel_Vulkan STATIC)
 	SA_ConfigureTarget(SA_Render_LowLevel_Vulkan)
