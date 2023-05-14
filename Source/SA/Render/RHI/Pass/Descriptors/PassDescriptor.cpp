@@ -8,11 +8,11 @@ namespace SA::RND
 
 	namespace VK
 	{
-		RenderPassInfo API_MakeRenderPassDescriptor(const RHI::PassDescriptor& _RHIpass)
+		RenderPassInfo API_MakeRenderPassDescriptor(const RHI::PassDescriptor& _passDesc)
 		{
 			RenderPassInfo info;
 
-			const uint32_t subpassNum = static_cast<uint32_t>(_RHIpass.subPassDescs.size());
+			const uint32_t subpassNum = static_cast<uint32_t>(_passDesc.subpassDescs.size());
 
 			info.subpassDescriptions.reserve(subpassNum);
 			info.subpassDependencies.reserve(subpassNum);
@@ -23,9 +23,9 @@ namespace SA::RND
 			info.subpassAttachmentResolveRefs.reserve(subpassNum);
 			info.subpassInputAttachmentRefs.reserve(subpassNum);
 
-			for(const auto& RHIsubpass : _RHIpass.subPassDescs)
+			for(const auto& subpassDesc : _passDesc.subpassDescs)
 			{
-				API_AppendRenderSubPassDescriptor(RHIsubpass, info, subpassNum);
+				API_AppendRenderSubpassDescriptor(subpassDesc, info, subpassNum);
 			}
 
 			return info;

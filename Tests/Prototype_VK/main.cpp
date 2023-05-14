@@ -103,64 +103,61 @@ void Init()
 			// Forward
 			if (false)
 			{
-				auto& mainSubpassDesc = passDesc.subPassDescs.emplace_back();
+				auto& mainSubpass = passDesc.subpassDescs.emplace_back();
 
 				if(bMSAA)
-					mainSubpassDesc.sampling = RHI::SampleBits::Sample8Bits;
+					mainSubpass.sampling = RHI::SampleBits::Sample8Bits;
+
+				mainSubpass.DepthDesc.bEnabled = bDepth;
 
 				// Color and present attachment.
-				auto& colorAttachDesc = mainSubpassDesc.attachmentDescs.emplace_back();
-				colorAttachDesc.format = VK::API_GetFormat(swapchain.GetFormat());
+				auto& colorRT = mainSubpass.RTDescs.emplace_back();
+				colorRT.format = VK::API_GetFormat(swapchain.GetFormat());
 
-				if(bDepth)
-				{
-					auto& depthAttachDesc = mainSubpassDesc.attachmentDescs.emplace_back();
-					depthAttachDesc.format = RHI::Format::D16_UNORM;
-				}
+				// if(bDepth)
+				// {
+				// 	auto& depthAttachDesc = mainSubpassDesc.RTDescs.emplace_back();
+				// 	depthAttachDesc.format = RHI::Format::D16_UNORM;
+				// }
 			}
 			else if(true) // Deferred
 			{
-				passDesc.subPassDescs.reserve(2u);
+				passDesc.subpassDescs.reserve(2u);
 
 				// PBR Subpass
 				{
-					auto& pbrSubpassDesc = passDesc.subPassDescs.emplace_back();
+					auto& pbrSubpass = passDesc.subpassDescs.emplace_back();
 
 					if(bMSAA)
-						pbrSubpassDesc.sampling = RHI::SampleBits::Sample8Bits;
+						pbrSubpass.sampling = RHI::SampleBits::Sample8Bits;
 
-					// Deferred position attachment.
-					auto& posAttachDesc = pbrSubpassDesc.attachmentDescs.emplace_back();
-					posAttachDesc.bInputNext = true;
+					pbrSubpass.DepthDesc.bEnabled = bDepth;
 
-					// Deferred normal attachment.
-					auto& normAttachDesc = pbrSubpassDesc.attachmentDescs.emplace_back();
-					normAttachDesc.bInputNext = true;
-
-					// Deferred albedo attachment.
-					auto& albedoAttachDesc = pbrSubpassDesc.attachmentDescs.emplace_back();
-					albedoAttachDesc.bInputNext = true;
-
-					// Deferred PBR (Metallic, Roughness, Ambiant occlusion) attachment.
-					auto& pbrAttachDesc = pbrSubpassDesc.attachmentDescs.emplace_back();
-					pbrAttachDesc.bInputNext = true;
-
-					if(bDepth)
+					// Render Targets
 					{
-						auto& depthAttachDesc = pbrSubpassDesc.attachmentDescs.emplace_back();
-						depthAttachDesc.format = RHI::Format::D16_UNORM;
+						// Deferred position attachment.
+						auto& posRT = pbrSubpass.RTDescs.emplace_back();
+
+						// Deferred normal attachment.
+						auto& normRT = pbrSubpass.RTDescs.emplace_back();
+
+						// Deferred albedo attachment.
+						auto& albedoRT = pbrSubpass.RTDescs.emplace_back();
+
+						// Deferred PBR (Metallic, Roughness, Ambiant occlusion) attachment.
+						auto& pbrRT = pbrSubpass.RTDescs.emplace_back();
 					}
 				}
 
 				// Present Subpass
 				{
-					auto& presentSubpassDesc = passDesc.subPassDescs.emplace_back();
+					auto& presentSubpass = passDesc.subpassDescs.emplace_back();
 
 					if(bMSAA)
-						presentSubpassDesc.sampling = RHI::SampleBits::Sample8Bits;
+						presentSubpass.sampling = RHI::SampleBits::Sample8Bits;
 
-					auto& presentAttachDesc = presentSubpassDesc.attachmentDescs.emplace_back();
-					presentAttachDesc.format = VK::API_GetFormat(swapchain.GetFormat());
+					auto& presentRT = presentSubpass.RTDescs.emplace_back();
+					presentRT.format = VK::API_GetFormat(swapchain.GetFormat());
 				}
 			}
 

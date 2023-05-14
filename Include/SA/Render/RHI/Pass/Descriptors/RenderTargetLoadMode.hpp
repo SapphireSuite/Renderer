@@ -2,8 +2,8 @@
 
 #pragma once
 
-#ifndef SAPPHIRE_RENDER_RHI_SUB_PASS_ATTACHMENT_LOAD_MODE_GUARD
-#define SAPPHIRE_RENDER_RHI_SUB_PASS_ATTACHMENT_LOAD_MODE_GUARD
+#ifndef SAPPHIRE_RENDER_RHI_RENDER_TARGET_LOAD_MODE_GUARD
+#define SAPPHIRE_RENDER_RHI_RENDER_TARGET_LOAD_MODE_GUARD
 
 #include <cstdint>
 
@@ -17,7 +17,7 @@ namespace SA::RND
 {
 	namespace RHI
 	{
-		enum class SubPassAttachmentLoadMode : uint8_t
+		enum class RenderTargetLoadMode : uint8_t
 		{
 			None,
 
@@ -31,10 +31,10 @@ namespace SA::RND
 
 	namespace VK
 	{
-		VkAttachmentLoadOp API_GetAttachmentLoadOp(const RHI::SubPassAttachmentLoadMode _mode);
+		VkAttachmentLoadOp API_GetRenderTargetLoadOp(const RHI::RenderTargetLoadMode _mode);
 	}
 
 #endif
 }
 
-#endif // SAPPHIRE_RENDER_RHI_SUB_PASS_ATTACHMENT_LOAD_MODE_GUARD
+#endif // SAPPHIRE_RENDER_RHI_RENDER_TARGET_LOAD_MODE_GUARD

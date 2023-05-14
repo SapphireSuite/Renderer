@@ -1,6 +1,6 @@
 // Copyright (c) 2023 Sapphire's Suite. All Rights Reserved.
 
-#include <Pass/Descriptors/SubPassDescriptor.hpp>
+#include <Pass/Descriptors/SubpassDescriptor.hpp>
 
 namespace SA::RND
 {
@@ -70,18 +70,18 @@ namespace SA::RND
 			}
 		}
 
-		void API_AppendRenderSubPassDescriptor(
-			const RHI::SubPassDescriptor& _RHIsubpass,
+		void API_AppendRenderSubpassDescriptor(
+			const RHI::SubpassDescriptor& _subpassDesc,
 			RenderPassInfo& _vkInfo,
 			uint32_t _subpassNum
 		)
 		{
-			const VkSampleCountFlagBits sampling = API_GetSampleCount(_RHIsubpass.sampling);
+			const VkSampleCountFlagBits sampling = API_GetSampleCount(_subpassDesc.sampling);
 
 			VkAttachmentReference& depthAttachRef = _vkInfo.subpassDepthAttachmentRefs.emplace_back(
 				VkAttachmentReference{ VK_ATTACHMENT_UNUSED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL });
 		
-			const uint32_t attachmentNum = static_cast<uint32_t>(_RHIsubpass.attachmentDescs.size());
+			const uint32_t attachmentNum = static_cast<uint32_t>(_subpassDesc.RTDescs.size());
 
 			std::vector<VkAttachmentReference>& colorAttachmentRefs = _vkInfo.subpassColorAttachmentRefs.emplace_back();
 			colorAttachmentRefs.reserve(attachmentNum);
@@ -92,18 +92,25 @@ namespace SA::RND
 			std::vector<VkAttachmentReference>& inputAttachmentRefs = _vkInfo.subpassInputAttachmentRefs.emplace_back();
 			inputAttachmentRefs.reserve(attachmentNum);
 
-			for(const auto& attachmentDesc : _RHIsubpass.attachmentDescs)
+			for(const auto& RTDesc : _subpassDesc.RTDescs)
 			{
-				API_AppendRenderSubPassAttachmentDescriptor(
-					attachmentDesc,
+				API_AppendRenderTargetDescriptor(
+					RTDesc,
 					sampling,
 					_vkInfo.subpassAttachments,
-					depthAttachRef,
 					colorAttachmentRefs,
 					resolveAttachmentRefs,
 					inputAttachmentRefs
 				);
 			}
+
+			API_AppendDepthTargetDescriptor(
+				_subpassDesc.DepthDesc,
+				sampling,
+				_vkInfo.subpassAttachments,
+				depthAttachRef,
+				inputAttachmentRefs
+			);
 
 			const uint32_t subpassIndex = static_cast<uint32_t>(_vkInfo.subpassDescriptions.size());
 			VkSubpassDescription& vkSubpassDesc = _vkInfo.subpassDescriptions.emplace_back(Intl::CreateSubpassDesc());

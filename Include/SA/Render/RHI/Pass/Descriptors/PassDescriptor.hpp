@@ -5,7 +5,7 @@
 #ifndef SAPPHIRE_RENDER_RHI_PASS_DESCRIPTOR_GUARD
 #define SAPPHIRE_RENDER_RHI_PASS_DESCRIPTOR_GUARD
 
-#include "SubPassDescriptor.hpp"
+#include "SubpassDescriptor.hpp"
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
@@ -19,7 +19,7 @@ namespace SA::RND
 	{
 		struct PassDescriptor
 		{
-			std::vector<SubPassDescriptor> subPassDescs;
+			std::vector<SubpassDescriptor> subpassDescs;
 		};
 	}
 
@@ -27,7 +27,7 @@ namespace SA::RND
 
 	namespace VK
 	{
-		RenderPassInfo API_MakeRenderPassDescriptor(const RHI::PassDescriptor& _RHIpass);
+		RenderPassInfo API_MakeRenderPassDescriptor(const RHI::PassDescriptor& _passDesc);
 	}
 
 #endif
