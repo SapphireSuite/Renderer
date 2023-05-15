@@ -6,6 +6,7 @@
 #define SAPPHIRE_RENDER_RHI_VK_DEVICE_GUARD
 
 #include "RHIDevice.hpp"
+#include "RHIVkDeviceInfo.hpp"
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
@@ -15,11 +16,11 @@ namespace SA::RND::RHI
 {
 	class VkDevice : public Device
 	{
-		SA::RND::VK::Device mHandle;
+		VK::Device mHandle;
 
 	public:
-		// void Create(const DeviceInfo* _info) override final;
-		// void Destroy() override final;
+		void Create(const DeviceInfo* _info) override final;
+		void Destroy() override final;
 
 		const VK::Device* API_Vulkan() const override final;
 	};

@@ -85,7 +85,7 @@ namespace SA::RND::VK
 	}
 
 
-	std::vector<DeviceInfo> Instance::QueryDeviceInfos(const DeviceRequirements& _reqs)
+	std::vector<DeviceInfo> Instance::QueryDeviceInfos(const DeviceRequirements& _reqs) const
 	{
 		return Device::QueryDeviceInfos(*this, _reqs);
 	}

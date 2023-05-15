@@ -39,7 +39,7 @@ namespace SA::RND::VK
 		 */
 		void Destroy();
 
-		std::vector<DeviceInfo> QueryDeviceInfos(const DeviceRequirements& _reqs = DeviceRequirements{});
+		std::vector<DeviceInfo> QueryDeviceInfos(const DeviceRequirements& _reqs = DeviceRequirements{}) const;
 
 		operator VkInstance() const noexcept;
 	};

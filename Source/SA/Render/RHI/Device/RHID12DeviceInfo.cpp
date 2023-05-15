@@ -6,6 +6,12 @@
 
 namespace SA::RND::RHI
 {
+	D12DeviceInfo::D12DeviceInfo(DX12::DeviceInfo&& _handle) :
+		mHandle{ std::move(_handle) }
+	{
+	}
+
+
 	uint32_t D12DeviceInfo::GetScore() const
 	{
 		return mHandle.score;

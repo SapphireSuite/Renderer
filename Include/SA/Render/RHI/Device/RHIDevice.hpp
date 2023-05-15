@@ -34,8 +34,8 @@ namespace SA::RND
 		public:
 			virtual ~Device() = default;
 
-			// virtual void Create(const DeviceInfo* _info) = 0;
-			// virtual void Destroy() = 0;
+			virtual void Create(const DeviceInfo* _info) = 0;
+			virtual void Destroy() = 0;
 
 		#if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 

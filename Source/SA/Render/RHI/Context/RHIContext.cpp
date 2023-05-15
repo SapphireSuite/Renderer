@@ -6,29 +6,6 @@
 
 namespace SA::RND::RHI
 {
-	namespace Intl
-	{
-		template <typename T>
-		bool TryRemove(std::forward_list<T*>& _list, T* _elem)
-		{
-			auto prevIt = _list.before_begin();
-
-			for(auto it = _list.begin(); it != _list.end(); ++it)
-			{
-				if(*it == _elem)
-				{
-					_list.erase_after(prevIt);
-					return true;
-				}
-
-				prevIt = it;
-			}
-
-			return false;
-		}
-	}
-
-
 	Context::~Context()
 	{
 		Destroy();
@@ -82,7 +59,7 @@ namespace SA::RND::RHI
 	{
 		SA_ASSERT((Nullptr, _pass), SA.Render.RHI);
 
-		if(Intl::TryRemove(mPasses, _pass))
+		if(std::erase(mPasses, _pass))
 		{
 			_pass->Destroy(mDevice);
 			DeletePassClass(_pass);

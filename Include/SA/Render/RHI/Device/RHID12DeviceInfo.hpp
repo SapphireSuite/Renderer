@@ -18,6 +18,9 @@ namespace SA::RND::RHI
 		DX12::DeviceInfo mHandle;
 
 	public:
+		D12DeviceInfo() = default;
+		D12DeviceInfo(DX12::DeviceInfo&& _handle);
+
 		uint32_t GetScore() const override final;
 
 		std::wstring GetName() const override final;

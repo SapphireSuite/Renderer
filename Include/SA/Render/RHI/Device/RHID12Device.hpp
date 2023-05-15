@@ -18,8 +18,8 @@ namespace SA::RND::RHI
 		DX12::Device mHandle;
 
 	public:
-		// void Create(const DeviceInfo* _info) override final;
-		// void Destroy() override final;
+		void Create(const DeviceInfo* _info) override final;
+		void Destroy() override final;
 
 		const DX12::Device* API_DirectX12() const override final;
 	};

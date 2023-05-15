@@ -15,9 +15,12 @@ namespace SA::RND::RHI
 {
 	class VkDeviceInfo : public RHI::DeviceInfo
 	{
-		SA::RND::VK::DeviceInfo mHandle;
+		VK::DeviceInfo mHandle;
 		
 	public:
+		VkDeviceInfo() = default;
+		VkDeviceInfo(VK::DeviceInfo&& _handle);
+
 		uint32_t GetScore() const override final;
 
 		std::wstring GetName() const override final;

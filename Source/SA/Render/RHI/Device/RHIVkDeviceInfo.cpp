@@ -6,6 +6,12 @@
 
 namespace SA::RND::RHI
 {
+	VkDeviceInfo::VkDeviceInfo(VK::DeviceInfo&& _handle) :
+		mHandle{ std::move(_handle) }
+	{
+	}
+
+
 	uint32_t VkDeviceInfo::GetScore() const
 	{
 		return mHandle.score;
