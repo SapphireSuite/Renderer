@@ -2,6 +2,8 @@
 
 #include <Pass/RHIPass.hpp>
 
+#include <SA/Collections/Debug>
+
 namespace SA::RND::RHI
 {
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL

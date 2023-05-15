@@ -5,22 +5,34 @@
 #ifndef SAPPHIRE_RENDER_RHI_PASS_GUARD
 #define SAPPHIRE_RENDER_RHI_PASS_GUARD
 
-#if SA_RENDER_LOWLEVEL_VULKAN_IMPL
+#include "Descriptors/PassDescriptor.hpp"
 
-	#include <SA/Render/LowLevel/Vulkan/Pass/VkRenderPass.hpp>
+#include <SA/Render/RHI/Device/RHIDevice.hpp>
 
-#endif
-
-namespace SA::RND::RHI
+namespace SA::RND
 {
-	class Pass
-	{
-	public:
-
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
-		virtual const VK::RenderPass* API_Vulkan() const;
+
+	namespace VK
+	{
+		class RenderPass;
+	}
+
 #endif
-	};
+
+	namespace RHI
+	{
+		class Pass
+		{
+		public:
+			virtual void Create(const Device* _device, const PassDescriptor& _desc) = 0;
+			virtual void Destroy(const Device* _device) = 0;
+
+	#if SA_RENDER_LOWLEVEL_VULKAN_IMPL
+			virtual const VK::RenderPass* API_Vulkan() const;
+	#endif
+		};
+	}
 }
 
 #endif // SAPPHIRE_RENDER_RHI_PASS_GUARD

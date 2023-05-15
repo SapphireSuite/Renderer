@@ -18,6 +18,9 @@ namespace SA::RND::RHI
 		VK::RenderPass mHandle;
 
 	public:
+		void Create(const Device* _device, const PassDescriptor& _desc) override final;
+		void Destroy(const Device* _device) override final;
+
 		const VK::RenderPass* API_Vulkan() const override final;
 	};
 }
