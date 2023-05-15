@@ -8,7 +8,7 @@ namespace SA::RND::RHI
 {
 	void RenderInterface::Destroy()
 	{
-		DestroyAllDevice();
+		DestroyAllDevices();
 	}
 
 //{ Device
@@ -44,7 +44,7 @@ namespace SA::RND::RHI
 			SA_LOG("Try destroy Device [%1] that does not belong to this context!", Error, SA.Render.RHI);
 	}
 
-	void RenderInterface::DestroyAllDevice()
+	void RenderInterface::DestroyAllDevices()
 	{
 		for(auto device : mDevices)
 		{

@@ -21,7 +21,7 @@ namespace SA::RND::DX12
 		void Create();
 		void Destroy();
 
-		std::vector<DeviceInfo> QueryDeviceInfos();
+		std::vector<DeviceInfo> QueryDeviceInfos() const;
 
 		DXFactoryT operator->() const;
 	};

@@ -25,6 +25,8 @@ namespace SA::RND
 		class Pass
 		{
 		public:
+			virtual ~Pass() = default;
+
 			virtual void Create(const Device* _device, const PassDescriptor& _desc) = 0;
 			virtual void Destroy(const Device* _device) = 0;
 

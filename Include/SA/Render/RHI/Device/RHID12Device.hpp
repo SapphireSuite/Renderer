@@ -6,6 +6,7 @@
 #define SAPPHIRE_RENDER_RHI_D12_DEVICE_GUARD
 
 #include "RHIDevice.hpp"
+#include "RHID12DeviceInfo.hpp"
 
 #if SA_RENDER_LOWLEVEL_DX12_IMPL
 

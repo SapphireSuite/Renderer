@@ -39,7 +39,7 @@ namespace SA::RND::DX12
 	#endif
 	}
 
-	std::vector<DeviceInfo> Factory::QueryDeviceInfos()
+	std::vector<DeviceInfo> Factory::QueryDeviceInfos() const
 	{
 		return Device::QueryDeviceInfos(*this);
 	}

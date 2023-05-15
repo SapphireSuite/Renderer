@@ -24,7 +24,7 @@ namespace SA::RND::RHI
 
 	Device* D12RenderInterface::InstantiateDeviceClass() const
 	{
-		return new VkDevice();
+		return new D12Device();
 	}
 
 	std::vector<std::shared_ptr<DeviceInfo>> D12RenderInterface::QueryDeviceInfos() const

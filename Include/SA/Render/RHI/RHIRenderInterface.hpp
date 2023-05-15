@@ -54,7 +54,7 @@ namespace SA::RND
 		public:
 			Device* CreateDevice(const DeviceInfo* _info);
 			void DestroyDevice(Device* _device);
-			void DestroyAllDevice();
+			void DestroyAllDevices();
 
 			virtual std::vector<std::shared_ptr<DeviceInfo>> QueryDeviceInfos() const = 0;
 
