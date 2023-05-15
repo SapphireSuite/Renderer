@@ -21,4 +21,7 @@
 		"commandCenter.border": "#e7e7e799"
 	},
 	"peacock.color": "#00044b",
+	"files.associations": {
+		"debug": "cpp"
+	},
 }

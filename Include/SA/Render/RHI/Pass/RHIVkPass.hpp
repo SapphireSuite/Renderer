@@ -22,6 +22,6 @@ namespace SA::RND::RHI
 	};
 }
 
-#endif
+#endif // SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
 #endif // SAPPHIRE_RENDER_RHI_VK_PASS_GUARD
