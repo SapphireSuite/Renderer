@@ -14,32 +14,23 @@
 
 #endif
 
-namespace SA::RND
+namespace SA::RND::RHI
 {
-	namespace RHI
+	struct SubpassDescriptor
 	{
-		struct SubpassDescriptor
-		{
-			// All color attachment must have the same sample count.
-			SampleBits sampling = SampleBits::Sample1Bit;
+		// All color attachment must have the same sample count.
+		SampleBits sampling = SampleBits::Sample1Bit;
 
-			std::vector<RenderTargetDescriptor> RTDescs;
-			DepthTargetDescriptor DepthDesc;
-		};
-	}
+		std::vector<RenderTargetDescriptor> RTDescs;
+		DepthTargetDescriptor DepthDesc;
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
-	namespace VK
-	{
-		void API_AppendRenderSubpassDescriptor(
-			const RHI::SubpassDescriptor& _subpassDesc,
-			RenderPassInfo& _vkInfo,
-			uint32_t _subpassNum
-		);
-	}
+		/// Append descriptor to VkInfo.
+		void API_Vulkan(VK::RenderPassInfo& _vkInfo, uint32_t _subpassNum) const;
 
 #endif
+	};
 }
 
 #endif // SAPPHIRE_RENDER_RHI_SUBPASS_DESCRIPTOR_GUARD

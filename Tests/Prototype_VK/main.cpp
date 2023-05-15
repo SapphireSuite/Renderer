@@ -162,7 +162,7 @@ void Init()
 			}
 
 
-			renderPass.Create(device, VK::API_MakeRenderPassDescriptor(passDesc));
+			renderPass.Create(device, passDesc.API_Vulkan());
 		}
 	}
 }

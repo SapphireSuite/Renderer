@@ -8,7 +8,7 @@ namespace SA::RND::RHI
 {
 	void VkPass::Create(const Device* _device, const PassDescriptor& _desc)
 	{
-		mHandle.Create(*_device->API_Vulkan(), VK::API_MakeRenderPassDescriptor(_desc));
+		mHandle.Create(*_device->API_Vulkan(), _desc.API_Vulkan());
 	}
 
 	void VkPass::Destroy(const Device* _device)

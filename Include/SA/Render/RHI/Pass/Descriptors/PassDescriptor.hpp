@@ -13,24 +13,18 @@
 
 #endif
 
-namespace SA::RND
+namespace SA::RND::RHI
 {
-	namespace RHI
+	struct PassDescriptor
 	{
-		struct PassDescriptor
-		{
-			std::vector<SubpassDescriptor> subpassDescs;
-		};
-	}
+		std::vector<SubpassDescriptor> subpassDescs;
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
-	namespace VK
-	{
-		RenderPassInfo API_MakeRenderPassDescriptor(const RHI::PassDescriptor& _passDesc);
-	}
-
+		VK::RenderPassInfo API_Vulkan() const;
+		
 #endif
+	};
 }
 
 #endif // SAPPHIRE_RENDER_RHI_PASS_DESCRIPTOR_GUARD
