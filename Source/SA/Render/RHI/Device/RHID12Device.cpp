@@ -2,10 +2,17 @@
 
 #include <Device/RHID12Device.hpp>
 
+#include <Context/RHID12Context.hpp>
+
 #if SA_RENDER_LOWLEVEL_DX12_IMPL
 
 namespace SA::RND::RHI
 {
+	Context* D12Device::InstantiateContextClass()
+	{
+		return new D12Context();
+	}
+
 	void D12Device::Create(const DeviceInfo* _info)
 	{
 		SA_ASSERT((Nullptr, _info), SA.Render.RHI.DX12);

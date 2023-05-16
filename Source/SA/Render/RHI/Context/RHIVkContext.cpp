@@ -4,6 +4,8 @@
 
 #include <Pass/RHIVkPass.hpp>
 
+#if SA_RENDER_LOWLEVEL_VULKAN_IMPL
+
 namespace SA::RND::RHI
 {
 	Pass* VkContext::InstantiatePassClass()
@@ -11,3 +13,5 @@ namespace SA::RND::RHI
 		return new VkPass();
 	}
 }
+
+#endif // SA_RENDER_LOWLEVEL_VULKAN_IMPL

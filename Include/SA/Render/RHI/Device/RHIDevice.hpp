@@ -5,6 +5,10 @@
 #ifndef SAPPHIRE_RENDER_RHI_DEVICE_GUARD
 #define SAPPHIRE_RENDER_RHI_DEVICE_GUARD
 
+#include <forward_list>
+
+#include <SA/Render/RHI/Context/RHIContext.hpp>
+
 #include "RHIDeviceInfo.hpp"
 
 namespace SA::RND
@@ -32,10 +36,26 @@ namespace SA::RND
 		class Device
 		{
 		public:
-			virtual ~Device() = default;
+			virtual ~Device();
 
 			virtual void Create(const DeviceInfo* _info) = 0;
 			virtual void Destroy() = 0;
+
+//{ Context
+
+		private:
+			std::forward_list<Context*> mContexts;
+
+		protected:
+			virtual Context* InstantiateContextClass() = 0;
+			virtual void DeleteContextClass(Context* _context);
+
+		public:
+			Context* CreateContext();
+			void DestroyContext(Context* _context);
+			void DestroyAllContexts();
+
+//}
 
 		#if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 

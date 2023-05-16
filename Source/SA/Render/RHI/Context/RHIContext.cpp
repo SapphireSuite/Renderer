@@ -65,7 +65,7 @@ namespace SA::RND::RHI
 			DeletePassClass(_pass);
 		}
 		else
-			SA_LOG("Try destroy Pass [%1] that does not belong to this context!", Error, SA.Render.RHI);
+			SA_LOG((L"Try destroy Pass [%1] that does not belong to this context!", _pass), Error, SA.Render.RHI);
 	}
 
 	void Context::DestroyAllPasses()

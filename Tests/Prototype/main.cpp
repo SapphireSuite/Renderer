@@ -8,6 +8,7 @@ using namespace SA::RND;
 
 RHI::RenderInterface* intf;
 RHI::Device* device;
+RHI::Context* context;
 
 void Init()
 {
@@ -23,11 +24,17 @@ void Init()
 		auto infos = intf->QueryDeviceInfos();
 
 		device = intf->CreateDevice(infos[0].get());
+
+		context = device->CreateContext();
 	}
 }
 
 void Uninit()
 {
+	device->DestroyContext(context);
+
+	intf->DestroyDevice(device);
+
 	intf->Destroy();
 	delete intf;
 }

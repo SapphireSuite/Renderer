@@ -7,8 +7,6 @@
 
 #include "Descriptors/PassDescriptor.hpp"
 
-#include <SA/Render/RHI/Device/RHIDevice.hpp>
-
 namespace SA::RND
 {
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
@@ -22,6 +20,8 @@ namespace SA::RND
 
 	namespace RHI
 	{
+		class Device;
+
 		class Pass
 		{
 		public:

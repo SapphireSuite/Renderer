@@ -2,7 +2,7 @@
 
 #include <Device/RHIVkDevice.hpp>
 
-#include <RHIRenderInterface.hpp>
+#include <Context/RHIVkContext.hpp>
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
@@ -18,6 +18,12 @@ namespace SA::RND::RHI
 	void VkDevice::Destroy()
 	{
 		mHandle.Destroy();
+	}
+
+
+	Context* VkDevice::InstantiateContextClass()
+	{
+		return new VkContext();
 	}
 
 

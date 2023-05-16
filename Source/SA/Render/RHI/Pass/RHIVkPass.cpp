@@ -2,6 +2,8 @@
 
 #include <Pass/RHIVkPass.hpp>
 
+#include <Device/RHIDevice.hpp>
+
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
 namespace SA::RND::RHI

@@ -18,6 +18,9 @@ namespace SA::RND::RHI
 	{
 		VK::Device mHandle;
 
+	protected:
+		Context* InstantiateContextClass() override final;
+
 	public:
 		void Create(const DeviceInfo* _info) override final;
 		void Destroy() override final;

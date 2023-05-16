@@ -41,7 +41,7 @@ namespace SA::RND::RHI
 			DeleteDeviceClass(_device);
 		}
 		else
-			SA_LOG("Try destroy Device [%1] that does not belong to this context!", Error, SA.Render.RHI);
+			SA_LOG((L"Try destroy Device [%1] that does not belong to this context!", _device), Error, SA.Render.RHI);
 	}
 
 	void RenderInterface::DestroyAllDevices()

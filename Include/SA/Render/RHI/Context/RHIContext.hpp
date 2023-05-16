@@ -7,11 +7,12 @@
 
 #include <forward_list>
 
-#include "Device/RHIDevice.hpp"
-#include "Pass/RHIPass.hpp"
+#include <SA/Render/RHI/Pass/RHIPass.hpp>
 
 namespace SA::RND::RHI
 {
+	class Device;
+
 	class Context
 	{
 		Device* mDevice = nullptr;
