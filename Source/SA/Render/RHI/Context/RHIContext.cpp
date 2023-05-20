@@ -44,13 +44,13 @@ namespace SA::RND::RHI
 		delete _pass;
 	}
 
-	Pass* Context::CreatePass(const PassDescriptor& _desc)
+	Pass* Context::CreatePass(const PassInfo& _info)
 	{
 		Pass* const pass = mPasses.emplace_front(InstantiatePassClass());
 
 		SA_ASSERT((Nullptr, pass), SA.Render.RHI, (L"Pass instantiate class failed!"));
 
-		pass->Create(mDevice, _desc);
+		pass->Create(mDevice, _info);
 
 		return pass;
 	}

@@ -8,7 +8,7 @@
 #include <SA/Render/LowLevel/Vulkan/Surface/VkSwapchain.hpp>
 #include <SA/Render/LowLevel/Vulkan/Device/Command/VkCommandPool.hpp>
 #include <SA/Render/LowLevel/Vulkan/Pass/VkRenderPass.hpp>
-#include <SA/Render/RHI/Pass/Descriptors/PassDescriptor.hpp>
+#include <SA/Render/RHI/Pass/Info/PassInfo.hpp>
 using namespace SA::RND;
 
 // Must be included after vulkan.
@@ -95,7 +95,7 @@ void Init()
 
 		// Render Pass
 		{
-			RHI::PassDescriptor passDesc;
+			RHI::PassInfo passInfo;
 
 			constexpr bool bDepth = true;
 			constexpr bool bMSAA = true;
@@ -103,68 +103,72 @@ void Init()
 			// Forward
 			if (false)
 			{
-				auto& mainSubpass = passDesc.subpassDescs.emplace_back();
+				auto& mainSubpass = passInfo.subpasses.emplace_back();
 
 				if(bMSAA)
 					mainSubpass.sampling = RHI::SampleBits::Sample8Bits;
 
-				mainSubpass.DepthDesc.bEnabled = bDepth;
-
 				// Color and present attachment.
-				auto& colorRT = mainSubpass.RTDescs.emplace_back();
+				auto& colorRT = mainSubpass.RTs.emplace_back();
 				colorRT.format = VK::API_GetFormat(swapchain.GetFormat());
-				colorRT.bPresent = true;
+				colorRT.usage = RHI::AttachmentUsage::Present;
 
-				// if(bDepth)
-				// {
-				// 	auto& depthAttachDesc = mainSubpassDesc.RTDescs.emplace_back();
-				// 	depthAttachDesc.format = RHI::Format::D16_UNORM;
-				// }
+				if(bDepth)
+				{
+					auto& depthRT = mainSubpass.RTs.emplace_back();
+					depthRT.format = RHI::Format::D16_UNORM;
+					depthRT.type = RHI::AttachmentType::Depth;
+				}
 			}
 			else if(true) // Deferred
 			{
-				passDesc.subpassDescs.reserve(2u);
+				passInfo.subpasses.reserve(2u);
 
 				// PBR Subpass
 				{
-					auto& pbrSubpass = passDesc.subpassDescs.emplace_back();
+					auto& pbrSubpass = passInfo.subpasses.emplace_back();
 
 					if(bMSAA)
 						pbrSubpass.sampling = RHI::SampleBits::Sample8Bits;
 
-					pbrSubpass.DepthDesc.bEnabled = bDepth;
-
 					// Render Targets
 					{
 						// Deferred position attachment.
-						auto& posRT = pbrSubpass.RTDescs.emplace_back();
+						auto& posRT = pbrSubpass.RTs.emplace_back();
 
 						// Deferred normal attachment.
-						auto& normRT = pbrSubpass.RTDescs.emplace_back();
+						auto& normRT = pbrSubpass.RTs.emplace_back();
 
 						// Deferred albedo attachment.
-						auto& albedoRT = pbrSubpass.RTDescs.emplace_back();
+						auto& albedoRT = pbrSubpass.RTs.emplace_back();
 
 						// Deferred PBR (Metallic, Roughness, Ambiant occlusion) attachment.
-						auto& pbrRT = pbrSubpass.RTDescs.emplace_back();
+						auto& pbrRT = pbrSubpass.RTs.emplace_back();
+
+						if(bDepth)
+						{
+							auto& pbrDepthRT = pbrSubpass.RTs.emplace_back();
+							pbrDepthRT.format = RHI::Format::D16_UNORM;
+							pbrDepthRT.type = RHI::AttachmentType::Depth;
+						}
 					}
 				}
 
 				// Present Subpass
 				{
-					auto& presentSubpass = passDesc.subpassDescs.emplace_back();
+					auto& presentSubpass = passInfo.subpasses.emplace_back();
 
 					if(bMSAA)
 						presentSubpass.sampling = RHI::SampleBits::Sample8Bits;
 
-					auto& presentRT = presentSubpass.RTDescs.emplace_back();
+					auto& presentRT = presentSubpass.RTs.emplace_back();
 					presentRT.format = VK::API_GetFormat(swapchain.GetFormat());
-					presentRT.bPresent = true;
+					presentRT.usage = RHI::AttachmentUsage::Present;
 				}
 			}
 
 
-			renderPass.Create(device, passDesc.API_Vulkan());
+			renderPass.Create(device, passInfo.API_Vulkan());
 		}
 	}
 }

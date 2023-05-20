@@ -71,7 +71,7 @@ namespace SA::RND::VK
 //}
 
 		VkFormat mFormat;
-		Vec2ui mExtent;
+		Vec2ui mExtents;
 
 	public:
 		void Create(const Device& _device, const WindowSurface& _surface);
@@ -81,6 +81,7 @@ namespace SA::RND::VK
 		uint32_t GetImageNum() const noexcept;
 
 		VkFormat GetFormat() const noexcept;
+		Vec2ui GetExtents() const noexcept;
 
 //{ Render
 

@@ -2,11 +2,11 @@
 
 #pragma once
 
-#ifndef SAPPHIRE_RENDER_RHI_SUBPASS_DESCRIPTOR_GUARD
-#define SAPPHIRE_RENDER_RHI_SUBPASS_DESCRIPTOR_GUARD
+#ifndef SAPPHIRE_RENDER_RHI_SUBPASS_INFO_GUARD
+#define SAPPHIRE_RENDER_RHI_SUBPASS_INFO_GUARD
 
 #include "SampleBits.hpp"
-#include "RenderTargetDescriptor.hpp"
+#include "RenderTargetInfo.hpp"
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
@@ -16,13 +16,12 @@
 
 namespace SA::RND::RHI
 {
-	struct SubpassDescriptor
+	struct SubpassInfo
 	{
 		// All color attachment must have the same sample count.
 		SampleBits sampling = SampleBits::Sample1Bit;
 
-		std::vector<RenderTargetDescriptor> RTDescs;
-		DepthTargetDescriptor DepthDesc;
+		std::vector<RenderTargetInfo> RTs;
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
@@ -33,4 +32,4 @@ namespace SA::RND::RHI
 	};
 }
 
-#endif // SAPPHIRE_RENDER_RHI_SUBPASS_DESCRIPTOR_GUARD
+#endif // SAPPHIRE_RENDER_RHI_SUBPASS_INFO_GUARD

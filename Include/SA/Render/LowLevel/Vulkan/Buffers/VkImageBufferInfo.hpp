@@ -8,7 +8,6 @@
 #include <SA/Maths/Space/Vector2.hpp>
 
 #include <SA/Render/LowLevel/Vulkan/VulkanAPI.hpp>
-#include <SA/Render/LowLevel/Common/Pass/PassAttachmentType.hpp>
 
 namespace SA::RND::VK
 {

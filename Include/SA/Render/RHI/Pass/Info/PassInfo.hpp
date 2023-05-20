@@ -2,10 +2,10 @@
 
 #pragma once
 
-#ifndef SAPPHIRE_RENDER_RHI_PASS_DESCRIPTOR_GUARD
-#define SAPPHIRE_RENDER_RHI_PASS_DESCRIPTOR_GUARD
+#ifndef SAPPHIRE_RENDER_RHI_PASS_INFO_GUARD
+#define SAPPHIRE_RENDER_RHI_PASS_INFO_GUARD
 
-#include "SubpassDescriptor.hpp"
+#include "SubpassInfo.hpp"
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
@@ -15,9 +15,9 @@
 
 namespace SA::RND::RHI
 {
-	struct PassDescriptor
+	struct PassInfo
 	{
-		std::vector<SubpassDescriptor> subpassDescs;
+		std::vector<SubpassInfo> subpasses;
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
@@ -27,4 +27,4 @@ namespace SA::RND::RHI
 	};
 }
 
-#endif // SAPPHIRE_RENDER_RHI_PASS_DESCRIPTOR_GUARD
+#endif // SAPPHIRE_RENDER_RHI_PASS_INFO_GUARD

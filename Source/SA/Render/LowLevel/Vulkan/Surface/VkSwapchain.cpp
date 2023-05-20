@@ -17,7 +17,7 @@ namespace SA::RND::VK
 		const VkSurfaceFormatKHR& _surfaceFormat)
 	{
 		const VkPresentModeKHR presentMode = _details.ChooseSwapPresentMode();
-		mExtent = _details.ChooseSwapExtent();
+		mExtents = _details.ChooseSwapExtent();
 		mFormat = _surfaceFormat.format;
 
 	//{ Image num
@@ -41,7 +41,7 @@ namespace SA::RND::VK
 		createInfo.minImageCount = imageNum;
 		createInfo.imageFormat = _surfaceFormat.format;
 		createInfo.imageColorSpace = _surfaceFormat.colorSpace;
-		createInfo.imageExtent = VkExtent2D{ mExtent.x, mExtent.y };
+		createInfo.imageExtent = VkExtent2D{ mExtents.x, mExtents.y };
 		createInfo.imageArrayLayers = 1u;
 		createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 		createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
@@ -207,6 +207,11 @@ namespace SA::RND::VK
 	VkFormat Swapchain::GetFormat() const noexcept
 	{
 		return mFormat;
+	}
+
+	Vec2ui Swapchain::GetExtents() const noexcept
+	{
+		return mExtents;
 	}
 
 //{ Render

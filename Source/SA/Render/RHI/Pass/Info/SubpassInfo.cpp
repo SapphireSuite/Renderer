@@ -1,6 +1,6 @@
 // Copyright (c) 2023 Sapphire's Suite. All Rights Reserved.
 
-#include <Pass/Descriptors/SubpassDescriptor.hpp>
+#include <Pass/Info/SubpassInfo.hpp>
 
 namespace SA::RND::RHI
 {
@@ -68,14 +68,14 @@ namespace SA::RND::RHI
 		}
 	}
 
-	void SubpassDescriptor::API_Vulkan(VK::RenderPassInfo& _vkInfo, uint32_t _subpassNum) const
+	void SubpassInfo::API_Vulkan(VK::RenderPassInfo& _vkInfo, uint32_t _subpassNum) const
 	{
 		const VkSampleCountFlagBits vkSampling = VK::API_GetSampleCount(sampling);
 
 		VkAttachmentReference& depthAttachRef = _vkInfo.subpassDepthAttachmentRefs.emplace_back(
 			VkAttachmentReference{ VK_ATTACHMENT_UNUSED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL });
 	
-		const uint32_t attachmentNum = static_cast<uint32_t>(RTDescs.size());
+		const uint32_t attachmentNum = static_cast<uint32_t>(RTs.size());
 
 		std::vector<VkAttachmentReference>& colorAttachmentRefs = _vkInfo.subpassColorAttachmentRefs.emplace_back();
 		colorAttachmentRefs.reserve(attachmentNum);
@@ -86,23 +86,17 @@ namespace SA::RND::RHI
 		std::vector<VkAttachmentReference>& inputAttachmentRefs = _vkInfo.subpassInputAttachmentRefs.emplace_back();
 		inputAttachmentRefs.reserve(attachmentNum);
 
-		for(const auto& RTDesc : RTDescs)
+		for(const auto& RT : RTs)
 		{
-			RTDesc.API_Vulkan(
+			RT.API_Vulkan(
 				vkSampling,
 				_vkInfo.subpassAttachments,
 				colorAttachmentRefs,
+				depthAttachRef,
 				resolveAttachmentRefs,
 				inputAttachmentRefs
 			);
 		}
-
-		DepthDesc.API_VulkanDepth(
-			vkSampling,
-			_vkInfo.subpassAttachments,
-			depthAttachRef,
-			inputAttachmentRefs
-		);
 
 		const uint32_t subpassIndex = static_cast<uint32_t>(_vkInfo.subpassDescriptions.size());
 		VkSubpassDescription& vkSubpassDesc = _vkInfo.subpassDescriptions.emplace_back(Intl::CreateSubpassDesc());

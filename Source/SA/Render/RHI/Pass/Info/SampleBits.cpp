@@ -1,6 +1,6 @@
 // Copyright (c) 2023 Sapphire's Suite. All Rights Reserved.
 
-#include <Pass/Descriptors/SampleBits.hpp>
+#include <Pass/Info/SampleBits.hpp>
 
 namespace SA::RND
 {

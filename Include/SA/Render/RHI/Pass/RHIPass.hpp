@@ -5,7 +5,7 @@
 #ifndef SAPPHIRE_RENDER_RHI_PASS_GUARD
 #define SAPPHIRE_RENDER_RHI_PASS_GUARD
 
-#include "Descriptors/PassDescriptor.hpp"
+#include "Info/PassInfo.hpp"
 
 namespace SA::RND
 {
@@ -27,7 +27,7 @@ namespace SA::RND
 		public:
 			virtual ~Pass() = default;
 
-			virtual void Create(const Device* _device, const PassDescriptor& _desc) = 0;
+			virtual void Create(const Device* _device, const PassInfo& _info) = 0;
 			virtual void Destroy(const Device* _device) = 0;
 
 	#if SA_RENDER_LOWLEVEL_VULKAN_IMPL

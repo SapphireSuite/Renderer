@@ -1,6 +1,6 @@
 // Copyright (c) 2023 Sapphire's Suite. All Rights Reserved.
 
-#include <Pass/Descriptors/RenderTargetLoadMode.hpp>
+#include <Pass/Info/AttachmentLoadMode.hpp>
 
 #include <SA/Collections/Debug>
 
@@ -10,7 +10,7 @@ namespace SA::RND
 
 	namespace VK
 	{
-		VkAttachmentLoadOp API_GetRenderTargetLoadOp(const RHI::RenderTargetLoadMode _mode)
+		VkAttachmentLoadOp API_GetAttachmentLoadOp(RHI::AttachmentLoadMode _mode)
 		{
 			static constexpr VkAttachmentLoadOp vkAttachLoadOpIndexMap[] = {
 				VK_ATTACHMENT_LOAD_OP_DONT_CARE,

@@ -1,16 +1,16 @@
 // Copyright (c) 2023 Sapphire's Suite. All Rights Reserved.
 
-#include <Pass/Descriptors/PassDescriptor.hpp>
+#include <Pass/Info/PassInfo.hpp>
 
 namespace SA::RND::RHI
 {
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
-	VK::RenderPassInfo PassDescriptor::API_Vulkan() const
+	VK::RenderPassInfo PassInfo::API_Vulkan() const
 	{
 		VK::RenderPassInfo info;
 
-		const uint32_t subpassNum = static_cast<uint32_t>(subpassDescs.size());
+		const uint32_t subpassNum = static_cast<uint32_t>(subpasses.size());
 
 		info.subpassDescriptions.reserve(subpassNum);
 		info.subpassDependencies.reserve(subpassNum);
@@ -21,8 +21,8 @@ namespace SA::RND::RHI
 		info.subpassAttachmentResolveRefs.reserve(subpassNum);
 		info.subpassInputAttachmentRefs.reserve(subpassNum);
 
-		for(const auto& subpassDesc : subpassDescs)
-			subpassDesc.API_Vulkan(info, subpassNum);
+		for(const auto& subpass : subpasses)
+			subpass.API_Vulkan(info, subpassNum);
 
 		return info;
 	}
