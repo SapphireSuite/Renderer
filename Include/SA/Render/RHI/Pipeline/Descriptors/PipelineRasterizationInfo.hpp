@@ -15,37 +15,31 @@
 
 #endif
 
-namespace SA::RND
+namespace SA::RND::RHI
 {
-	namespace RHI
+	struct PipelineRasterizationInfo
 	{
-		struct PipelineRasterizationInfo
-		{
-			/// Whether to use conservative rasterization.
-			bool bConservative = false;
+		/// Whether to use conservative rasterization.
+		bool bConservative = false;
 
-			/// Whether to enable depth-testing.
-			bool bDepthTest = true;
+		/// Whether to enable depth-testing.
+		bool bDepthTest = true;
 
-			/// Rasterization polygon mode.
-			PolygonMode polygon = PolygonMode::Fill;
+		/// Rasterization polygon mode.
+		PolygonMode polygon = PolygonMode::Fill;
 
-			/// Rasterization culling mode.
-			CullingMode cullingMode = CullingMode::Back;
+		/// Rasterization culling mode.
+		CullingMode cullingMode = CullingMode::Back;
 
-			/// Rasterization front face mode.
-			FrontFaceMode frontFace = FrontFaceMode::Clockwise;
-		};
-	}
+		/// Rasterization front face mode.
+		FrontFaceMode frontFace = FrontFaceMode::Clockwise;
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
-	namespace VK
-	{
-		VkPipelineRasterizationStateCreateInfo API_GetPipelineRasterizationState(const RHI::PipelineRasterizationInfo& _pipRenderModes);
-	}
-
+	VkPipelineRasterizationStateCreateInfo API_Vulkan() const;
+	
 #endif
+	};
 }
 
 #endif // SAPPHIRE_RENDER_RHI_PIPELINE_RASTERIZATION_INFO_GUARD
