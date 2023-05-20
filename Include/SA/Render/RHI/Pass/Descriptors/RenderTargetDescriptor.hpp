@@ -30,6 +30,9 @@ namespace SA::RND::RHI
 		// Used as input attachment in next subpass.
 		bool bInputNext = true;
 
+		// Used as present attachment.
+		bool bPresent = false;
+
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
 		// Append descriptor to VkInfo.

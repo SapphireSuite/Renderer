@@ -113,6 +113,7 @@ void Init()
 				// Color and present attachment.
 				auto& colorRT = mainSubpass.RTDescs.emplace_back();
 				colorRT.format = VK::API_GetFormat(swapchain.GetFormat());
+				colorRT.bPresent = true;
 
 				// if(bDepth)
 				// {
@@ -158,6 +159,7 @@ void Init()
 
 					auto& presentRT = presentSubpass.RTDescs.emplace_back();
 					presentRT.format = VK::API_GetFormat(swapchain.GetFormat());
+					presentRT.bPresent = true;
 				}
 			}
 

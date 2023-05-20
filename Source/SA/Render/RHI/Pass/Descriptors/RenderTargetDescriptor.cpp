@@ -49,15 +49,15 @@ namespace SA::RND::RHI
 			const uint32_t resolvAttachIndex = static_cast<uint32_t>(_subpassAttachments.size());
 			VkAttachmentDescription& resolveAttachDesc = _subpassAttachments.emplace_back(Intl::CreateAttachment(vkFormat, VK_SAMPLE_COUNT_1_BIT, VK_ATTACHMENT_LOAD_OP_DONT_CARE));
 
-			if (RHI::IsPresentFormat(format))
+			if (bPresent)
 				resolveAttachDesc.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
 			resolveAttachRef.attachment = resolvAttachIndex;
 		}
-		else if(RHI::IsPresentFormat(format))
+		else if(bPresent)
 			attachDesc.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
-		if(bInputNext)
+		if(!bPresent && bInputNext)
 		{
 			// Last attachment added: current or resolved.
 			const uint32_t inputAttachIndex = static_cast<uint32_t>(_subpassAttachments.size() - 1);
@@ -73,6 +73,7 @@ namespace SA::RND::RHI
 		// Default values.
 		format = Format::D16_UNORM;
 		bInputNext = false;
+		bPresent = false;
 	}
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL

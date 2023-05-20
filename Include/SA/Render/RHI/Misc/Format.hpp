@@ -423,10 +423,6 @@ namespace SA::RND
 
 //}
 		};
-
-		bool IsDepthFormat(Format _format);
-
-		bool IsPresentFormat(Format _format);
 	}
 	
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL

@@ -4,24 +4,6 @@
 
 namespace SA::RND
 {
-	namespace RHI
-	{
-		bool IsDepthFormat(Format _format)
-		{
-			return _format >= Format::D16_UNORM && _format <= Format::D32_SFLOAT_S8_UINT;
-		}
-
-		bool IsPresentFormat(Format _format)
-		{
-			return _format == Format::R8_SRGB ||
-				_format == Format::R8G8_SRGB ||
-				_format == Format::R8G8B8_SRGB ||
-				_format == Format::B8G8R8_SRGB ||
-				_format == Format::R8G8B8A8_SRGB ||
-				_format == Format::B8G8R8A8_SRGB;
-		}
-	}
-
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
 	namespace VK
