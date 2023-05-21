@@ -17,6 +17,8 @@ namespace SA::RND::RHI
 	
 	void VkDevice::Destroy()
 	{
+		Device::Destroy();
+
 		mHandle.Destroy();
 	}
 

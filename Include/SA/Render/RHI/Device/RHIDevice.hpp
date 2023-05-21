@@ -36,10 +36,10 @@ namespace SA::RND
 		class Device
 		{
 		public:
-			virtual ~Device();
+			virtual ~Device() = 0;
 
 			virtual void Create(const DeviceInfo* _info) = 0;
-			virtual void Destroy() = 0;
+			virtual void Destroy();
 
 //{ Context
 

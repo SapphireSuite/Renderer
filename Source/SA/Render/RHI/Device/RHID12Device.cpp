@@ -22,6 +22,8 @@ namespace SA::RND::RHI
 	
 	void D12Device::Destroy()
 	{
+		Device::Destroy();
+
 		mHandle.Destroy();
 	}
 

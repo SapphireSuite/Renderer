@@ -6,12 +6,6 @@
 
 namespace SA::RND::RHI
 {
-	Context::~Context()
-	{
-		Destroy();
-	}
-
-
 	void Context::Create(Device* _device)
 	{
 		SA_ASSERT((Nullptr, _device), SA.Render.RHI, L"Instantiate Context with nullptr device!");
@@ -23,10 +17,6 @@ namespace SA::RND::RHI
 	
 	void Context::Destroy()
 	{
-		// Not created or Destroy() already called.
-		if(!mDevice)
-			return;
-
 		DestroyAllPasses();
 
 		mDevice = nullptr;

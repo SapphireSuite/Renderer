@@ -6,7 +6,7 @@
 
 namespace SA::RND::RHI
 {
-	Device::~Device()
+	void Device::Destroy()
 	{
 		DestroyAllContexts();
 	}

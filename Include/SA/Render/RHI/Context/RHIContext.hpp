@@ -18,7 +18,7 @@ namespace SA::RND::RHI
 		Device* mDevice = nullptr;
 
 	public:
-		virtual ~Context();
+		virtual ~Context() = 0;
 
 		void Create(Device* _device);
 		void Destroy();
