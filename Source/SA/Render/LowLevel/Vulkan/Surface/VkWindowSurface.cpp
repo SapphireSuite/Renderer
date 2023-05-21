@@ -8,12 +8,12 @@ namespace SA::RND::VK
 {
 	void WindowSurface::InitializeHandle(VkSurfaceKHR&& _handle)
 	{
-		mHandle = _handle;
+		mHandle = std::move(_handle);
 
 		SA_LOG(L"Window Surface handle initialized.", Info, SA.Render.Vulkan, (L"Handle [%1]", mHandle));
 	}
 
-	void WindowSurface::Create(const Instance& _instance, AWindow* _window)
+	void WindowSurface::Create(const Instance& _instance, const WND::WHI::Window* _window)
 	{
 		// TODO: Implement with Sapphire Windowing lib.
 		(void)_instance;

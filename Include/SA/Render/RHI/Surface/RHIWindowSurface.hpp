@@ -1,0 +1,58 @@
+// Copyright (c) 2023 Sapphire's Suite. All Rights Reserved.
+
+#pragma once
+
+#ifndef SAPPHIRE_RENDER_RHI_WINDOW_SURFACE_GUARD
+#define SAPPHIRE_RENDER_RHI_WINDOW_SURFACE_GUARD
+
+namespace SA::RND
+{
+#if SA_RENDER_LOWLEVEL_VULKAN_IMPL
+
+	namespace VK
+	{
+		class WindowSurface;
+	}
+
+#endif
+
+#if SA_RENDER_LOWLEVEL_DX12_IMPL
+
+	namespace DX12
+	{
+		class WindowSurface;
+	}
+
+#endif
+
+	namespace WND::WHI
+	{
+		class Window;
+	}
+
+	namespace RHI
+	{
+		class RenderInterface;
+
+		class WindowSurface
+		{
+		public:
+			virtual void Create(const RenderInterface* _renderIntf, const WND::WHI::Window* _window) = 0;
+			virtual void Destroy(const RenderInterface* _renderIntf) = 0;
+
+#if SA_RENDER_LOWLEVEL_VULKAN_IMPL
+
+			virtual const VK::WindowSurface* API_Vulkan() const;
+
+#endif
+
+#if SA_RENDER_LOWLEVEL_DX12_IMPL
+
+			virtual const DX12::WindowSurface* API_DirectX12() const;
+
+#endif
+		};
+	}
+}
+
+#endif // SAPPHIRE_RENDER_RHI_WINDOW_SURFACE_GUARD
