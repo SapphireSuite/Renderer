@@ -21,6 +21,14 @@ namespace SA::RND::RHI
 		void Create() override final;
 		void Destroy() override final;
 
+//{ WindowSurface
+
+	protected:
+		WindowSurface* InstantiateWindowSurfaceClass() const override final;
+
+//}
+
+
 //{ Device
 
 	protected:
@@ -28,10 +36,11 @@ namespace SA::RND::RHI
 
 	public:
 		std::vector<std::shared_ptr<DeviceInfo>> QueryDeviceInfos() const override final;
+//}
 
+	public:
 		const VK::Instance* API_Vulkan() const override final;
 
-//}
 	};
 }
 

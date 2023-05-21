@@ -3,6 +3,7 @@
 #include <RHIVkRenderInterface.hpp>
 
 #include <Device/RHIVkDevice.hpp>
+#include <Surface/RHIVkWindowSurface.hpp>
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
@@ -19,6 +20,21 @@ namespace SA::RND::RHI
 
 		mInstance.Destroy();
 	}
+
+//{ WindowSurface
+
+	WindowSurface* VkRenderInterface::InstantiateWindowSurfaceClass() const
+	{
+		return new VkWindowSurface();
+	}
+
+	const VK::Instance* VkRenderInterface::API_Vulkan() const
+	{
+		return &mInstance;
+	}
+	
+//}
+
 
 //{ Device
 
@@ -41,11 +57,6 @@ namespace SA::RND::RHI
 	}
 
 //}
-
-	const VK::Instance* VkRenderInterface::API_Vulkan() const
-	{
-		return &mInstance;
-	}
 }
 
 #endif // SA_RENDER_LOWLEVEL_VULKAN_IMPL

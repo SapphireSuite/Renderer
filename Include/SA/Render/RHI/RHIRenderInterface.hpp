@@ -10,6 +10,7 @@
 #include <forward_list>
 
 #include "Device/RHIDevice.hpp"
+#include "Surface/RHIWindowSurface.hpp"
 
 namespace SA::RND
 {
@@ -41,6 +42,23 @@ namespace SA::RND
 
 			virtual void Create() = 0;
 			virtual void Destroy();
+
+	//{ WindowSurface
+
+		private:
+			std::forward_list<WindowSurface*> mWindowSurfaces;
+
+		protected:
+			virtual WindowSurface* InstantiateWindowSurfaceClass() const = 0;
+			virtual void DeleteWindowSurfaceClass(WindowSurface* _winSurface) const;
+
+		public:
+			WindowSurface* CreateWindowSurface(const WND::WHI::Window* _window);
+			void DestroyWindowSurface(WindowSurface* _winSurface);
+			void DestroyAllWindowSurfaces();
+
+	//}
+	
 
 	//{ Device
 

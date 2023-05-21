@@ -3,6 +3,7 @@
 #include <RHID12RenderInterface.hpp>
 
 #include <Device/RHID12Device.hpp>
+#include <Surface/RHID12WindowSurface.hpp>
 
 #if SA_RENDER_LOWLEVEL_DX12_IMPL
 
@@ -19,6 +20,21 @@ namespace SA::RND::RHI
 
 		mFactory.Destroy();
 	}
+
+//{ WindowSurface
+
+	WindowSurface* D12RenderInterface::InstantiateWindowSurfaceClass() const
+	{
+		return new D12WindowSurface();
+	}
+
+	const DX12::Factory* D12RenderInterface::API_DirectX12() const
+	{
+		return &mFactory;
+	}
+
+//}
+
 
 //{ Device
 
@@ -41,11 +57,6 @@ namespace SA::RND::RHI
 	}
 
 //}
-
-	const DX12::Factory* D12RenderInterface::API_DirectX12() const
-	{
-		return &mFactory;
-	}
 }
 
 #endif // SA_RENDER_LOWLEVEL_DX12_IMPL

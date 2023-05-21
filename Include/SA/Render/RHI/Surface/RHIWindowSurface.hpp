@@ -37,6 +37,8 @@ namespace SA::RND
 		class WindowSurface
 		{
 		public:
+			virtual ~WindowSurface() = default;
+
 			virtual void Create(const RenderInterface* _renderIntf, const WND::WHI::Window* _window) = 0;
 			virtual void Destroy(const RenderInterface* _renderIntf) = 0;
 

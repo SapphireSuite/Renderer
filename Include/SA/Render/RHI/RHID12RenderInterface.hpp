@@ -21,6 +21,14 @@ namespace SA::RND::RHI
 		void Create() override final;
 		void Destroy() override final;
 
+//{ WindowSurface
+
+	protected:
+		WindowSurface* InstantiateWindowSurfaceClass() const override final;
+
+//}
+
+
 //{ Device
 
 	protected:
@@ -29,8 +37,10 @@ namespace SA::RND::RHI
 	public:
 		std::vector<std::shared_ptr<DeviceInfo>> QueryDeviceInfos() const override final;
 
-		const DX12::Factory* API_DirectX12() const override final;
 //}
+
+	public:
+		const DX12::Factory* API_DirectX12() const override final;
 	};
 }
 

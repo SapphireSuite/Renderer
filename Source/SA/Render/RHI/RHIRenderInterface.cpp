@@ -9,7 +9,55 @@ namespace SA::RND::RHI
 	void RenderInterface::Destroy()
 	{
 		DestroyAllDevices();
+		DestroyAllWindowSurfaces();
 	}
+
+//{ WindowSurface
+
+	void RenderInterface::DeleteWindowSurfaceClass(WindowSurface* _winSurface) const
+	{
+		SA_ASSERT((Nullptr, _winSurface), SA.Render.RHI);
+
+		delete _winSurface;
+	}
+
+	WindowSurface* RenderInterface::CreateWindowSurface(const WND::WHI::Window* _window)
+	{
+		WindowSurface* const winSurface = mWindowSurfaces.emplace_front(InstantiateWindowSurfaceClass());
+
+		SA_ASSERT((Nullptr, winSurface), SA.Render.RHI, (L"Window Surface instantiate class failed!"));
+
+		winSurface->Create(this, _window);
+
+		return winSurface;
+	}
+
+	void RenderInterface::DestroyWindowSurface(WindowSurface* _winSurface)
+	{
+		SA_ASSERT((Nullptr, _winSurface), SA.Render.RHI);
+
+		if(std::erase(mWindowSurfaces, _winSurface))
+		{
+			_winSurface->Destroy(this);
+			DeleteWindowSurfaceClass(_winSurface);
+		}
+		else
+			SA_LOG((L"Try destroy Window Surface [%1] that does not belong to this context!", _winSurface), Error, SA.Render.RHI);
+	}
+
+	void RenderInterface::DestroyAllWindowSurfaces()
+	{
+		for(auto device : mWindowSurfaces)
+		{
+			device->Destroy(this);
+			DeleteWindowSurfaceClass(device);
+		}
+
+		mWindowSurfaces.clear();
+	}
+
+//}
+
 
 //{ Device
 
@@ -56,6 +104,7 @@ namespace SA::RND::RHI
 	}
 
 //}
+
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
