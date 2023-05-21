@@ -63,7 +63,8 @@ namespace SA::RND::VK
 
 		struct Frame
 		{
-			// VkImageView imageView;
+			/// backbuffer image.
+			VkImage image;
 			Synchronisation sync;
 		};
 
@@ -79,6 +80,9 @@ namespace SA::RND::VK
 
 		/// Get number of image (frame-buffering num).
 		uint32_t GetImageNum() const noexcept;
+
+		/// Get Swapchain backbuffer image handle at fame index.
+		VkImage GetBackBufferHandle(uint32_t _index) const;
 
 		VkFormat GetFormat() const noexcept;
 		Vec2ui GetExtents() const noexcept;

@@ -71,6 +71,15 @@ namespace SA::RND::VK
 
 		SA_VK_API(vkCreateSwapchainKHR(_device, &createInfo, nullptr, &mHandle), L"Failed to create swapchain!");
 
+
+		// Query backbuffer images.
+		std::vector<VkImage> backbufferImages(imageNum);
+		vkGetSwapchainImagesKHR(_device, mHandle, &imageNum, backbufferImages.data());
+
+		for(uint32_t i = 0; i < imageNum; ++i)
+			mFrames[i].image = backbufferImages[i];
+
+
 		SA_LOG(L"Swapchain created!", Info, SA.Render.Vulkan, (L"Handle [%1]", mHandle));
 	}
 	
@@ -83,58 +92,6 @@ namespace SA::RND::VK
 		mFrames.clear();
 	}
 
-//}
-
-
-//{ Image View
-
-/*
-	void Swapchain::CreateImageView(const Device& _device, VkFormat _format)
-	{
-		uint32_t imageNum = GetImageNum();
-		
-		std::vector<VkImage> images;
-		images.resize(imageNum);
-		
-		SA_VK_API(vkGetSwapchainImagesKHR(_device, mHandle, &imageNum, images.data()));
-
-		VkImageViewCreateInfo createInfo{};
-		createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-		createInfo.pNext = nullptr;
-		createInfo.flags = 0;
-		// createInfo.image; // Set in loop.
-		createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-		createInfo.format = _format;
-		createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
-		createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
-		createInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
-		createInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
-		createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		createInfo.subresourceRange.baseMipLevel = 0;
-		createInfo.subresourceRange.levelCount = 1;
-		createInfo.subresourceRange.baseArrayLayer = 0;
-		createInfo.subresourceRange.layerCount = 1;
-
-		for(uint32_t i = 0; i < imageNum; ++i)
-		{
-			createInfo.image = images[i];
-
-			SA_VK_API(vkCreateImageView(_device, &createInfo, nullptr, &mFrames[i].imageView),
-				L"Failed to create Swapchain image view");
-
-			SA_LOG(L"Swapchain ImageView created.", Info, SA.Render.Vulkan, ("Handle [%1]", mFrames[i].imageView));
-		}
-	}
-	
-	void Swapchain::DestroyImageView(const Device& _device)
-	{
-		for(auto& frame : mFrames)
-		{
-			SA_VK_API(vkDestroyImageView(_device, frame.imageView, nullptr));
-		}
-	}
-
-*/
 //}
 
 
@@ -188,20 +145,25 @@ namespace SA::RND::VK
 		const VkSurfaceFormatKHR surfaceFormat = details.ChooseSwapSurfaceFormat();
 
 		CreateSwapChainKHR(_device, _surface, details, surfaceFormat);
-		//CreateImageView(_device, surfaceFormat.format);
 		CreateSynchronisation(_device);
 	}
 	
 	void Swapchain::Destroy(const Device& _device)
 	{
 		DestroySynchronisation(_device);
-		//DestroyImageView(_device);
 		DestroySwapChainKHR(_device);
 	}
 
 	uint32_t Swapchain::GetImageNum() const noexcept
 	{
 		return static_cast<uint32_t>(mFrames.size());
+	}
+
+	VkImage Swapchain::GetBackBufferHandle(uint32_t _index) const
+	{
+		SA_ASSERT((OutOfArrayRange, _index, mFrames), SA.Render.Vulkan);
+
+		return mFrames[_index].image;
 	}
 
 	VkFormat Swapchain::GetFormat() const noexcept
