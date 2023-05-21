@@ -41,6 +41,11 @@ namespace SA::RND::RHI
 	}
 
 //}
+
+	const VK::Instance* VkRenderInterface::API_Vulkan() const
+	{
+		return &mInstance;
+	}
 }
 
 #endif // SA_RENDER_LOWLEVEL_VULKAN_IMPL

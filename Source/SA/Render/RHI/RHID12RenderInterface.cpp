@@ -41,6 +41,11 @@ namespace SA::RND::RHI
 	}
 
 //}
+
+	const DX12::Factory* D12RenderInterface::API_DirectX12() const
+	{
+		return &mFactory;
+	}
 }
 
 #endif // SA_RENDER_LOWLEVEL_DX12_IMPL

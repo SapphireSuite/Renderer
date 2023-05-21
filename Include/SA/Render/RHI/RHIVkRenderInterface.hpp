@@ -29,6 +29,8 @@ namespace SA::RND::RHI
 	public:
 		std::vector<std::shared_ptr<DeviceInfo>> QueryDeviceInfos() const override final;
 
+		const VK::Instance* API_Vulkan() const override final;
+
 //}
 	};
 }

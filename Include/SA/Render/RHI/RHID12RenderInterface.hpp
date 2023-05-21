@@ -29,6 +29,7 @@ namespace SA::RND::RHI
 	public:
 		std::vector<std::shared_ptr<DeviceInfo>> QueryDeviceInfos() const override final;
 
+		const DX12::Factory* API_DirectX12() const override final;
 //}
 	};
 }
