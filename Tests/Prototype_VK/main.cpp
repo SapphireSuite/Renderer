@@ -8,7 +8,9 @@
 #include <SA/Render/LowLevel/Vulkan/Surface/VkSwapchain.hpp>
 #include <SA/Render/LowLevel/Vulkan/Device/Command/VkCommandPool.hpp>
 #include <SA/Render/LowLevel/Vulkan/Pass/VkRenderPass.hpp>
+#include <SA/Render/LowLevel/Vulkan/Pass/VkFrameBuffer.hpp>
 #include <SA/Render/RHI/Pass/Info/PassInfo.hpp>
+#include <SA/Render/RHI/Pass/FrameBuffer/RHIFrameBufferInfo.hpp>
 using namespace SA::RND;
 
 // Must be included after vulkan.
@@ -22,6 +24,7 @@ VK::Device device;
 VK::Swapchain swapchain;
 VK::CommandPool cmdPool;
 VK::RenderPass renderPass;
+VK::FrameBuffer frameBuffer;
 std::vector<VK::CommandBuffer> cmdBuffers;
 
 void GLFWErrorCallback(int32_t error, const char* description)
@@ -169,6 +172,19 @@ void Init()
 
 
 			renderPass.Create(device, passInfo.API_Vulkan());
+
+
+			// FrameBuffers
+			{
+				RHI::FrameBufferInfo info;
+				info.InitFromPass(nullptr, passInfo);
+				info.SetAllAttachmentsExtents(swapchain.GetExtents());
+
+				VK::FrameBufferInfo vkInfo = info.API_Vulkan();
+				vkInfo.pass = &renderPass;
+
+				frameBuffer.Create(device, vkInfo);
+			}
 		}
 	}
 }
@@ -177,6 +193,8 @@ void Uninit()
 {
 	// Render
 	{
+		frameBuffer.Destroy(device);
+
 		renderPass.Destroy(device);
 
 		cmdPool.Destroy(device);
