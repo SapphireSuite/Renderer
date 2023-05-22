@@ -5,55 +5,59 @@
 #ifndef SAPPHIRE_RENDER_RHI_WINDOW_SURFACE_GUARD
 #define SAPPHIRE_RENDER_RHI_WINDOW_SURFACE_GUARD
 
-namespace SA::RND
+namespace SA
 {
-#if SA_RENDER_LOWLEVEL_VULKAN_IMPL
-
-	namespace VK
-	{
-		class WindowSurface;
-	}
-
-#endif
-
-#if SA_RENDER_LOWLEVEL_DX12_IMPL
-
-	namespace DX12
-	{
-		class WindowSurface;
-	}
-
-#endif
-
 	namespace WND::WHI
 	{
 		class Window;
 	}
 
-	namespace RHI
+	namespace RND
 	{
-		class RenderInterface;
-
-		class WindowSurface
-		{
-		public:
-			virtual ~WindowSurface() = default;
-
-			virtual void Create(const RenderInterface* _renderIntf, const WND::WHI::Window* _window) = 0;
-			virtual void Destroy(const RenderInterface* _renderIntf) = 0;
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
-			virtual const VK::WindowSurface* API_Vulkan() const;
+		namespace VK
+		{
+			class WindowSurface;
+		}
 
 #endif
 
 #if SA_RENDER_LOWLEVEL_DX12_IMPL
 
-			virtual const DX12::WindowSurface* API_DirectX12() const;
+		namespace DX12
+		{
+			class WindowSurface;
+		}
 
 #endif
-		};
+
+		namespace RHI
+		{
+			class RenderInterface;
+
+			class WindowSurface
+			{
+			public:
+				virtual ~WindowSurface() = default;
+
+				virtual void Create(const RenderInterface* _renderIntf, const WND::WHI::Window* _window) = 0;
+				virtual void Destroy(const RenderInterface* _renderIntf) = 0;
+
+#if SA_RENDER_LOWLEVEL_VULKAN_IMPL
+
+				virtual const VK::WindowSurface* API_Vulkan() const;
+
+#endif
+
+#if SA_RENDER_LOWLEVEL_DX12_IMPL
+
+				virtual const DX12::WindowSurface* API_DirectX12() const;
+
+#endif
+			};
+		}
 	}
 }
 

@@ -2,6 +2,8 @@
 
 #include <Surface/D12WindowSurface.hpp>
 
+#include <SA/Collections/Debug>
+
 namespace SA::RND::DX12
 {
 	void WindowSurface::InitializeHandle(HWND&& _handle)
@@ -12,7 +14,7 @@ namespace SA::RND::DX12
 	}
 
 	
-	void WindowSurface::Create(const Factory& _factory, AWindow* _window)
+	void WindowSurface::Create(const Factory& _factory, const WND::WHI::Window* _window)
 	{
 		// TODO: Implement with Sapphire Windowing lib.
 		(void)_factory;

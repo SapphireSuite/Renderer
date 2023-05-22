@@ -2,6 +2,8 @@
 
 #include <Surface/RHID12WindowSurface.hpp>
 
+#include <RHIRenderInterface.hpp>
+
 #if SA_RENDER_LOWLEVEL_DX12_IMPL
 
 namespace SA::RND::RHI
@@ -17,7 +19,7 @@ namespace SA::RND::RHI
 	}
 
 
-	const D12::WindowSurface* D12WindowSurface::API_DirectX12() const
+	const DX12::WindowSurface* D12WindowSurface::API_DirectX12() const
 	{
 		return &mHandle;
 	}

@@ -92,6 +92,7 @@ namespace SA::RND::DX12
 		}
 		
 
+		std::sort(result.begin(), result.end(), DeviceInfo::SortByScore);
 
 		SA_WARN(!result.empty(), SA.Render.DX12, L"No suitable graphic device found!");
 
