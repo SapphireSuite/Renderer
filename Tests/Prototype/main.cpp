@@ -57,7 +57,7 @@ public:
 		{
 			glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 			window = glfwCreateWindow(960, 540, _info.winName.c_str(), nullptr, nullptr);
-			glfwSetWindowPos(window, _info.winPosX, _info.winPosY);
+			glfwSetWindowPos(window, _info.winPosX, _info.winPosY + 30);
 			SA_ASSERT((Nullptr, window), SA.Render.Proto.GLFW, L"GLFW create window failed!");
 		}
 
