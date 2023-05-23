@@ -18,7 +18,7 @@ namespace SA::RND::RHI
 		VK::Instance mInstance;
 
 	public:
-		void Create() override final;
+		void Create(WND::WHI::WindowInterface* _winIntf) override final;
 		void Destroy() override final;
 
 //{ WindowSurface

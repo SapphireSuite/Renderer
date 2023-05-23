@@ -6,6 +6,7 @@
 #include <SA/Collections/Debug>
 
 #include <SA/Render/RHI/Compatibility/Window.hpp>
+#include <SA/Render/RHI/Compatibility/WindowInterface.hpp>
 #include <SA/Render/RHI/RHIVkRenderInterface.hpp>
 #include <SA/Render/RHI/RHID12RenderInterface.hpp>
 using namespace SA::RND;
@@ -24,6 +25,29 @@ void GLFWErrorCallback(int32_t error, const char* description)
 {
 	SA_LOG((L"GLFW Error [%1]: %2", error, description), Error, SA.Render.Proto.GLFW.API);
 }
+
+class WindowInterface : public SA::WND::WHI::WindowInterface
+{
+public:
+#if SA_RENDER_LOWLEVEL_VULKAN_IMPL
+
+	std::vector<const char*> QueryRequiredExtensions() const override final
+	{
+		std::vector<const char*> vkExts;
+
+		uint32_t glfwExtensionCount = 0;
+		const char** glfwExtensions = nullptr;
+
+		glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+
+		vkExts.reserve(glfwExtensionCount);
+		vkExts.insert(vkExts.end(), glfwExtensions, glfwExtensions + glfwExtensionCount);
+
+		return vkExts;
+	}
+
+#endif
+};
 
 class WindowHandle : public SA::WND::WHI::Window
 {
@@ -77,8 +101,10 @@ public:
 
 	void Create(const CreateInfo& _info)
 	{
+		WindowInterface winIntf;
+
 		intf = _info.intf;
-		intf->Create();
+		intf->Create(&winIntf);
 
 		// GLFW
 		{

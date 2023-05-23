@@ -9,8 +9,10 @@
 
 namespace SA::RND::RHI
 {
-	void D12RenderInterface::Create()
+	void D12RenderInterface::Create(WND::WHI::WindowInterface* _winIntf)
 	{
+		(void)_winIntf;
+
 		mFactory.Create();
 	}
 	
