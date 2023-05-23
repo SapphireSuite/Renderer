@@ -5,10 +5,10 @@
 
 #include <SA/Collections/Debug>
 
-#include <SA/Render/RHI/Compatibility/Window.hpp>
-#include <SA/Render/RHI/Compatibility/WindowInterface.hpp>
 #include <SA/Render/RHI/RHIVkRenderInterface.hpp>
 #include <SA/Render/RHI/RHID12RenderInterface.hpp>
+#include <SA/Render/RHI/Compatibility/IRenderWindow.hpp>
+#include <SA/Render/RHI/Compatibility/IWindowInterface.hpp>
 using namespace SA::RND;
 
 // Must be included after vulkan.
@@ -26,7 +26,7 @@ void GLFWErrorCallback(int32_t error, const char* description)
 	SA_LOG((L"GLFW Error [%1]: %2", error, description), Error, SA.Render.Proto.GLFW.API);
 }
 
-class WindowInterface : public SA::WND::WHI::WindowInterface
+class WindowInterface : public RHI::IWindowInterface
 {
 public:
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
@@ -49,7 +49,7 @@ public:
 #endif
 };
 
-class WindowHandle : public SA::WND::WHI::Window
+class WindowHandle : public RHI::IRenderWindow
 {
 	GLFWwindow* mHandle = nullptr;
 

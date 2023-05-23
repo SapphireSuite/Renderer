@@ -2,8 +2,8 @@
 
 #pragma once
 
-#ifndef SAPPHIRE_RENDER_RHI_WINDOW_INTERFACE_GUARD
-#define SAPPHIRE_RENDER_RHI_WINDOW_INTERFACE_GUARD
+#ifndef SAPPHIRE_RENDER_RHI_IWINDOW_INTERFACE_GUARD
+#define SAPPHIRE_RENDER_RHI_IWINDOW_INTERFACE_GUARD
 
 #if defined(SA_WINDOWING_IMPL)
 
@@ -19,9 +19,9 @@
 	#include <SA/Render/LowLevel/DX12/DX12API.hpp>
 #endif
 
-namespace SA::WND::WHI
+namespace SA::RND::RHI
 {
-	class WindowInterface
+	class IWindowInterface
 	{
 	public:
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
@@ -34,4 +34,4 @@ namespace SA::WND::WHI
 
 #endif
 
-#endif // SAPPHIRE_RENDER_RHI_WINDOW_INTERFACE_GUARD
+#endif // SAPPHIRE_RENDER_RHI_IWINDOW_INTERFACE_GUARD

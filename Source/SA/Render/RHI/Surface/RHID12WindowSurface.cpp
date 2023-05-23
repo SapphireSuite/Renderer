@@ -4,13 +4,11 @@
 
 #include <RHIRenderInterface.hpp>
 
-#include <Compatibility/Window.hpp>
-
 #if SA_RENDER_LOWLEVEL_DX12_IMPL
 
 namespace SA::RND::RHI
 {
-	void D12WindowSurface::Create(const RenderInterface* _renderIntf, const WND::WHI::Window* _window)
+	void D12WindowSurface::Create(const RenderInterface* _renderIntf, const IRenderWindow* _window)
 	{
 		(void)_renderIntf;
 

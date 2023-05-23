@@ -21,7 +21,7 @@ namespace SA::RND::RHI
 		delete _winSurface;
 	}
 
-	WindowSurface* RenderInterface::CreateWindowSurface(const WND::WHI::Window* _window)
+	WindowSurface* RenderInterface::CreateWindowSurface(const IRenderWindow* _window)
 	{
 		WindowSurface* const winSurface = mWindowSurfaces.emplace_front(InstantiateWindowSurfaceClass());
 

@@ -18,7 +18,7 @@ namespace SA::RND::RHI
 		DX12::WindowSurface mHandle;
 
 	public:
-		void Create(const RenderInterface* _renderIntf, const WND::WHI::Window* _window) override final;
+		void Create(const RenderInterface* _renderIntf, const IRenderWindow* _window) override final;
 		void Destroy(const RenderInterface* _renderIntf) override final;
 
 		const DX12::WindowSurface& API_DirectX12() const override final;

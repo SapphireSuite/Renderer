@@ -9,7 +9,7 @@
 
 namespace SA::RND::RHI
 {
-	void VkRenderInterface::Create(WND::WHI::WindowInterface* _winIntf)
+	void VkRenderInterface::Create(IWindowInterface* _winIntf)
 	{
 		mInstance.Create(_winIntf->QueryRequiredExtensions());
 	}

@@ -11,7 +11,7 @@
 
 #include "Device/RHIDevice.hpp"
 #include "Surface/RHIWindowSurface.hpp"
-#include "Compatibility/WindowInterface.hpp"
+#include "Compatibility/IWindowInterface.hpp"
 
 namespace SA::RND
 {
@@ -41,7 +41,7 @@ namespace SA::RND
 		public:
 			virtual ~RenderInterface() = default;
 
-			virtual void Create(WND::WHI::WindowInterface* _winIntf = nullptr) = 0;
+			virtual void Create(IWindowInterface* _winIntf = nullptr) = 0;
 			virtual void Destroy();
 
 	//{ WindowSurface
@@ -54,7 +54,7 @@ namespace SA::RND
 			virtual void DeleteWindowSurfaceClass(WindowSurface* _winSurface) const;
 
 		public:
-			WindowSurface* CreateWindowSurface(const WND::WHI::Window* _window);
+			WindowSurface* CreateWindowSurface(const IRenderWindow* _window);
 			void DestroyWindowSurface(WindowSurface* _winSurface);
 			void DestroyAllWindowSurfaces();
 

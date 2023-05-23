@@ -5,13 +5,10 @@
 #ifndef SAPPHIRE_RENDER_RHI_WINDOW_SURFACE_GUARD
 #define SAPPHIRE_RENDER_RHI_WINDOW_SURFACE_GUARD
 
+#include <SA/Render/RHI/Compatibility/IRenderWindow.hpp>
+
 namespace SA
 {
-	namespace WND::WHI
-	{
-		class Window;
-	}
-
 	namespace RND
 	{
 
@@ -42,7 +39,7 @@ namespace SA
 			public:
 				virtual ~WindowSurface() = default;
 
-				virtual void Create(const RenderInterface* _renderIntf, const WND::WHI::Window* _window) = 0;
+				virtual void Create(const RenderInterface* _renderIntf, const IRenderWindow* _window) = 0;
 				virtual void Destroy(const RenderInterface* _renderIntf) = 0;
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL

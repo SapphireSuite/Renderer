@@ -4,13 +4,11 @@
 
 #include <RHIRenderInterface.hpp>
 
-#include <Compatibility/Window.hpp>
-
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
 namespace SA::RND::RHI
 {
-	void VkWindowSurface::Create(const RenderInterface* _renderIntf, const WND::WHI::Window* _window)
+	void VkWindowSurface::Create(const RenderInterface* _renderIntf, const IRenderWindow* _window)
 	{
 		mHandle.Create(_window->CreateVkSurfaceKHR(_renderIntf->API_Vulkan()));
 	}

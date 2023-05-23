@@ -18,7 +18,7 @@ namespace SA::RND::RHI
 		VK::WindowSurface mHandle;
 
 	public:
-		void Create(const RenderInterface* _renderIntf, const WND::WHI::Window* _window) override final;
+		void Create(const RenderInterface* _renderIntf, const IRenderWindow* _window) override final;
 		void Destroy(const RenderInterface* _renderIntf) override final;
 
 		const VK::WindowSurface& API_Vulkan() const override final;
