@@ -15,7 +15,7 @@ namespace SA::RND
 		Vec2ui mExtents;
 
 	public:
-		Vec2ui GetExtents() const noexcept;
+		const Vec2ui& GetExtents() const noexcept;
 	};
 }
 
