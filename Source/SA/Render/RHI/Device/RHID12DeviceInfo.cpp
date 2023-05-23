@@ -35,9 +35,9 @@ namespace SA::RND::RHI
 	}
 
 
-	const DX12::DeviceInfo* D12DeviceInfo::API_DirectX12() const
+	const DX12::DeviceInfo& D12DeviceInfo::API_DirectX12() const
 	{
-		return &mHandle;
+		return mHandle;
 	}
 }
 

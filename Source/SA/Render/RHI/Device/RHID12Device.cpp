@@ -17,7 +17,7 @@ namespace SA::RND::RHI
 	{
 		SA_ASSERT((Nullptr, _info), SA.Render.RHI.DX12);
 
-		mHandle.Create(*_info->API_DirectX12());
+		mHandle.Create(_info->API_DirectX12());
 	}
 	
 	void D12Device::Destroy()
@@ -28,9 +28,9 @@ namespace SA::RND::RHI
 	}
 
 
-	const DX12::Device* D12Device::API_DirectX12() const
+	const DX12::Device& D12Device::API_DirectX12() const
 	{
-		return &mHandle;
+		return mHandle;
 	}
 }
 

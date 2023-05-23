@@ -28,7 +28,7 @@ namespace SA::RND::RHI
 		uint32_t GetID() const override final;
 		uint32_t GetVendorID() const override final;
 
-		const VK::DeviceInfo* API_Vulkan() const override final;
+		const VK::DeviceInfo& API_Vulkan() const override final;
 	};
 }
 

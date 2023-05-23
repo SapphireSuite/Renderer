@@ -13,8 +13,6 @@ namespace SA::RND::RHI
 	{
 		// TODO: IMPLEMENT.
 		throw nullptr;
-
-		return nullptr;
 	}
 }
 

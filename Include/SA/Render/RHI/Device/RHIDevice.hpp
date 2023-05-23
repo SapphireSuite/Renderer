@@ -59,13 +59,13 @@ namespace SA::RND
 
 		#if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
-			virtual const VK::Device* API_Vulkan() const;
+			virtual const VK::Device& API_Vulkan() const;
 
 		#endif
 
 		#if SA_RENDER_LOWLEVEL_DX12_IMPL
 
-			virtual const DX12::Device* API_DirectX12() const;
+			virtual const DX12::Device& API_DirectX12() const;
 
 		#endif
 		};

@@ -21,7 +21,7 @@ namespace SA::RND::RHI
 		void Create(const RenderInterface* _renderIntf, const WND::WHI::Window* _window) override final;
 		void Destroy(const RenderInterface* _renderIntf) override final;
 
-		const VK::WindowSurface* API_Vulkan() const override final;
+		const VK::WindowSurface& API_Vulkan() const override final;
 	};
 }
 

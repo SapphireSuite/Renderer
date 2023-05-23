@@ -15,13 +15,13 @@ namespace SA::RND::RHI
 		const SwapchainSettings& _settings)
 	{
 		(void)_renderIntf;
-		mHandle.Create(*_device->API_Vulkan(), *_winSurface->API_Vulkan(), _settings.API_Vulkan());
+		mHandle.Create(_device->API_Vulkan(), _winSurface->API_Vulkan(), _settings.API_Vulkan());
 	}
 
 	void VkSwapchain::Destroy(const RenderInterface* _renderIntf, const Device* _device)
 	{
 		(void)_renderIntf;
-		mHandle.Destroy(*_device->API_Vulkan());
+		mHandle.Destroy(_device->API_Vulkan());
 	}
 }
 

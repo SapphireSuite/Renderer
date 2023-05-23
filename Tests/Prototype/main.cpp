@@ -69,16 +69,16 @@ public:
 			if (auto vkWinSurface = dynamic_cast<RHI::VkWindowSurface*>(winSurface))
 			{
 				VkSurfaceKHR glfwsurface;
-				glfwCreateWindowSurface(*intf->API_Vulkan(), window, nullptr, &glfwsurface);
+				glfwCreateWindowSurface(intf->API_Vulkan(), window, nullptr, &glfwsurface);
 
-				const_cast<VK::WindowSurface*>(vkWinSurface->API_Vulkan())->InitializeHandle(std::move(glfwsurface));
+				const_cast<VK::WindowSurface&>(vkWinSurface->API_Vulkan()).InitializeHandle(std::move(glfwsurface));
 			}
 #endif
 
 #if SA_RENDER_LOWLEVEL_DX12_IMPL
 			if (auto d12WinSurface = dynamic_cast<RHI::D12WindowSurface*>(winSurface))
 			{
-				const_cast<DX12::WindowSurface*>(d12WinSurface->API_DirectX12())->InitializeHandle(glfwGetWin32Window(window));
+				const_cast<DX12::WindowSurface&>(d12WinSurface->API_DirectX12()).InitializeHandle(glfwGetWin32Window(window));
 			}
 #endif
 		}

@@ -47,13 +47,13 @@ namespace SA
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
-				virtual const VK::WindowSurface* API_Vulkan() const;
+				virtual const VK::WindowSurface& API_Vulkan() const;
 
 #endif
 
 #if SA_RENDER_LOWLEVEL_DX12_IMPL
 
-				virtual const DX12::WindowSurface* API_DirectX12() const;
+				virtual const DX12::WindowSurface& API_DirectX12() const;
 
 #endif
 			};

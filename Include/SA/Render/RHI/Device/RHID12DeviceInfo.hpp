@@ -28,7 +28,7 @@ namespace SA::RND::RHI
 		uint32_t GetID() const override final;
 		uint32_t GetVendorID() const override final;
 
-		const DX12::DeviceInfo* API_DirectX12() const override final;
+		const DX12::DeviceInfo& API_DirectX12() const override final;
 	};
 }
 

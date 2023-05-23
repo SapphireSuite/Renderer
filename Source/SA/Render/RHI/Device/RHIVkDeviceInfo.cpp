@@ -36,9 +36,9 @@ namespace SA::RND::RHI
 	}
 
 
-	const VK::DeviceInfo* VkDeviceInfo::API_Vulkan() const
+	const VK::DeviceInfo& VkDeviceInfo::API_Vulkan() const
 	{
-		return &mHandle;
+		return mHandle;
 	}
 }
 

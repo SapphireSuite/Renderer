@@ -10,18 +10,18 @@ namespace SA::RND::RHI
 {
 	void VkWindowSurface::Create(const RenderInterface* _renderIntf, const WND::WHI::Window* _window)
 	{
-		mHandle.Create(*_renderIntf->API_Vulkan(), _window);
+		mHandle.Create(_renderIntf->API_Vulkan(), _window);
 	}
 
 	void VkWindowSurface::Destroy(const RenderInterface* _renderIntf)
 	{
-		mHandle.Destroy(*_renderIntf->API_Vulkan());
+		mHandle.Destroy(_renderIntf->API_Vulkan());
 	}
 
 
-	const VK::WindowSurface* VkWindowSurface::API_Vulkan() const
+	const VK::WindowSurface& VkWindowSurface::API_Vulkan() const
 	{
-		return &mHandle;
+		return mHandle;
 	}
 }
 

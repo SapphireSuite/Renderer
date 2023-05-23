@@ -12,7 +12,7 @@ namespace SA::RND::RHI
 	{
 		SA_ASSERT((Nullptr, _info), SA.Render.RHI.Vulkan);
 
-		mHandle.Create(*_info->API_Vulkan());
+		mHandle.Create(_info->API_Vulkan());
 	}
 	
 	void VkDevice::Destroy()
@@ -29,9 +29,9 @@ namespace SA::RND::RHI
 	}
 
 
-	const VK::Device* VkDevice::API_Vulkan() const
+	const VK::Device& VkDevice::API_Vulkan() const
 	{
-		return &mHandle;
+		return mHandle;
 	}
 }
 

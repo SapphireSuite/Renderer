@@ -39,7 +39,7 @@ namespace SA::RND::RHI
 //}
 
 	public:
-		const VK::Instance* API_Vulkan() const override final;
+		const VK::Instance& API_Vulkan() const override final;
 
 	};
 }

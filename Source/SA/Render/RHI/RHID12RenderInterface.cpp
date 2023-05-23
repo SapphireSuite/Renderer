@@ -28,9 +28,9 @@ namespace SA::RND::RHI
 		return new D12WindowSurface();
 	}
 
-	const DX12::Factory* D12RenderInterface::API_DirectX12() const
+	const DX12::Factory& D12RenderInterface::API_DirectX12() const
 	{
-		return &mFactory;
+		return mFactory;
 	}
 
 //}

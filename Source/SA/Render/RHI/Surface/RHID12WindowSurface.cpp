@@ -10,18 +10,18 @@ namespace SA::RND::RHI
 {
 	void D12WindowSurface::Create(const RenderInterface* _renderIntf, const WND::WHI::Window* _window)
 	{
-		mHandle.Create(*_renderIntf->API_DirectX12(), _window);
+		mHandle.Create(_renderIntf->API_DirectX12(), _window);
 	}
 
 	void D12WindowSurface::Destroy(const RenderInterface* _renderIntf)
 	{
-		mHandle.Destroy(*_renderIntf->API_DirectX12());
+		mHandle.Destroy(_renderIntf->API_DirectX12());
 	}
 
 
-	const DX12::WindowSurface* D12WindowSurface::API_DirectX12() const
+	const DX12::WindowSurface& D12WindowSurface::API_DirectX12() const
 	{
-		return &mHandle;
+		return mHandle;
 	}
 }
 

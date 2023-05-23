@@ -15,7 +15,7 @@ namespace SA::RND::RHI
 		const WindowSurface* _winSurface,
 		const SwapchainSettings& _settings)
 	{
-		mHandle.Create(*_renderIntf->API_DirectX12(), *_device->API_DirectX12(), *_winSurface->API_DirectX12(), _settings.API_DirectX12());
+		mHandle.Create(_renderIntf->API_DirectX12(), _device->API_DirectX12(), _winSurface->API_DirectX12(), _settings.API_DirectX12());
 	}
 
 	void D12Swapchain::Destroy(const RenderInterface* _renderIntf, const Device* _device)

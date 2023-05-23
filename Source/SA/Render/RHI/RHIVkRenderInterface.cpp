@@ -28,9 +28,9 @@ namespace SA::RND::RHI
 		return new VkWindowSurface();
 	}
 
-	const VK::Instance* VkRenderInterface::API_Vulkan() const
+	const VK::Instance& VkRenderInterface::API_Vulkan() const
 	{
-		return &mInstance;
+		return mInstance;
 	}
 	
 //}

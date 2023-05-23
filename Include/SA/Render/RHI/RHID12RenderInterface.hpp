@@ -40,7 +40,7 @@ namespace SA::RND::RHI
 //}
 
 	public:
-		const DX12::Factory* API_DirectX12() const override final;
+		const DX12::Factory& API_DirectX12() const override final;
 	};
 }
 
