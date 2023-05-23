@@ -22,18 +22,16 @@ namespace SA::RND::DX12
 
 		SA_DX12_API(CreateDXGIFactory2(dxgiFactoryFlags, IID_PPV_ARGS(&mHandle)), L"Failed to create DX12 factory.");
 
-		SA_LOG(L"Factory created.", Info, SA.Render.DX12, (L"Handle [%1]", mHandle));
+		SA_LOG(L"Factory created.", Info, SA.Render.DX12, (L"Handle [%1]", mHandle.Get()));
 	}
 	
 	void Factory::Destroy()
 	{
 		if (mHandle)
 		{
-			mHandle->Release();
+			SA_LOG_RAII(L"Factory destroyed.", Info, SA.Render.DX12, (L"Handle [%1]", mHandle.Get()));
 			
-			SA_LOG(L"Factory destroyed.", Info, SA.Render.DX12, (L"Handle [%1]", mHandle));
-
-			mHandle = nullptr;
+			mHandle.Reset();
 		}
 
 	#if SA_DX12_VALIDATION_LAYERS

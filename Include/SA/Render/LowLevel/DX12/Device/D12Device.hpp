@@ -14,7 +14,7 @@ namespace SA::RND::DX12
 	class Device
 	{
 		/// Logical device handle.
-		ID3D12Device* mLogicalDevice = nullptr;
+		Microsoft::WRL::ComPtr<ID3D12Device> mLogicalDevice = nullptr;
 
 		/// Physical device handle.
 		PhysicalDevice mPhysicalDevice = nullptr;
@@ -24,6 +24,8 @@ namespace SA::RND::DX12
 		void Destroy();
 
 		static std::vector<DeviceInfo> QueryDeviceInfos(const Factory& _factory);
+
+		operator ID3D12Device* () noexcept;
 	};
 }
 

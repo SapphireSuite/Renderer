@@ -17,6 +17,8 @@
 #include <d3d12.h>
 #include <dxgi1_6.h>
 
+#include <wrl.h> // ComPtr
+
 #include "Debug/Debug.hpp"
 
 #if SA_RENDER_API_TRACKING || defined(SA_DOXIGEN)

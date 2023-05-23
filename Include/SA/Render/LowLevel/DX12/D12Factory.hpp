@@ -11,7 +11,7 @@
 
 namespace SA::RND::DX12
 {
-	using DXFactoryT = IDXGIFactory6*;
+	using DXFactoryT = Microsoft::WRL::ComPtr<IDXGIFactory6>;
 
 	class Factory
 	{

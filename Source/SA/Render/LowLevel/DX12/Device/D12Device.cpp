@@ -17,7 +17,7 @@ namespace SA::RND::DX12
 		SA_DX12_API(D3D12CreateDevice(mPhysicalDevice.Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&mLogicalDevice)),
 			L"Failed to create logical device!")
 
-		SetDebugName(mLogicalDevice, SA::StringFormat("SA:: Device {%1} [%2]", _info.desc.Description, _info.desc.DeviceId));
+		SetDebugName(mLogicalDevice.Get(), SA::StringFormat("SA:: Device {%1} [%2]", _info.desc.Description, _info.desc.DeviceId));
 
 #if SA_DX12_VALIDATION_LAYERS
 
@@ -39,26 +39,23 @@ namespace SA::RND::DX12
 
 #endif // SA_DX12_VALIDATION_LAYERS
 
-		SA_LOG(L"Logical device created.", Info, SA.Render.DX12, (L"Handle [%1]", mLogicalDevice));
+		SA_LOG(L"Logical device created.", Info, SA.Render.DX12, (L"Handle [%1]", mLogicalDevice.Get()));
 	}
 	
 	void Device::Destroy()
 	{
 		if(mLogicalDevice)
 		{
-			mLogicalDevice->Release();
+			SA_LOG_RAII(L"Logical device destroyed", Info, SA.Render.DX12, (L"Handle [%1]", mLogicalDevice.Get()));
 			
-			SA_LOG(L"Logical device destroyed", Info, SA.Render.DX12, (L"Handle [%1]", mLogicalDevice));
-			
-			mLogicalDevice = nullptr;
+			mLogicalDevice.Reset();
 		}
 
 		if(mPhysicalDevice)
 		{
-			SA_LOG(L"Physical device destroyed", Info, SA.Render.DX12, (L"Handle [%1]", mPhysicalDevice.Get()));
+			SA_LOG_RAII(L"Physical device destroyed", Info, SA.Render.DX12, (L"Handle [%1]", mPhysicalDevice.Get()));
 
-			// ComPtr already call Release.
-			mPhysicalDevice = nullptr;
+			mPhysicalDevice.Reset();
 		}
 	}
 
