@@ -4,18 +4,24 @@
 
 #include <RHIRenderInterface.hpp>
 
+#include <Compatibility/Window.hpp>
+
 #if SA_RENDER_LOWLEVEL_DX12_IMPL
 
 namespace SA::RND::RHI
 {
 	void D12WindowSurface::Create(const RenderInterface* _renderIntf, const WND::WHI::Window* _window)
 	{
-		mHandle.Create(_renderIntf->API_DirectX12(), _window);
+		(void)_renderIntf;
+
+		mHandle.Create(_window->GetHWNDHandle());
 	}
 
 	void D12WindowSurface::Destroy(const RenderInterface* _renderIntf)
 	{
-		mHandle.Destroy(_renderIntf->API_DirectX12());
+		(void)_renderIntf;
+
+		mHandle.Destroy();
 	}
 
 

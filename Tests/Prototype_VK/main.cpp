@@ -73,7 +73,7 @@ void Init()
 			VkSurfaceKHR glfwsurface;
 			glfwCreateWindowSurface(instance, window, nullptr, &glfwsurface);
 			
-			winSurface.InitializeHandle(std::move(glfwsurface));
+			winSurface.Create(std::move(glfwsurface));
 
 			deviceReqs.SetWindowSurface(&winSurface);
 		}

@@ -6,26 +6,19 @@
 
 namespace SA::RND::DX12
 {
-	void WindowSurface::InitializeHandle(HWND&& _handle)
+	void WindowSurface::Create(HWND&& _handle)
 	{
 		mHandle = std::move(_handle);
 
-		SA_LOG(L"Window Surface handle initialized.", Info, SA.Render.DX12, (L"Handle [%1]", mHandle));
-	}
-
-	
-	void WindowSurface::Create(const Factory& _factory, const WND::WHI::Window* _window)
-	{
-		// TODO: Implement with Sapphire Windowing lib.
-		(void)_factory;
-		(void)_window;
+		SA_LOG(L"Window Surface created.", Info, SA.Render.DX12, (L"Handle [%1]", mHandle));
 	}
 	
-	void WindowSurface::Destroy(const Factory& _factory)
+	void WindowSurface::Destroy()
 	{
-		(void)_factory;
-
 		// Destroyed by Window Manager.
+
+		SA_LOG(L"Window Surface destroyed.", Info, SA.Render.DX12, (L"Handle [%1]", mHandle));
+
 		mHandle = nullptr;
 	}
 

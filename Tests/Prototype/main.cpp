@@ -5,14 +5,9 @@
 
 #include <SA/Collections/Debug>
 
+#include <SA/Render/RHI/Compatibility/Window.hpp>
 #include <SA/Render/RHI/RHIVkRenderInterface.hpp>
 #include <SA/Render/RHI/RHID12RenderInterface.hpp>
-
-// Todo: remove later
-#include <SA/Render/RHI/Surface/RHID12WindowSurface.hpp>
-#include <SA/Render/RHI/Surface/RHIVkWindowSurface.hpp>
-//
-
 using namespace SA::RND;
 
 // Must be included after vulkan.
@@ -29,6 +24,38 @@ void GLFWErrorCallback(int32_t error, const char* description)
 {
 	SA_LOG((L"GLFW Error [%1]: %2", error, description), Error, SA.Render.Proto.GLFW.API);
 }
+
+class WindowHandle : public SA::WND::WHI::Window
+{
+	GLFWwindow* mHandle = nullptr;
+
+public:
+	WindowHandle(GLFWwindow* _handle) noexcept :
+		mHandle{ _handle }
+	{
+	}
+
+#if SA_RENDER_LOWLEVEL_VULKAN_IMPL
+
+	VkSurfaceKHR CreateVkSurfaceKHR(const SA::RND::VK::Instance& _instance) const override final
+	{
+		VkSurfaceKHR glfwsurface;
+		glfwCreateWindowSurface(_instance, mHandle, nullptr, &glfwsurface);
+
+		return glfwsurface;
+	}
+
+#endif
+
+#if SA_RENDER_LOWLEVEL_DX12_IMPL
+
+	HWND GetHWNDHandle() const override final
+	{
+		return glfwGetWin32Window(mHandle);
+	}
+
+#endif
+};
 
 class Renderer
 {
@@ -63,24 +90,9 @@ public:
 
 		// Win Surface
 		{
-			winSurface = intf->CreateWindowSurface(nullptr);// Waiting for SA_Windowing.
+			WindowHandle winHandle(window);
 
-#if SA_RENDER_LOWLEVEL_VULKAN_IMPL
-			if (auto vkWinSurface = dynamic_cast<RHI::VkWindowSurface*>(winSurface))
-			{
-				VkSurfaceKHR glfwsurface;
-				glfwCreateWindowSurface(intf->API_Vulkan(), window, nullptr, &glfwsurface);
-
-				const_cast<VK::WindowSurface&>(vkWinSurface->API_Vulkan()).InitializeHandle(std::move(glfwsurface));
-			}
-#endif
-
-#if SA_RENDER_LOWLEVEL_DX12_IMPL
-			if (auto d12WinSurface = dynamic_cast<RHI::D12WindowSurface*>(winSurface))
-			{
-				const_cast<DX12::WindowSurface&>(d12WinSurface->API_DirectX12()).InitializeHandle(glfwGetWin32Window(window));
-			}
-#endif
+			winSurface = intf->CreateWindowSurface(&winHandle);
 		}
 
 		// Device

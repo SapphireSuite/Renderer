@@ -9,11 +9,6 @@
 
 namespace SA
 {
-	namespace WND::WHI
-	{
-		class Window;
-	}
-
 	namespace RND::DX12
 	{
 		class Factory;
@@ -23,10 +18,8 @@ namespace SA
 			HWND mHandle;
 		
 		public:
-			void InitializeHandle(HWND&& _handle);
-
-			void Create(const Factory& _factory, const WND::WHI::Window* _window);
-			void Destroy(const Factory& _factory);
+			void Create(HWND&& _handle);
+			void Destroy();
 
 			operator HWND() const noexcept;
 		};

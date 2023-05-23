@@ -6,23 +6,20 @@
 
 namespace SA::RND::VK
 {
-	void WindowSurface::InitializeHandle(VkSurfaceKHR&& _handle)
+	void WindowSurface::Create(VkSurfaceKHR&& _handle)
 	{
 		mHandle = std::move(_handle);
 
-		SA_LOG(L"Window Surface handle initialized.", Info, SA.Render.Vulkan, (L"Handle [%1]", mHandle));
-	}
-
-	void WindowSurface::Create(const Instance& _instance, const WND::WHI::Window* _window)
-	{
-		// TODO: Implement with Sapphire Windowing lib.
-		(void)_instance;
-		(void)_window;
+		SA_LOG(L"Window Surface created.", Info, SA.Render.Vulkan, (L"Handle [%1]", mHandle));
 	}
 
 	void WindowSurface::Destroy(const Instance& _instance)
 	{
 		vkDestroySurfaceKHR(_instance, mHandle, nullptr);
+		
+		SA_LOG(L"Window Surface destroyed.", Info, SA.Render.Vulkan, (L"Handle [%1]", mHandle));
+
+		mHandle = nullptr;
 	}
 
 	SurfaceSupportDetails WindowSurface::QuerySupportDetails(VkPhysicalDevice _device) const

@@ -9,11 +9,6 @@
 
 namespace SA
 {
-	namespace WND::WHI 
-	{
-		class Window;
-	}
-
 	namespace RND::VK
 	{
 		class Instance;
@@ -23,9 +18,7 @@ namespace SA
 			VkSurfaceKHR mHandle;
 		
 		public:
-			void InitializeHandle(VkSurfaceKHR&& _handle);
-
-			void Create(const Instance& _instance, const WND::WHI::Window* _window);
+			void Create(VkSurfaceKHR&& _handle);
 			void Destroy(const Instance& _instance);
 
 			SurfaceSupportDetails QuerySupportDetails(VkPhysicalDevice _device) const;
