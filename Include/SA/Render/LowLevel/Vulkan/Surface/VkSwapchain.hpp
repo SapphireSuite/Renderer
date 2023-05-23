@@ -66,7 +66,6 @@ namespace SA::RND::VK
 //}
 
 		VkFormat mFormat;
-		Vec2ui mExtents;
 
 	public:
 		void Create(const Device& _device, const WindowSurface& _surface, const SwapchainSettings& _settings = SwapchainSettings());
