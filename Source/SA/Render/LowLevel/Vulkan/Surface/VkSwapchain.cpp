@@ -13,6 +13,7 @@ namespace SA::RND::VK
 
 	void Swapchain::CreateSwapChainKHR(const Device& _device,
 		const WindowSurface& _surface,
+		const SwapchainSettings& _settings,
 		const SurfaceSupportDetails& _details,
 		const VkSurfaceFormatKHR& _surfaceFormat)
 	{
@@ -20,10 +21,16 @@ namespace SA::RND::VK
 		mExtents = _details.ChooseSwapExtent();
 		mFormat = _surfaceFormat.format;
 
+		if (_settings.format != VK_FORMAT_UNDEFINED)
+			mFormat = _settings.format;
+
 	//{ Image num
 
 		// Min image count to avoid driver blocking.
 		uint32_t imageNum = _details.capabilities.minImageCount + 1;
+
+		if (_settings.frameNum != uint32_t(-1))
+			imageNum = _settings.frameNum;
 
 		if(_details.capabilities.maxImageCount > 0 && imageNum > _details.capabilities.maxImageCount)
 			imageNum = _details.capabilities.maxImageCount;
@@ -139,12 +146,12 @@ namespace SA::RND::VK
 //}
 
 
-	void Swapchain::Create(const Device& _device, const WindowSurface& _surface)
+	void Swapchain::Create(const Device& _device, const WindowSurface& _surface, const SwapchainSettings& _settings)
 	{
 		const SurfaceSupportDetails details = _surface.QuerySupportDetails(_device);
 		const VkSurfaceFormatKHR surfaceFormat = details.ChooseSwapSurfaceFormat();
 
-		CreateSwapChainKHR(_device, _surface, details, surfaceFormat);
+		CreateSwapChainKHR(_device, _surface, _settings, details, surfaceFormat);
 		CreateSynchronisation(_device);
 	}
 	
@@ -171,10 +178,6 @@ namespace SA::RND::VK
 		return mFormat;
 	}
 
-	Vec2ui Swapchain::GetExtents() const noexcept
-	{
-		return mExtents;
-	}
 
 //{ Render
 

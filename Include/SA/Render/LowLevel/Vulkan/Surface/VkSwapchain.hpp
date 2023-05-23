@@ -5,9 +5,9 @@
 #ifndef SAPPHIRE_RENDER_VK_SWAPCHAIN_GUARD
 #define SAPPHIRE_RENDER_VK_SWAPCHAIN_GUARD
 
-#include <SA/Maths/Space/Vector2.hpp>
+#include <SA/Render/LowLevel/Common/Surface/Swapchain.hpp>
 
-#include <SA/Render/LowLevel/Vulkan/VulkanAPI.hpp>
+#include <SA/Render/LowLevel/Vulkan/Surface/VkSwapchainSettings.hpp>
 
 namespace SA::RND::VK
 {
@@ -17,7 +17,7 @@ namespace SA::RND::VK
 	class CommandBuffer;
 	struct SurfaceSupportDetails;
 
-	class Swapchain
+	class Swapchain : public SA::RND::Swapchain
 	{
 //{ Swapchain KHR
 
@@ -25,18 +25,11 @@ namespace SA::RND::VK
 
 		void CreateSwapChainKHR(const Device& _device,
 			const WindowSurface& _surface,
+			const SwapchainSettings& _settings,
 			const SurfaceSupportDetails& _details,
 			const VkSurfaceFormatKHR& _surfaceFormat);
 		void DestroySwapChainKHR(const Device& _device);
 
-
-//}
-
-
-//{ Image View
-
-		// void CreateImageView(const Device& _device, VkFormat _format);
-		// void DestroyImageView(const Device& _device);
 
 //}
 
@@ -65,6 +58,7 @@ namespace SA::RND::VK
 		{
 			/// backbuffer image.
 			VkImage image;
+
 			Synchronisation sync;
 		};
 
@@ -75,7 +69,7 @@ namespace SA::RND::VK
 		Vec2ui mExtents;
 
 	public:
-		void Create(const Device& _device, const WindowSurface& _surface);
+		void Create(const Device& _device, const WindowSurface& _surface, const SwapchainSettings& _settings = SwapchainSettings());
 		void Destroy(const Device& _device);
 
 		/// Get number of image (frame-buffering num).
@@ -85,7 +79,6 @@ namespace SA::RND::VK
 		VkImage GetBackBufferHandle(uint32_t _index) const;
 
 		VkFormat GetFormat() const noexcept;
-		Vec2ui GetExtents() const noexcept;
 
 //{ Render
 
