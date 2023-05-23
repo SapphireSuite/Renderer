@@ -140,7 +140,7 @@ public:
 
 int main()
 {
-	SA::Debug::InitDefaultLogger();
+	SA::Debug::InitDefaultLoggerThread();
 
 	// GLFW
 	{

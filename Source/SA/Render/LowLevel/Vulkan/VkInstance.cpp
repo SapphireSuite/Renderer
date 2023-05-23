@@ -66,21 +66,23 @@ namespace SA::RND::VK
 
 	void Instance::Destroy()
 	{
-		SA_LOG_RAII(L"Instance destroyed.", Info, SA.Render.Vulkan, (L"Handle [%1]", mHandle));
-
 	#if SA_VK_VALIDATION_LAYERS
 		{
-			SA_LOG_RAII(L"Debug Messenger destroyed.", Info, SA.Render.Vulkan, (L"Handle [%1]", mDebugMessenger));
-
 			auto destroyDebugFunc = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(mHandle, "vkDestroyDebugUtilsMessengerEXT");
 			SA_ASSERT((Nullptr, destroyDebugFunc), SA.Render.Vulkan, L"Extension PFN_vkDestroyDebugUtilsMessengerEXT missing!");
 
 			destroyDebugFunc(mHandle, mDebugMessenger, nullptr);
+			
+			SA_LOG(L"Debug Messenger destroyed.", Info, SA.Render.Vulkan, (L"Handle [%1]", mDebugMessenger));
+			
 			mDebugMessenger = nullptr;
 		}
 	#endif
 
 		SA_VK_API(vkDestroyInstance(mHandle, nullptr));
+		
+		SA_LOG(L"Instance destroyed.", Info, SA.Render.Vulkan, (L"Handle [%1]", mHandle));
+		
 		mHandle = VK_NULL_HANDLE;
 	}
 

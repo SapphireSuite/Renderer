@@ -44,17 +44,18 @@ namespace SA::RND::DX12
 	
 	void Device::Destroy()
 	{
-		// Logical
+		if(mLogicalDevice)
 		{
-			SA_LOG_RAII(L"Logical device destroyed", Info, SA.Render.DX12, (L"Handle [%1]", mLogicalDevice));
-			
 			mLogicalDevice->Release();
+			
+			SA_LOG(L"Logical device destroyed", Info, SA.Render.DX12, (L"Handle [%1]", mLogicalDevice));
+			
 			mLogicalDevice = nullptr;
 		}
 
-		// Physical
+		if(mPhysicalDevice)
 		{
-			SA_LOG_RAII(L"Physical device destroyed", Info, SA.Render.DX12, (L"Handle [%1]", mPhysicalDevice.Get()));
+			SA_LOG(L"Physical device destroyed", Info, SA.Render.DX12, (L"Handle [%1]", mPhysicalDevice.Get()));
 
 			// ComPtr already call Release.
 			mPhysicalDevice = nullptr;

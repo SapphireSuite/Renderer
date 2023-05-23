@@ -27,10 +27,14 @@ namespace SA::RND::DX12
 	
 	void Factory::Destroy()
 	{
-		SA_LOG_RAII(L"Factory destroyed.", Info, SA.Render.DX12, (L"Handle [%1]", mHandle));
+		if (mHandle)
+		{
+			mHandle->Release();
+			
+			SA_LOG(L"Factory destroyed.", Info, SA.Render.DX12, (L"Handle [%1]", mHandle));
 
-		mHandle->Release();
-		mHandle = nullptr;
+			mHandle = nullptr;
+		}
 
 	#if SA_DX12_VALIDATION_LAYERS
 

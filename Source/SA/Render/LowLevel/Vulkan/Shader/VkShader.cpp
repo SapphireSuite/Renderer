@@ -22,9 +22,10 @@ namespace SA::RND::VK
 
 	void Shader::Destroy(const Device& _device)
 	{
-		SA_LOG_RAII(L"Shader destroyed", Info, SA.Render.Vulkan, (L"Handle [%1]", mHandle));
-
 		SA_VK_API(vkDestroyShaderModule(_device, mHandle, nullptr));
+
+		SA_LOG(L"Shader destroyed", Info, SA.Render.Vulkan, (L"Handle [%1]", mHandle));
+		
 		mHandle = VK_NULL_HANDLE;
 	}
 

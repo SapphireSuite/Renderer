@@ -23,7 +23,7 @@ namespace SA::RND::VK
 	
 	void Queue::Destroy()
 	{
-		SA_LOG_RAII(L"Queue destroyed.", Info, SA.Render.Vulkan, (L"Handle [%1], Family [%2]", mHandle, mFamilyIndex));
+		SA_LOG(L"Queue destroyed.", Info, SA.Render.Vulkan, (L"Handle [%1], Family [%2]", mHandle, mFamilyIndex));
 
 		mHandle = VK_NULL_HANDLE;
 		mFamilyIndex = ~uint32_t();

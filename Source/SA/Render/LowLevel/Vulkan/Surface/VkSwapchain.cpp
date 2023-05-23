@@ -92,9 +92,10 @@ namespace SA::RND::VK
 	
 	void Swapchain::DestroySwapChainKHR(const Device& _device)
 	{
-		SA_LOG_RAII(L"Swapchain KHR destroyed.", Info, SA.Render.Vulkan, (L"Handle [%1]", mHandle));
-
 		SA_VK_API(vkDestroySwapchainKHR(_device, mHandle, nullptr));
+
+		SA_LOG(L"Swapchain KHR destroyed.", Info, SA.Render.Vulkan, (L"Handle [%1]", mHandle));
+		
 		mHandle = VK_NULL_HANDLE;
 		mFrames.clear();
 	}

@@ -58,14 +58,13 @@ namespace SA::RND::VK
 
 	void Device::Destroy()
 	{
-		SA_LOG_RAII(L"Device destroyed.", Info, SA.Render.Vulkan,
-			(L"Physical [%1], Logical [%2]", mPhysical, mLogical));
-
 		WaitIdle();
 
 		queueMgr.Destroy();
 
 		SA_VK_API(vkDestroyDevice(mLogical, nullptr));
+
+		SA_LOG(L"Device destroyed.", Info, SA.Render.Vulkan, (L"Physical [%1], Logical [%2]", mPhysical, mLogical));
 
 		mLogical = VK_NULL_HANDLE;
 		mPhysical = VK_NULL_HANDLE;
