@@ -13,6 +13,12 @@
 
 #endif
 
+#if SA_RENDER_LOWLEVEL_DX12_IMPL
+
+#include <SA/Render/LowLevel/DX12/DX12API.hpp>
+
+#endif
+
 namespace SA::RND
 {
 	namespace RHI
@@ -34,20 +40,11 @@ namespace SA::RND
 			/// Signed normalized float 8-bit 1-channel.
 			R8_SNORM,
 
-			/// Unsigned scaled float 8-bit 1-channel.
-			R8_USCALED,
-
-			/// Signed scaled float 8-bit 1-channel.
-			R8_SSCALED,
-
 			/// Unsigned int 8-bit 1-channel.
 			R8_UINT,
 			
 			/// Signed int 8-bit 1-channel.
 			R8_SINT,
-
-			/// 8-bit 1-channel present format.
-			R8_SRGB,
 
 //}
 
@@ -60,72 +57,11 @@ namespace SA::RND
 			/// Signed normalized float 8-bit 2-channel.
 			R8G8_SNORM,
 
-			/// Unsigned scaled float 8-bit 2-channel.
-			R8G8_USCALED,
-
-			/// Signed scaled float 8-bit 2-channel.
-			R8G8_SSCALED,
-
 			/// Unsigned int 8-bit 2-channel.
 			R8G8_UINT,
 			
 			/// Signed int 8-bit 2-channel.
 			R8G8_SINT,
-
-			/// 8-bit 2-channel present format.
-			R8G8_SRGB,
-
-//}
-
-
-//{ R8G8B8
-
-			/// Unsigned normalized float 8-bit 3-RGB-channel.
-			R8G8B8_UNORM,
-
-			/// Signed normalized float 8-bit 3-RGB-channel.
-			R8G8B8_SNORM,
-
-			/// Unsigned scaled float 8-bit 3-RGB-channel.
-			R8G8B8_USCALED,
-
-			/// Signed scaled float 8-bit 3-RGB-channel.
-			R8G8B8_SSCALED,
-
-			/// Unsigned int 8-bit 3-RGB-channel.
-			R8G8B8_UINT,
-			
-			/// Signed int 8-bit 3-RGB-channel.
-			R8G8B8_SINT,
-
-			/// 8-bit 3-RGB-channel present format.
-			R8G8B8_SRGB,
-
-//}
-
-
-//{ B8G8R8
-
-			/// Unsigned normalized float 8-bit 3-BGR-channel.
-			B8G8R8_UNORM,
-
-			/// Signed normalized float 8-bit 3-BGR-channel.
-			B8G8R8_SNORM,
-
-			/// Unsigned scaled float 8-bit 3-BGR-channel.
-			B8G8R8_USCALED,
-
-			/// Signed scaled float 8-bit 3-BGR-channel.
-			B8G8R8_SSCALED,
-
-			/// Unsigned int 8-bit 3-BGR-channel.
-			B8G8R8_UINT,
-			
-			/// Signed int 8-bit 3-BGR-channel.
-			B8G8R8_SINT,
-
-			/// 8-bit 3-BGR-channel present format.
-			B8G8R8_SRGB,
 
 //}
 
@@ -137,12 +73,6 @@ namespace SA::RND
 
 			/// Signed normalized float 8-bit 4-RGBA-channel.
 			R8G8B8A8_SNORM,
-
-			/// Unsigned scaled float 8-bit 4-RGBA-channel.
-			R8G8B8A8_USCALED,
-
-			/// Signed scaled float 8-bit 4-RGBA-channel.
-			R8G8B8A8_SSCALED,
 
 			/// Unsigned int 8-bit 4-RGBA-channel.
 			R8G8B8A8_UINT,
@@ -163,12 +93,6 @@ namespace SA::RND
 
 			/// Signed normalized float 8-bit 4-BGRA-channel.
 			B8G8R8A8_SNORM,
-
-			/// Unsigned scaled float 8-bit 4-BGRA-channel.
-			B8G8R8A8_USCALED,
-
-			/// Signed scaled float 8-bit 4-BGRA-channel.
-			B8G8R8A8_SSCALED,
 
 			/// Unsigned int 8-bit 4-BGRA-channel.
 			B8G8R8A8_UINT,
@@ -191,12 +115,6 @@ namespace SA::RND
 			/// Signed normalized float 16-bit 1-channel.
 			R16_SNORM,
 
-			/// Unsigned scaled float 16-bit 1-channel.
-			R16_USCALED,
-
-			/// Signed scaled float 16-bit 1-channel.
-			R16_SSCALED,
-
 			/// Unsigned int 16-bit 1-channel.
 			R16_UINT,
 			
@@ -217,12 +135,6 @@ namespace SA::RND
 			/// Signed normalized 16-bit float 2-channel.
 			R16G16_SNORM,
 
-			/// Unsigned scaled 16-bit float 2-channel.
-			R16G16_USCALED,
-
-			/// Signed scaled 16-bit float 2-channel.
-			R16G16_SSCALED,
-
 			/// Unsigned int 16-bit 2-channel.
 			R16G16_UINT,
 			
@@ -235,32 +147,6 @@ namespace SA::RND
 //}
 
 
-//{ R16G16B16
-
-			/// Unsigned normalized 16-bit float 3-RGB-channel.
-			R16G16B16_UNORM,
-
-			/// Signed normalized 16-bit float 3-RGB-channel.
-			R16G16B16_SNORM,
-
-			/// Unsigned scaled 16-bit float 3-RGB-channel.
-			R16G16B16_USCALED,
-
-			/// Signed scaled 16-bit float 3-RGB-channel.
-			R16G16B16_SSCALED,
-
-			/// Unsigned int 16-bit 3-RGB-channel.
-			R16G16B16_UINT,
-			
-			/// Signed int 16-bit 3-RGB-channel.
-			R16G16B16_SINT,
-
-			/// Signed float 16-bit 3-RGB-channel.
-			R16G16B16_SFLOAT,
-
-//}
-
-
 //{ R16G16B16A16
 
 			/// Unsigned normalized 16-bit float 4-RGBA-channel.
@@ -268,12 +154,6 @@ namespace SA::RND
 
 			/// Signed normalized 16-bit float 4-RGBA-channel.
 			R16G16B16A16_SNORM,
-
-			/// Unsigned scaled 16-bit float 4-RGBA-channel.
-			R16G16B16A16_USCALED,
-
-			/// Signed scaled 16-bit float 4-RGBA-channel.
-			R16G16B16A16_SSCALED,
 
 			/// Unsigned int 16-bit 4-RGBA-channel.
 			R16G16B16A16_UINT,
@@ -344,63 +224,6 @@ namespace SA::RND
 //}
 
 
-
-//{ R64
-
-			/// Unsigned int 64-bit 1-channel.
-			R64_UINT,
-			
-			/// Signed int 64-bit 1-channel.
-			R64_SINT,
-
-			/// Signed float 64-bit 1-channel.
-			R64_SFLOAT,
-
-//}
-
-
-//{ R64G64
-
-			/// Unsigned int 64-bit 2-channel.
-			R64G64_UINT,
-			
-			/// Signed int 64-bit 2-channel.
-			R64G64_SINT,
-
-			/// Signed float 64-bit 2-channel.
-			R64G64_SFLOAT,
-
-//}
-
-
-//{ R64G64B64
-
-			/// Unsigned int 64-bit 3-RGB-channel.
-			R64G64B64_UINT,
-			
-			/// Signed int 64-bit 3-RGB-channel.
-			R64G64B64_SINT,
-
-			/// Signed float 64-bit 3-RGB-channel.
-			R64G64B64_SFLOAT,
-
-//}
-
-
-//{ R64G64B64
-
-			/// Unsigned int 64-bit 3-RGB-channel.
-			R64G64B64A64_UINT,
-			
-			/// Signed int 64-bit 3-RGB-channel.
-			R64G64B64A64_SINT,
-
-			/// Signed float 64-bit 3-RGB-channel.
-			R64G64B64A64_SFLOAT,
-
-//}
-
-
 //{ Depth
 
 			/// Unsigned normalized 16-bit float 1-Depth-channel.
@@ -409,17 +232,8 @@ namespace SA::RND
 			/// Signed float 32-bit 1-Depth-channel.
 			D32_SFLOAT,
 
-			/// Unsigned int 8-bit 1-Stencil-channel.
-			S8_UINT,
-
-			/// Unsigned normalized 16-bit float 1-Depth-channel + Unsigned int 8-bit 1-Stencil-channel.
-			D16_UNORM_S8_UINT,
-
 			/// Unsigned normalized 24-bit float 1-Depth-channel + Unsigned int 8-bit 1-Stencil-channel.
 			D24_UNORM_S8_UINT,
-
-			/// Signed float 32-bit 1-Depth-channel + Unsigned int 8-bit 1-Stencil-channel.
-			D32_SFLOAT_S8_UINT,
 
 //}
 		};
@@ -431,6 +245,16 @@ namespace SA::RND
 	{
 		VkFormat API_GetFormat(RHI::Format _rhiFormat);
 		RHI::Format API_GetFormat(VkFormat _vkFormat);
+	}
+
+#endif
+
+#if SA_RENDER_LOWLEVEL_DX12_IMPL
+
+	namespace DX12
+	{
+		DXGI_FORMAT API_GetFormat(RHI::Format _rhiFormat);
+		RHI::Format API_GetFormat(DXGI_FORMAT _d12Format);
 	}
 
 #endif
