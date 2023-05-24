@@ -9,6 +9,7 @@
 				"CMAKE_INSTALL_PREFIX": "${sourceDir}/install/${presetName}",
 				"SA_RENDER_BUILD_TESTS_OPT": true,
 				"SA_RENDER_VULKAN_OPT": true,
+				"SA_RENDER_DX12_OPT": true,
 				"SA_RENDER_OPENGL_OPT": false
 			}
 		},
@@ -39,9 +40,6 @@
 				"type": "equals",
 				"lhs": "${hostSystemName}",
 				"rhs": "Windows"
-			},
-			"cacheVariables": {
-				"SA_RENDER_DX12_OPT": true
 			}
 		},
 		{
