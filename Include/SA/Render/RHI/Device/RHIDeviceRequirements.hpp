@@ -5,7 +5,7 @@
 #ifndef SAPPHIRE_RENDER_RHI_DEVICE_REQUIREMENTS_GUARD
 #define SAPPHIRE_RENDER_RHI_DEVICE_REQUIREMENTS_GUARD
 
-#include <SA/Render/LowLevel/Common/Device/DeviceRequirements.hpp>
+#include <SA/Render/LowLevel/Common/Device/DeviceRequirementsBase.hpp>
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 	#include <SA/Render/LowLevel/Vulkan/Device/VkDeviceRequirements.hpp>
@@ -19,7 +19,7 @@ namespace SA::RND::RHI
 {
 	class WindowSurface;
 
-	struct DeviceRequirements : public SA::RND::DeviceRequirements
+	struct DeviceRequirements : public DeviceRequirementsBase
 	{
 		const WindowSurface* winSurface = nullptr;
 

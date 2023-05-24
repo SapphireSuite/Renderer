@@ -5,14 +5,14 @@
 #ifndef SAPPHIRE_RENDER_DX12_DEVICE_INFO_GUARD
 #define SAPPHIRE_RENDER_DX12_DEVICE_INFO_GUARD
 
-#include <SA/Render/LowLevel/Common/Device/DeviceInfo.hpp>
+#include <SA/Render/LowLevel/Common/Device/DeviceInfoBase.hpp>
 
 #include "D12PhysicalDevice.hpp"
 #include "D12LogicalDevice.hpp"
 
 namespace SA::RND::DX12
 {
-	struct DeviceInfo : public RND::DeviceInfo
+	struct DeviceInfo : public DeviceInfoBase
 	{
 //{ Physical Device
 

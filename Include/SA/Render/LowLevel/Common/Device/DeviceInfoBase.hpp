@@ -2,8 +2,8 @@
 
 #pragma once
 
-#ifndef SAPPHIRE_RENDER_DEVICE_INFO_GUARD
-#define SAPPHIRE_RENDER_DEVICE_INFO_GUARD
+#ifndef SAPPHIRE_RENDER_DEVICE_INFO_BASE_GUARD
+#define SAPPHIRE_RENDER_DEVICE_INFO_BASE_GUARD
 
 #include <string>
 #include <cstdint>
@@ -12,14 +12,14 @@
 
 namespace SA::RND
 {
-	struct DeviceInfo
+	struct DeviceInfoBase
 	{
 		/// Performance/Feature score used to sort devices.
 		uint32_t score = 0;
 
 		/// Sort by descending-order score
-		static bool SortByScore(const DeviceInfo& _lhs, const DeviceInfo& _rhs) noexcept;
+		static bool SortByScore(const DeviceInfoBase& _lhs, const DeviceInfoBase& _rhs) noexcept;
 	};
 }
 
-#endif // SAPPHIRE_RENDER_DEVICE_INFO_GUARD
+#endif // SAPPHIRE_RENDER_DEVICE_INFO_BASE_GUARD

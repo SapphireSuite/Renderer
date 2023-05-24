@@ -5,11 +5,11 @@
 #ifndef SAPPHIRE_RENDER_D12_DEVICE_REQUIREMENTS_GUARD
 #define SAPPHIRE_RENDER_D12_DEVICE_REQUIREMENTS_GUARD
 
-#include <SA/Render/LowLevel/Common/Device/DeviceRequirements.hpp>
+#include <SA/Render/LowLevel/Common/Device/DeviceRequirementsBase.hpp>
 
 namespace SA::RND::DX12
 {
-    struct DeviceRequirements : public SA::RND::DeviceRequirements
+    struct DeviceRequirements : public DeviceRequirementsBase
     {
     };
 }

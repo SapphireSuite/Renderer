@@ -7,7 +7,7 @@
 
 #include <vector>
 
-#include <SA/Render/LowLevel/Common/Device/DeviceRequirements.hpp>
+#include <SA/Render/LowLevel/Common/Device/DeviceRequirementsBase.hpp>
 
 #include <SA/Render/LowLevel/Vulkan/VulkanAPI.hpp>
 
@@ -15,7 +15,7 @@ namespace SA::RND::VK
 {
 	class WindowSurface;
 
-	struct DeviceRequirements : public RND::DeviceRequirements
+	struct DeviceRequirements : public DeviceRequirementsBase
 	{
 	//{ Extensions
 

@@ -5,7 +5,7 @@
 #ifndef SAPPHIRE_RENDER_VK_DEVICE_INFO_GUARD
 #define SAPPHIRE_RENDER_VK_DEVICE_INFO_GUARD
 
-#include <SA/Render/LowLevel/Common/Device/DeviceInfo.hpp>
+#include <SA/Render/LowLevel/Common/Device/DeviceInfoBase.hpp>
 
 #include "Queue/VkQueueMgrInfo.hpp"
 
@@ -13,7 +13,7 @@ namespace SA::RND::VK
 {
 	class WindowSurface;
 
-	struct DeviceInfo : public RND::DeviceInfo
+	struct DeviceInfo : public DeviceInfoBase
 	{
 		friend class Device;
 
