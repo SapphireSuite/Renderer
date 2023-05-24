@@ -9,7 +9,7 @@
 
 namespace SA::RND::DX12
 {
-	using LogicalDevice = Microsoft::WRL::ComPtr<ID3D12Device>;
+	using LogicalDevice = MComPtr<ID3D12Device>;
 }
 
 #endif // SAPPHIRE_RENDER_D12_LOGICAL_DEVICE_GUARD

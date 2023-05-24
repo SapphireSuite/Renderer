@@ -64,6 +64,12 @@
 
 #endif
 
+namespace SA
+{
+	template <typename T>
+	using MComPtr = Microsoft::WRL::ComPtr<T>;
+}
+
 /** \} */
 
 #endif // SAPPHIRE_RENDER_DIRECTX_12_API_GUARD

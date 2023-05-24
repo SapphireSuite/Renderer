@@ -9,7 +9,7 @@
 
 namespace SA::RND::DX12
 {
-	using PhysicalDevice = Microsoft::WRL::ComPtr<IDXGIAdapter3>;
+	using PhysicalDevice = MComPtr<IDXGIAdapter3>;
 }
 
 #endif // SAPPHIRE_RENDER_D12_PHYSICAL_DEVICE_GUARD
