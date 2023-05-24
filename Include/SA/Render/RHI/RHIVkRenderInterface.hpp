@@ -18,7 +18,7 @@ namespace SA::RND::RHI
 		VK::Instance mInstance;
 
 	public:
-		void Create(IWindowInterface* _winIntf) override final;
+		void Create(const IWindowInterface* _winIntf) override final;
 		void Destroy() override final;
 
 //{ WindowSurface

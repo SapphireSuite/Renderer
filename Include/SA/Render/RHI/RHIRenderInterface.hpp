@@ -41,7 +41,7 @@ namespace SA::RND
 		public:
 			virtual ~RenderInterface() = default;
 
-			virtual void Create(IWindowInterface* _winIntf = nullptr) = 0;
+			virtual void Create(const IWindowInterface* _winIntf = nullptr) = 0;
 			virtual void Destroy();
 
 	//{ WindowSurface

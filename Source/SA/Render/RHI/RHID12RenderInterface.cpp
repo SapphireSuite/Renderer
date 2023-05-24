@@ -9,7 +9,7 @@
 
 namespace SA::RND::RHI
 {
-	void D12RenderInterface::Create(IWindowInterface* _winIntf)
+	void D12RenderInterface::Create(const IWindowInterface* _winIntf)
 	{
 		(void)_winIntf;
 

@@ -9,9 +9,14 @@
 
 namespace SA::RND::RHI
 {
-	void VkRenderInterface::Create(IWindowInterface* _winIntf)
+	void VkRenderInterface::Create(const IWindowInterface* _winIntf)
 	{
-		mInstance.Create(_winIntf->QueryRequiredExtensions());
+		std::vector<const char*> vkExtensions;
+
+		if(_winIntf)
+			vkExtensions = _winIntf->QueryVkRequiredExtensions();
+
+		mInstance.Create(vkExtensions);
 	}
 	
 	void VkRenderInterface::Destroy()

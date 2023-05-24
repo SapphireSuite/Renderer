@@ -18,7 +18,7 @@ namespace SA::RND::RHI
 		DX12::Factory mFactory;
 
 	public:
-		void Create(IWindowInterface* _winIntf) override final;
+		void Create(const IWindowInterface* _winIntf) override final;
 		void Destroy() override final;
 
 //{ WindowSurface

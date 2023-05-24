@@ -31,7 +31,7 @@ class WindowInterface : public RHI::IWindowInterface
 public:
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
-	std::vector<const char*> QueryRequiredExtensions() const override final
+	std::vector<const char*> QueryVkRequiredExtensions() const override final
 	{
 		std::vector<const char*> vkExts;
 

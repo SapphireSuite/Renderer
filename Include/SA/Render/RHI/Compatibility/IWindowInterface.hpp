@@ -26,7 +26,7 @@ namespace SA::RND::RHI
 	public:
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
-		inline virtual std::vector<const char*> QueryRequiredExtensions() const { return std::vector<const char*>(); }
+		inline virtual std::vector<const char*> QueryVkRequiredExtensions() const { return std::vector<const char*>(); }
 
 #endif
 	};
