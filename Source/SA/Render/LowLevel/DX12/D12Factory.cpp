@@ -41,9 +41,9 @@ namespace SA::RND::DX12
 	#endif
 	}
 
-	std::vector<DeviceInfo> Factory::QueryDeviceInfos() const
+	std::vector<DeviceInfo> Factory::QueryDeviceInfos(const DeviceRequirements& _reqs) const
 	{
-		return Device::QueryDeviceInfos(*this);
+		return Device::QueryDeviceInfos(*this, _reqs);
 	}
 
 	DXFactoryT Factory::operator->() const

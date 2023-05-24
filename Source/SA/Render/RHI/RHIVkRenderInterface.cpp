@@ -48,9 +48,9 @@ namespace SA::RND::RHI
 		return new VkDevice();
 	}
 
-	std::vector<std::shared_ptr<DeviceInfo>> VkRenderInterface::QueryDeviceInfos() const
+	std::vector<std::shared_ptr<DeviceInfo>> VkRenderInterface::QueryDeviceInfos(const DeviceRequirements& _reqs) const
 	{
-		std::vector<VK::DeviceInfo> vkInfos = mInstance.QueryDeviceInfos();
+		std::vector<VK::DeviceInfo> vkInfos = mInstance.QueryDeviceInfos(_reqs.API_Vulkan());
 
 		std::vector<std::shared_ptr<DeviceInfo>> result;
 		result.reserve(vkInfos.size());

@@ -8,6 +8,7 @@
 #include "DX12API.hpp"
 
 #include "Device/D12DeviceInfo.hpp"
+#include "Device/D12DeviceRequirements.hpp"
 
 namespace SA::RND::DX12
 {
@@ -21,7 +22,7 @@ namespace SA::RND::DX12
 		void Create();
 		void Destroy();
 
-		std::vector<DeviceInfo> QueryDeviceInfos() const;
+		std::vector<DeviceInfo> QueryDeviceInfos(const DeviceRequirements& _reqs = DeviceRequirements()) const;
 
 		DXFactoryT operator->() const;
 	};

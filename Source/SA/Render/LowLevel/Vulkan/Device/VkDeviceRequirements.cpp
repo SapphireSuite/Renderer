@@ -38,12 +38,12 @@ namespace SA::RND::VK
 
 //{ Window Surface
 
-	WindowSurface* DeviceRequirements::GetWindowSurface() const noexcept
+	const WindowSurface* DeviceRequirements::GetWindowSurface() const noexcept
 	{
 		return mWinSurface;
 	}
 	
-	void DeviceRequirements::SetWindowSurface(WindowSurface* _winSurface, bool bSetPresentQueue)
+	void DeviceRequirements::SetWindowSurface(const WindowSurface* _winSurface, bool bSetPresentQueue)
 	{
 		if(mWinSurface == _winSurface)
 			return;

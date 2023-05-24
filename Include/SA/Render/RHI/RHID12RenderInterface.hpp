@@ -35,7 +35,7 @@ namespace SA::RND::RHI
 		Device* InstantiateDeviceClass() const override final;
 
 	public:
-		std::vector<std::shared_ptr<DeviceInfo>> QueryDeviceInfos() const override final;
+		std::vector<std::shared_ptr<DeviceInfo>> QueryDeviceInfos(const DeviceRequirements& _reqs) const override final;
 
 //}
 

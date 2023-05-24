@@ -41,12 +41,12 @@ namespace SA::RND::VK
 
 	//{ Window Surface
 
-		WindowSurface* GetWindowSurface() const noexcept;
-		void SetWindowSurface(WindowSurface* _winSurface = nullptr, bool bSetPresentQueue = true);
+		const WindowSurface* GetWindowSurface() const noexcept;
+		void SetWindowSurface(const WindowSurface* _winSurface = nullptr, bool bSetPresentQueue = true);
 
 	private:
 		/// Window surface required support (if any).
-		WindowSurface* mWinSurface = nullptr;
+		const WindowSurface* mWinSurface = nullptr;
 		
 	//}
 	};

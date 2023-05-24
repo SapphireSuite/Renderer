@@ -10,6 +10,7 @@
 #include <forward_list>
 
 #include "Device/RHIDevice.hpp"
+#include "Device/RHIDeviceRequirements.hpp"
 #include "Surface/RHIWindowSurface.hpp"
 #include "Compatibility/IWindowInterface.hpp"
 
@@ -75,7 +76,7 @@ namespace SA::RND
 			void DestroyDevice(Device* _device);
 			void DestroyAllDevices();
 
-			virtual std::vector<std::shared_ptr<DeviceInfo>> QueryDeviceInfos() const = 0;
+			virtual std::vector<std::shared_ptr<DeviceInfo>> QueryDeviceInfos(const DeviceRequirements& _reqs = DeviceRequirements()) const = 0;
 
 	//}
 

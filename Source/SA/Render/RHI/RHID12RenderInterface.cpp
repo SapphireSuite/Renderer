@@ -45,9 +45,9 @@ namespace SA::RND::RHI
 		return new D12Device();
 	}
 
-	std::vector<std::shared_ptr<DeviceInfo>> D12RenderInterface::QueryDeviceInfos() const
+	std::vector<std::shared_ptr<DeviceInfo>> D12RenderInterface::QueryDeviceInfos(const DeviceRequirements& _reqs) const
 	{
-		std::vector<DX12::DeviceInfo> d12Infos = mFactory.QueryDeviceInfos();
+		std::vector<DX12::DeviceInfo> d12Infos = mFactory.QueryDeviceInfos(_reqs.API_DirectX12());
 
 		std::vector<std::shared_ptr<DeviceInfo>> result;
 		result.reserve(d12Infos.size());

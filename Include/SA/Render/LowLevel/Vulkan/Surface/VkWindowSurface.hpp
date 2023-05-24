@@ -15,7 +15,7 @@ namespace SA
 
 		class WindowSurface
 		{
-			VkSurfaceKHR mHandle;
+			VkSurfaceKHR mHandle = VK_NULL_HANDLE;
 		
 		public:
 			void Create(VkSurfaceKHR&& _handle);
