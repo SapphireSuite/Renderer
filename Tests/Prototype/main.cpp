@@ -87,9 +87,9 @@ public:
 	GLFWwindow* window = nullptr;
 
 	RHI::RenderInterface* intf = nullptr;
-	RHI::Device* device;
-	RHI::WindowSurface* winSurface;
-	RHI::Context* context;
+	RHI::Device* device = nullptr;
+	RHI::WindowSurface* winSurface = nullptr;
+	RHI::Context* context = nullptr;
 
 	struct CreateInfo
 	{

@@ -10,6 +10,8 @@ namespace SA::RND::DX12
 {
 	void Swapchain::Create(const Factory& _factory, const Device& _device, const WindowSurface& _surface, const SwapchainSettings& _settings)
 	{
+		(void)_device;
+
 		// Extents
 		{
 			RECT rect;

@@ -28,6 +28,8 @@ namespace SA::RND::DX12
 
 		while(_num > 0)
 		{
+			queue = nullptr;
+
 			if(FAILED(_logicalDevice->CreateCommandQueue(&_desc, IID_PPV_ARGS(&queue))))
 				return false;
 
@@ -43,38 +45,38 @@ namespace SA::RND::DX12
 	{
 		// Graphics
 		{
-			D3D12_COMMAND_QUEUE_DESC desc{};
-			desc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-			desc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
+			D3D12_COMMAND_QUEUE_DESC queueDesc{};
+			queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+			queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
 
-			ProcessFamily(logicalDevice, _queueReqs.graphicsNum, graphicsQueues, desc);
+			ProcessFamily(logicalDevice, _queueReqs.graphicsNum, graphicsQueues, queueDesc);
 		}
 
 		// Compute
 		{
-			D3D12_COMMAND_QUEUE_DESC desc{};
-			desc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-			desc.Type = D3D12_COMMAND_LIST_TYPE_COMPUTE;
+			D3D12_COMMAND_QUEUE_DESC queueDesc{};
+			queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+			queueDesc.Type = D3D12_COMMAND_LIST_TYPE_COMPUTE;
 
-			ProcessFamily(logicalDevice, _queueReqs.computeNum, computeQueues, desc);
+			ProcessFamily(logicalDevice, _queueReqs.computeNum, computeQueues, queueDesc);
 		}
 
 		// Transfer
 		{
-			D3D12_COMMAND_QUEUE_DESC desc{};
-			desc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-			desc.Type = D3D12_COMMAND_LIST_TYPE_COPY;
+			D3D12_COMMAND_QUEUE_DESC queueDesc{};
+			queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+			queueDesc.Type = D3D12_COMMAND_LIST_TYPE_COPY;
 
-			ProcessFamily(logicalDevice, _queueReqs.transferNum, transferQueues, desc);
+			ProcessFamily(logicalDevice, _queueReqs.transferNum, transferQueues, queueDesc);
 		}
 
 		// Present
 		{
-			D3D12_COMMAND_QUEUE_DESC desc{};
-			desc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-			desc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
+			D3D12_COMMAND_QUEUE_DESC queueDesc{};
+			queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+			queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
 
-			ProcessFamily(logicalDevice, _queueReqs.presentNum, presentQueues, desc);
+			ProcessFamily(logicalDevice, _queueReqs.presentNum, presentQueues, queueDesc);
 		}
 
 		return _queueReqs.GetCompletedCode();
