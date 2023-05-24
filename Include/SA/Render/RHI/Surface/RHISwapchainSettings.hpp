@@ -5,7 +5,7 @@
 #ifndef SAPPHIRE_RENDER_RHI_SWAPCHAIN_SETTINGS_GUARD
 #define SAPPHIRE_RENDER_RHI_SWAPCHAIN_SETTINGS_GUARD
 
-#include <SA/Render/LowLevel/Common/Surface/SwapchainSettings.hpp>
+#include <SA/Render/LowLevel/Common/Surface/SwapchainSettingsBase.hpp>
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
@@ -26,7 +26,7 @@ namespace SA::RND
 {
 	namespace RHI
 	{
-		struct SwapchainSettings : public SA::RND::SwapchainSettings
+		struct SwapchainSettings : public SwapchainSettingsBase
 		{
 			/**
 			* Overridden format.

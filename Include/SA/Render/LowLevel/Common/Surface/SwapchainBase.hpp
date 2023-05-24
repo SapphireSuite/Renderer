@@ -2,14 +2,14 @@
 
 #pragma once
 
-#ifndef SAPPHIRE_RENDER_COMMON_SWAPCHAIN_GUARD
-#define SAPPHIRE_RENDER_COMMON_SWAPCHAIN_GUARD
+#ifndef SAPPHIRE_RENDER_COMMON_SWAPCHAIN_BASE_GUARD
+#define SAPPHIRE_RENDER_COMMON_SWAPCHAIN_BASE_GUARD
 
 #include <SA/Maths/Space/Vector2.hpp>
 
 namespace SA::RND
 {
-	class Swapchain
+	class SwapchainBase
 	{
 	protected:
 		Vec2ui mExtents;
@@ -19,4 +19,4 @@ namespace SA::RND
 	};
 }
 
-#endif // SAPPHIRE_RENDER_COMMON_SWAPCHAIN_GUARD
+#endif // SAPPHIRE_RENDER_COMMON_SWAPCHAIN_BASE_GUARD

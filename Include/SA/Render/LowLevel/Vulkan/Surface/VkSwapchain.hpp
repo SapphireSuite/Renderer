@@ -5,7 +5,7 @@
 #ifndef SAPPHIRE_RENDER_VK_SWAPCHAIN_GUARD
 #define SAPPHIRE_RENDER_VK_SWAPCHAIN_GUARD
 
-#include <SA/Render/LowLevel/Common/Surface/Swapchain.hpp>
+#include <SA/Render/LowLevel/Common/Surface/SwapchainBase.hpp>
 
 #include <SA/Render/LowLevel/Vulkan/Surface/VkSwapchainSettings.hpp>
 
@@ -17,7 +17,7 @@ namespace SA::RND::VK
 	class CommandBuffer;
 	struct SurfaceSupportDetails;
 
-	class Swapchain : public SA::RND::Swapchain
+	class Swapchain : public SwapchainBase
 	{
 //{ Swapchain KHR
 

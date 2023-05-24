@@ -2,14 +2,14 @@
 
 #pragma once
 
-#ifndef SAPPHIRE_RENDER_COMMON_SWAPCHAIN_SETTINGS_GUARD
-#define SAPPHIRE_RENDER_COMMON_SWAPCHAIN_SETTINGS_GUARD
+#ifndef SAPPHIRE_RENDER_COMMON_SWAPCHAIN_SETTINGS_BASE_GUARD
+#define SAPPHIRE_RENDER_COMMON_SWAPCHAIN_SETTINGS_BASE_GUARD
 
 #include <cstdint>
 
 namespace SA::RND
 {
-	struct SwapchainSettings
+	struct SwapchainSettingsBase
 	{
 		/**
 		* Override frame number.
@@ -19,4 +19,4 @@ namespace SA::RND
 	};
 }
 
-#endif // SAPPHIRE_RENDER_COMMON_SWAPCHAIN_SETTINGS_GUARD
+#endif // SAPPHIRE_RENDER_COMMON_SWAPCHAIN_SETTINGS_BASE_GUARD

@@ -5,7 +5,7 @@
 #ifndef SAPPHIRE_RENDER_DX12_SWAPCHAIN_GUARD
 #define SAPPHIRE_RENDER_DX12_SWAPCHAIN_GUARD
 
-#include <SA/Render/LowLevel/Common/Surface/Swapchain.hpp>
+#include <SA/Render/LowLevel/Common/Surface/SwapchainBase.hpp>
 
 #include <SA/Render/LowLevel/DX12/Surface/D12SwapchainSettings.hpp>
 
@@ -17,7 +17,7 @@ namespace SA::RND::DX12
 
 	using DXSwapchainT = Microsoft::WRL::ComPtr<IDXGISwapChain3>;
 
-	class Swapchain : public SA::RND::Swapchain
+	class Swapchain : public SwapchainBase
 	{
 		DXSwapchainT mHandle = nullptr;
 
