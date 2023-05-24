@@ -1,8 +1,8 @@
 // Copyright (c) 2023 Sapphire's Suite. All Rights Reserved.
 
-#include <Device/Queue/VkQueueRequirements.hpp>
+#include <Device/QueueRequirements.hpp>
 
-namespace SA::RND::VK
+namespace SA::RND
 {
 	QueueRequirements QueueRequirements::GraphicsOnly{ 1, 0, 0, 0 };
 	QueueRequirements QueueRequirements::GraphicsCompute{ 1 , 1, 0, 0 };

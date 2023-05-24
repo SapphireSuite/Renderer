@@ -8,6 +8,7 @@
 #include <SA/Render/LowLevel/Common/Device/DeviceInfo.hpp>
 
 #include "D12PhysicalDevice.hpp"
+#include "D12LogicalDevice.hpp"
 
 namespace SA::RND::DX12
 {
@@ -19,6 +20,26 @@ namespace SA::RND::DX12
 		PhysicalDevice physicalDevice = nullptr;
 
 		void SetPhysicalDevice(PhysicalDevice _device);
+
+//}
+
+//{ Logical Device
+
+		LogicalDevice logicalDevice = nullptr;
+
+		/// Try create logical device from physical device to check DX12 support.
+		bool TryCreateLogicalDevice();
+
+//}
+
+//{ Queues
+
+		std::vector<Microsoft::WRL::ComPtr<ID3D12CommandQueue>> graphicsQueues;
+		std::vector<Microsoft::WRL::ComPtr<ID3D12CommandQueue>> computeQueues;
+		std::vector<Microsoft::WRL::ComPtr<ID3D12CommandQueue>> transferQueues;
+		std::vector<Microsoft::WRL::ComPtr<ID3D12CommandQueue>> presentQueues;
+
+		int QueryQueueFamilies(QueueRequirements _queueReqs);
 
 //}
 

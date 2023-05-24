@@ -12,7 +12,6 @@
 namespace SA::RND::VK
 {
 	class WindowSurface;
-	struct QueueRequirements;
 
 	struct DeviceInfo : public RND::DeviceInfo
 	{

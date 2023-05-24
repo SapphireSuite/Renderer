@@ -4,7 +4,6 @@
 
 #include <Device/VkDeviceInfo.hpp>
 #include <Device/VkDeviceRequirements.hpp>
-#include <Device/Queue/VkQueueRequirements.hpp>
 
 #include <Surface/VkWindowSurface.hpp>
 

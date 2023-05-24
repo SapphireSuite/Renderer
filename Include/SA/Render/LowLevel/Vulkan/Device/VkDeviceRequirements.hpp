@@ -10,7 +10,6 @@
 #include <SA/Render/LowLevel/Common/Device/DeviceRequirements.hpp>
 
 #include <SA/Render/LowLevel/Vulkan/VulkanAPI.hpp>
-#include <SA/Render/LowLevel/Vulkan/Device/Queue/VkQueueRequirements.hpp>
 
 namespace SA::RND::VK
 {
@@ -49,12 +48,6 @@ namespace SA::RND::VK
 		/// Window surface required support (if any).
 		WindowSurface* mWinSurface = nullptr;
 		
-	//}
-
-	//{ Queue
-	
-	public:
-		QueueRequirements queue;
 	//}
 	};
 }

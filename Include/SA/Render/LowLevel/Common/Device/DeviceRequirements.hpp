@@ -5,10 +5,13 @@
 #ifndef SAPPHIRE_RENDER_DEVICE_REQUIREMENTS_GUARD
 #define SAPPHIRE_RENDER_DEVICE_REQUIREMENTS_GUARD
 
+#include "QueueRequirements.hpp"
+
 namespace SA::RND
 {
 	struct DeviceRequirements
 	{
+		QueueRequirements queue;
 	};
 }
 

@@ -8,6 +8,8 @@
 #include <string>
 #include <cstdint>
 
+#include "QueueRequirements.hpp" // @rmaxime: required in children classes.
+
 namespace SA::RND
 {
 	struct DeviceInfo

@@ -3,6 +3,7 @@
 #include <Device/D12Device.hpp>
 
 #include <D12Factory.hpp>
+#include <Device/D12DeviceRequirements.hpp>
 
 #include "../Debug/D12ValidationLayers.hpp"
 
@@ -14,8 +15,7 @@ namespace SA::RND::DX12
 
 		SA_LOG(L"Physical device created.", Info, SA.Render.DX12, (L"Handle [%1]", mPhysicalDevice.Get()));
 
-		SA_DX12_API(D3D12CreateDevice(mPhysicalDevice.Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&mLogicalDevice)),
-			L"Failed to create logical device!")
+		mLogicalDevice = _info.logicalDevice;
 
 		SetDebugName(mLogicalDevice.Get(), SA::StringFormat("SA:: Device {%1} [%2]", _info.desc.Description, _info.desc.DeviceId));
 
@@ -39,11 +39,21 @@ namespace SA::RND::DX12
 
 #endif // SA_DX12_VALIDATION_LAYERS
 
+		mGraphicsQueues = _info.graphicsQueues;
+		mComputeQueues = _info.computeQueues;
+		mPresentQueues = _info.presentQueues;
+		mTransferQueues = _info.transferQueues;
+
 		SA_LOG(L"Logical device created.", Info, SA.Render.DX12, (L"Handle [%1]", mLogicalDevice.Get()));
 	}
 	
 	void Device::Destroy()
 	{
+		mGraphicsQueues.clear();
+		mComputeQueues.clear();
+		mPresentQueues.clear();
+		mTransferQueues.clear();
+
 		if(mLogicalDevice)
 		{
 			SA_LOG_RAII(L"Logical device destroyed", Info, SA.Render.DX12, (L"Handle [%1]", mLogicalDevice.Get()));
@@ -60,15 +70,39 @@ namespace SA::RND::DX12
 	}
 
 
-//{ Query Device
-
-	bool CheckDX12Support(const PhysicalDevice& _adapter)
+	ID3D12CommandQueue* Device::GetGraphicsQueue(uint32_t _index)
 	{
-		// Try create device to check whether the adapter supports Direct3D 12.
-		return SUCCEEDED(D3D12CreateDevice(_adapter.Get(), D3D_FEATURE_LEVEL_11_0, _uuidof(ID3D12Device), nullptr));
+		SA_ASSERT((OutOfArrayRange, _index, mGraphicsQueues), SA.Render.DX12);
+
+		return mGraphicsQueues[_index].Get();
+	}
+	
+	ID3D12CommandQueue* Device::GetComputeQueue(uint32_t _index)
+	{
+		SA_ASSERT((OutOfArrayRange, _index, mComputeQueues), SA.Render.DX12);
+
+		return mComputeQueues[_index].Get();
+	}
+	
+	ID3D12CommandQueue* Device::GetTransferQueue(uint32_t _index)
+	{
+		SA_ASSERT((OutOfArrayRange, _index, mTransferQueues), SA.Render.DX12);
+
+		return mTransferQueues[_index].Get();
+	}
+	
+	ID3D12CommandQueue* Device::GetPresentQueue(uint32_t _index)
+	{
+		SA_ASSERT((OutOfArrayRange, _index, mPresentQueues), SA.Render.DX12);
+
+		return mPresentQueues[_index].Get();
 	}
 
-	std::vector<DeviceInfo> Device::QueryDeviceInfos(const Factory& _factory)
+
+//{ Query Device
+
+	std::vector<DeviceInfo> Device::QueryDeviceInfos(const Factory& _factory,
+			const DeviceRequirements& _reqs)
 	{
 		std::vector<DeviceInfo> result;
 		result.reserve(5);
@@ -78,12 +112,14 @@ namespace SA::RND::DX12
 
 		while (SUCCEEDED(_factory->EnumAdapterByGpuPreference(index, DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE, IID_PPV_ARGS(&adapter))))
 		{
+			DeviceInfo info;
+			info.SetPhysicalDevice(adapter);
 
-			if (CheckDX12Support(adapter))
+			if (info.TryCreateLogicalDevice() &&
+				info.QueryQueueFamilies(_reqs.queue) >= 0)
 			{
-				DeviceInfo& info = result.emplace_back();
-				info.SetPhysicalDevice(adapter);
 				info.Evaluate();
+				result.emplace_back(std::move(info));
 			}
 
 			++index;
