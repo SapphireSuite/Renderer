@@ -9,30 +9,27 @@
 
 #include <SA/Support/API/Windows.hpp>
 
-namespace SA::RND
+namespace SA::RND::DX12
 {
-	namespace DX12
+	class Exception_DX12 : public Exception
 	{
-		class Exception_DX12 : public Exception
-		{
-		public:
-			Exception_DX12(BaseInfo _info,
-				HRESULT _hrRes,
-				std::wstring _predStr
-			) noexcept;
-		};
+	public:
+		Exception_DX12(BaseInfo _info,
+			HRESULT _hrRes,
+			std::wstring _predStr
+		) noexcept;
+	};
 
 
-		/// \cond Internal
+	/// \cond Internal
 
-		#define __SA_CREATE_EXCEPTION_DX12(_baseInfo, _hrRes) SA::DX12::Exception_DX12(\
-			_baseInfo,\
-			_hrRes,\
-			SA_WSTR(_hrRes)\
-		)
+	#define __SA_CREATE_EXCEPTION_DX12(_baseInfo, _hrRes) SA::RND::DX12::Exception_DX12(\
+		_baseInfo,\
+		_hrRes,\
+		SA_WSTR(_hrRes)\
+	)
 
-		/// \endcond
-	}
+	/// \endcond
 }
 
 #endif // SAPPHIRE_RENDER_EXCEPTION_DX12_GUARD

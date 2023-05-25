@@ -7,31 +7,28 @@
 
 #include <SA/Logger/Exceptions/Exception.hpp>
 
-namespace SA::RND
+namespace SA::RND::VK
 {
-	namespace VK
+	class Exception_Vulkan : public Exception
 	{
-		class Exception_Vulkan : public Exception
-		{
-		public:
-			Exception_Vulkan(
-				BaseInfo _info,
-				VkResult _vkRes,
-				std::wstring _predStr
-			) noexcept;
-		};
+	public:
+		Exception_Vulkan(
+			BaseInfo _info,
+			VkResult _vkRes,
+			std::wstring _predStr
+		) noexcept;
+	};
 
 
-		/// \cond Internal
+	/// \cond Internal
 
-		#define __SA_CREATE_EXCEPTION_Vulkan(_baseInfo, _vkFunc) SA::VK::Exception_Vulkan(\
-			_baseInfo,\
-			_vkFunc,\
-			SA_WSTR(_vkFunc)\
-		)
+	#define __SA_CREATE_EXCEPTION_Vulkan(_baseInfo, _vkFunc) SA::RND::VK::Exception_Vulkan(\
+		_baseInfo,\
+		_vkFunc,\
+		SA_WSTR(_vkFunc)\
+	)
 
-		/// \endcond
-	}
+	/// \endcond
 }
 
 #endif // SAPPHIRE_RENDER_EXCEPTION_VULKAN_GUARD
