@@ -21,7 +21,7 @@ namespace SA::RND::DX12
 	bool ProcessFamily(
 		LogicalDevice _logicalDevice,
 		uint32_t& _num,
-		std::vector<Microsoft::WRL::ComPtr<ID3D12CommandQueue>>& _queues,
+		QueueFamilyInfo& _queueFam,
 		const D3D12_COMMAND_QUEUE_DESC& _desc)
 	{
 		Microsoft::WRL::ComPtr<ID3D12CommandQueue> queue;
@@ -33,7 +33,7 @@ namespace SA::RND::DX12
 			if(FAILED(_logicalDevice->CreateCommandQueue(&_desc, IID_PPV_ARGS(&queue))))
 				return false;
 
-			_queues.emplace_back(std::move(queue));
+			_queueFam.queues.emplace_back(std::move(queue));
 			--_num;
 		}
 
@@ -49,7 +49,7 @@ namespace SA::RND::DX12
 			queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
 			queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
 
-			ProcessFamily(logicalDevice, _queueReqs.graphicsNum, graphicsQueues, queueDesc);
+			ProcessFamily(logicalDevice, _queueReqs.graphicsNum, graphics, queueDesc);
 		}
 
 		// Compute
@@ -58,7 +58,7 @@ namespace SA::RND::DX12
 			queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
 			queueDesc.Type = D3D12_COMMAND_LIST_TYPE_COMPUTE;
 
-			ProcessFamily(logicalDevice, _queueReqs.computeNum, computeQueues, queueDesc);
+			ProcessFamily(logicalDevice, _queueReqs.computeNum, compute, queueDesc);
 		}
 
 		// Transfer
@@ -67,7 +67,7 @@ namespace SA::RND::DX12
 			queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
 			queueDesc.Type = D3D12_COMMAND_LIST_TYPE_COPY;
 
-			ProcessFamily(logicalDevice, _queueReqs.transferNum, transferQueues, queueDesc);
+			ProcessFamily(logicalDevice, _queueReqs.transferNum, transfer, queueDesc);
 		}
 
 		// Present
@@ -76,7 +76,7 @@ namespace SA::RND::DX12
 			queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
 			queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
 
-			ProcessFamily(logicalDevice, _queueReqs.presentNum, presentQueues, queueDesc);
+			ProcessFamily(logicalDevice, _queueReqs.presentNum, present, queueDesc);
 		}
 
 		return _queueReqs.GetCompletedCode();

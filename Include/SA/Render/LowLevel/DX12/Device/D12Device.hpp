@@ -7,6 +7,7 @@
 
 #include "D12DeviceInfo.hpp"
 #include "D12DeviceRequirements.hpp"
+#include "Queue/D12QueueMgr.hpp"
 
 namespace SA::RND::DX12
 {
@@ -20,19 +21,11 @@ namespace SA::RND::DX12
 		/// Physical device handle.
 		PhysicalDevice mPhysicalDevice = nullptr;
 
-		std::vector<Microsoft::WRL::ComPtr<ID3D12CommandQueue>> mGraphicsQueues;
-		std::vector<Microsoft::WRL::ComPtr<ID3D12CommandQueue>> mComputeQueues;
-		std::vector<Microsoft::WRL::ComPtr<ID3D12CommandQueue>> mTransferQueues;
-		std::vector<Microsoft::WRL::ComPtr<ID3D12CommandQueue>> mPresentQueues;
-
 	public:
+		QueueMgr queueMgr;
+
 		void Create(const DeviceInfo& _info);
 		void Destroy();
-
-		ID3D12CommandQueue* GetGraphicsQueue(uint32_t _index);
-		ID3D12CommandQueue* GetComputeQueue(uint32_t _index);
-		ID3D12CommandQueue* GetTransferQueue(uint32_t _index);
-		ID3D12CommandQueue* GetPresentQueue(uint32_t _index);
 
 		static std::vector<DeviceInfo> QueryDeviceInfos(const Factory& _factory,
 			const DeviceRequirements& _reqs = DeviceRequirements{});

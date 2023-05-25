@@ -9,6 +9,7 @@
 
 #include "D12PhysicalDevice.hpp"
 #include "D12LogicalDevice.hpp"
+#include "Queue/D12QueueFamilyInfo.hpp"
 
 namespace SA::RND::DX12
 {
@@ -34,10 +35,10 @@ namespace SA::RND::DX12
 
 //{ Queues
 
-		std::vector<Microsoft::WRL::ComPtr<ID3D12CommandQueue>> graphicsQueues;
-		std::vector<Microsoft::WRL::ComPtr<ID3D12CommandQueue>> computeQueues;
-		std::vector<Microsoft::WRL::ComPtr<ID3D12CommandQueue>> transferQueues;
-		std::vector<Microsoft::WRL::ComPtr<ID3D12CommandQueue>> presentQueues;
+		QueueFamilyInfo graphics;
+		QueueFamilyInfo compute;
+		QueueFamilyInfo transfer;
+		QueueFamilyInfo present;
 
 		int QueryQueueFamilies(QueueRequirements _queueReqs);
 

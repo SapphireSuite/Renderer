@@ -39,20 +39,14 @@ namespace SA::RND::DX12
 
 #endif // SA_DX12_VALIDATION_LAYERS
 
-		mGraphicsQueues = _info.graphicsQueues;
-		mComputeQueues = _info.computeQueues;
-		mPresentQueues = _info.presentQueues;
-		mTransferQueues = _info.transferQueues;
+		queueMgr.Create(_info);
 
 		SA_LOG(L"Logical device created.", Info, SA.Render.DX12, (L"Handle [%1]", mLogicalDevice.Get()));
 	}
 	
 	void Device::Destroy()
 	{
-		mGraphicsQueues.clear();
-		mComputeQueues.clear();
-		mPresentQueues.clear();
-		mTransferQueues.clear();
+		queueMgr.Destroy();
 
 		if(mLogicalDevice)
 		{
@@ -67,35 +61,6 @@ namespace SA::RND::DX12
 
 			mPhysicalDevice.Reset();
 		}
-	}
-
-
-	ID3D12CommandQueue* Device::GetGraphicsQueue(uint32_t _index)
-	{
-		SA_ASSERT((OutOfArrayRange, _index, mGraphicsQueues), SA.Render.DX12);
-
-		return mGraphicsQueues[_index].Get();
-	}
-	
-	ID3D12CommandQueue* Device::GetComputeQueue(uint32_t _index)
-	{
-		SA_ASSERT((OutOfArrayRange, _index, mComputeQueues), SA.Render.DX12);
-
-		return mComputeQueues[_index].Get();
-	}
-	
-	ID3D12CommandQueue* Device::GetTransferQueue(uint32_t _index)
-	{
-		SA_ASSERT((OutOfArrayRange, _index, mTransferQueues), SA.Render.DX12);
-
-		return mTransferQueues[_index].Get();
-	}
-	
-	ID3D12CommandQueue* Device::GetPresentQueue(uint32_t _index)
-	{
-		SA_ASSERT((OutOfArrayRange, _index, mPresentQueues), SA.Render.DX12);
-
-		return mPresentQueues[_index].Get();
 	}
 
 
