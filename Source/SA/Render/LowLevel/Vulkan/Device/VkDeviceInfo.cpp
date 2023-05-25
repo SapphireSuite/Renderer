@@ -109,8 +109,9 @@ namespace SA::RND::VK
 	int DeviceInfo::QueryQueueFamilies(const WindowSurface* _winSurface, QueueRequirements _queueReqs)
 	{
 		SA_ASSERT((Default, physicalDevice != VK_NULL_HANDLE), SA.Render.Vulkan, L"Query queue families of a null physical device!");
-		SA_ASSERT((Default, !((_queueReqs.presentNum > 0) ^ (_winSurface != nullptr))),
-			SA.Render.Vulkan, L"QueueType::Present requiere a valid RenderSurface as parameter!");
+		
+		if(_queueReqs.presentNum > 0)
+			SA_ASSERT((Nullptr, _winSurface), SA.Render.Vulkan, L"QueueType::Present requiere a valid RenderSurface as parameter!")
 
 	//{ Query queue families
 		uint32_t queueFamilyCount = 0;

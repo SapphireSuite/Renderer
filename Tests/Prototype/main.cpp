@@ -124,7 +124,10 @@ public:
 
 		// Device
 		{
-			auto infos = intf->QueryDeviceInfos();
+			RHI::DeviceRequirements reqs;
+			reqs.SetWindowSurface(winSurface);
+
+			auto infos = intf->QueryDeviceInfos(reqs);
 
 			for (auto& info : infos)
 				SA_LOG((L"Device found: Name: [%1], ID: [%2], Vendor [%3], Score [%4]", info->GetName(), info->GetID(), info->GetVendorID(), info->GetScore()));

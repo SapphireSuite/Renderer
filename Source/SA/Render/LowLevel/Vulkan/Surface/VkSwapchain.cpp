@@ -61,11 +61,10 @@ namespace SA::RND::VK
 		createInfo.oldSwapchain = VK_NULL_HANDLE;
 
 
-		// TODO: Implement if no present queue.
 		uint32_t familyIndices[]
 		{
 			_device.queueMgr.graphics[0].GetFamilyIndex(),
-			_device.queueMgr.present[0].GetFamilyIndex(),
+			_device.queueMgr.present.GetQueueNum() > 0 ? _device.queueMgr.present[0].GetFamilyIndex() : _device.queueMgr.graphics[0].GetFamilyIndex(),
 		};
 
 		// Graphic and present familiy are different.
@@ -73,8 +72,11 @@ namespace SA::RND::VK
 		{
 			createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
 			createInfo.queueFamilyIndexCount = sizeof(familyIndices) / sizeof(uint32_t);
-			createInfo.pQueueFamilyIndices = familyIndices;
 		}
+		else
+			createInfo.queueFamilyIndexCount = 1;
+
+		createInfo.pQueueFamilyIndices = familyIndices;
 
 		SA_VK_API(vkCreateSwapchainKHR(_device, &createInfo, nullptr, &mHandle), L"Failed to create swapchain!");
 
