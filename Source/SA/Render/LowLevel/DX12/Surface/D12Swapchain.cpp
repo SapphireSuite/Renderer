@@ -10,15 +10,13 @@ namespace SA::RND::DX12
 {
 	void Swapchain::Create(const Factory& _factory, const Device& _device, const WindowSurface& _surface, const SwapchainSettings& _settings)
 	{
-		(void)_device;
-
 		// Extents
 		{
 			RECT rect;
 			GetWindowRect(_surface, &rect);
 
 			mExtents.x = rect.right - rect.left;
-			mExtents.y = rect.top - rect.bottom;
+			mExtents.y = rect.bottom - rect.top;
 		}
 
 		// Format
@@ -31,7 +29,7 @@ namespace SA::RND::DX12
 		}
 
 		DXGI_SWAP_CHAIN_DESC1 desc = {};
-		desc.BufferCount = _settings.frameNum;
+		desc.BufferCount = _settings.frameNum != uint32_t(-1) ? _settings.frameNum : 3u;
 		desc.Width = mExtents.x;
 		desc.Height = mExtents.y;
 		desc.Format = _settings.format;
@@ -39,9 +37,17 @@ namespace SA::RND::DX12
 		desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 		desc.SampleDesc.Count = 1;
 
-		// TODO: first param command queue.
-		Microsoft::WRL::ComPtr<IDXGISwapChain1> swapChain1;
-		SA_DX12_API(_factory->CreateSwapChainForHwnd(nullptr, _surface, &desc, nullptr, nullptr, &swapChain1));
+		// Queue to force flush.
+		ID3D12CommandQueue* queue = nullptr;
+
+		if(_device.queueMgr.present.GetQueueNum() > 0)
+			queue = _device.queueMgr.present[0];
+		else if(_device.queueMgr.graphics.GetQueueNum() > 0)
+			queue = _device.queueMgr.graphics[0];
+		//
+
+		MComPtr<IDXGISwapChain1> swapChain1;
+		SA_DX12_API(_factory->CreateSwapChainForHwnd(queue, _surface, &desc, nullptr, nullptr, &swapChain1));
 		SA_DX12_API(swapChain1.As(&mHandle));
 	}
 	

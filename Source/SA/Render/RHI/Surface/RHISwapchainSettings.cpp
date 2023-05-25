@@ -10,6 +10,7 @@ namespace SA::RND::RHI
 	{
 		VK::SwapchainSettings vkSettings;
 
+		// Default values chosen by API.
 		vkSettings.frameNum = frameNum;
 		vkSettings.format = VK::API_GetFormat(format);
 
@@ -25,7 +26,9 @@ namespace SA::RND::RHI
 		DX12::SwapchainSettings d12Settings;
 
 		d12Settings.frameNum = frameNum;
-		d12Settings.format = DX12::API_GetFormat(format);
+
+		if(format != Format::Unknown) // Let default value otherwise,
+			d12Settings.format = DX12::API_GetFormat(format);
 
 		return d12Settings;
 	}

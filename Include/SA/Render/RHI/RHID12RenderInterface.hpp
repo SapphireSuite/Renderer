@@ -39,6 +39,13 @@ namespace SA::RND::RHI
 
 //}
 
+//{ Swapchain
+
+	protected:
+		Swapchain* InstantiateSwapchainClass() const override final;
+
+//}
+
 	public:
 		const DX12::Factory& API_DirectX12() const override final;
 	};

@@ -89,6 +89,7 @@ public:
 	RHI::RenderInterface* intf = nullptr;
 	RHI::Device* device = nullptr;
 	RHI::WindowSurface* winSurface = nullptr;
+	RHI::Swapchain* swapchain = nullptr;
 	RHI::Context* context = nullptr;
 
 	struct CreateInfo
@@ -132,6 +133,11 @@ public:
 		
 		}
 		
+		// Swapchain
+		{
+			swapchain = intf->CreateSwapchain(device, winSurface);
+		}
+
 		{
 			context = device->CreateContext();
 		}
@@ -142,6 +148,8 @@ public:
 		// Render
 		{
 			device->DestroyContext(context);
+
+			intf->DestroySwapchain(device, swapchain);
 
 			intf->DestroyWindowSurface(winSurface);
 			intf->DestroyDevice(device);

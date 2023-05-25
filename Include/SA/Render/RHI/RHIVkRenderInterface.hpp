@@ -38,6 +38,14 @@ namespace SA::RND::RHI
 		std::vector<std::shared_ptr<DeviceInfo>> QueryDeviceInfos(const DeviceRequirements& _reqs) const override final;
 //}
 
+
+//{ Swapchain
+
+	protected:
+		Swapchain* InstantiateSwapchainClass() const override final;
+
+//}
+
 	public:
 		const VK::Instance& API_Vulkan() const override final;
 

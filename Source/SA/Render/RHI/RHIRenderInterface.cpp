@@ -8,6 +8,7 @@ namespace SA::RND::RHI
 {
 	void RenderInterface::Destroy()
 	{
+		// DestroyAllSwapchains();
 		DestroyAllDevices();
 		DestroyAllWindowSurfaces();
 	}
@@ -102,6 +103,55 @@ namespace SA::RND::RHI
 
 		mDevices.clear();
 	}
+
+//}
+
+
+//{ Swapchain
+
+	void RenderInterface::DeleteSwapchainClass(Swapchain* _swapchain) const
+	{
+		SA_ASSERT((Nullptr, _swapchain), SA.Render.RHI);
+
+		delete _swapchain;
+	}
+
+	Swapchain* RenderInterface::CreateSwapchain(const Device* _device,
+		const WindowSurface* _winSurface,
+		const SwapchainSettings& _settings)
+	{
+		Swapchain* const swapchain = mSwapchains.emplace_front(InstantiateSwapchainClass());
+
+		SA_ASSERT((Nullptr, swapchain), SA.Render.RHI, (L"Swapchain instantiate class failed!"));
+
+		swapchain->Create(this, _device, _winSurface, _settings);
+
+		return swapchain;
+	}
+
+	void RenderInterface::DestroySwapchain(const Device* _device, Swapchain* _swapchain)
+	{
+		SA_ASSERT((Nullptr, _swapchain), SA.Render.RHI);
+
+		if(std::erase(mSwapchains, _swapchain))
+		{
+			_swapchain->Destroy(this, _device);
+			DeleteSwapchainClass(_swapchain);
+		}
+		else
+			SA_LOG((L"Try destroy Swapchain [%1] that does not belong to this context!", _swapchain), Error, SA.Render.RHI);
+	}
+
+	// void RenderInterface::DestroyAllSwapchains()
+	// {
+	// 	for(auto swapchain : mSwapchains)
+	// 	{
+	// 		swapchain->Destroy();
+	// 		DeleteSwapchainClass(swapchain);
+	// 	}
+
+	// 	mSwapchains.clear();
+	// }
 
 //}
 

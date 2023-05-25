@@ -4,6 +4,7 @@
 
 #include <Device/RHIVkDevice.hpp>
 #include <Surface/RHIVkWindowSurface.hpp>
+#include <Surface/RHIVkSwapchain.hpp>
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
@@ -32,11 +33,6 @@ namespace SA::RND::RHI
 	{
 		return new VkWindowSurface();
 	}
-
-	const VK::Instance& VkRenderInterface::API_Vulkan() const
-	{
-		return mInstance;
-	}
 	
 //}
 
@@ -62,6 +58,20 @@ namespace SA::RND::RHI
 	}
 
 //}
+
+//{ Swapchain
+
+	Swapchain* VkRenderInterface::InstantiateSwapchainClass() const
+	{
+		return new VkSwapchain();
+	}
+	
+//}
+
+	const VK::Instance& VkRenderInterface::API_Vulkan() const
+	{
+		return mInstance;
+	}
 }
 
 #endif // SA_RENDER_LOWLEVEL_VULKAN_IMPL
