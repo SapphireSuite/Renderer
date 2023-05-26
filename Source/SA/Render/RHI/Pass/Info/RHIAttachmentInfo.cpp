@@ -1,6 +1,6 @@
 // Copyright (c) 2023 Sapphire's Suite. All Rights Reserved.
 
-#include <Pass/RHIAttachmentInfo.hpp>
+#include <Pass/Info/RHIAttachmentInfo.hpp>
 
 namespace SA::RND::RHI
 {

@@ -5,7 +5,7 @@
 #ifndef SAPPHIRE_RENDER_DX12_ATTACHMENT_INFO_GUARD
 #define SAPPHIRE_RENDER_DX12_ATTACHMENT_INFO_GUARD
 
-#include <SA/Render/LowLevel/Common/Pass/AttachmentInfoBase.hpp>
+#include <SA/Render/LowLevel/Common/Pass/Info/AttachmentInfoBase.hpp>
 
 #include <SA/Render/LowLevel/DX12/DX12API.hpp>
 

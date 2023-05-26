@@ -5,17 +5,17 @@
 #ifndef SAPPHIRE_RENDER_RHI_ATTACHMENT_INFO_GUARD
 #define SAPPHIRE_RENDER_RHI_ATTACHMENT_INFO_GUARD
 
-#include <SA/Render/LowLevel/Common/Pass/AttachmentInfoBase.hpp>
+#include <SA/Render/LowLevel/Common/Pass/Info/AttachmentInfoBase.hpp>
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
-	#include <SA/Render/LowLevel/Vulkan/Pass/VkAttachmentInfo.hpp>
+	#include <SA/Render/LowLevel/Vulkan/Pass/Info/VkAttachmentInfo.hpp>
 
 #endif
 
 #if SA_RENDER_LOWLEVEL_DX12_IMPL
 
-	#include <SA/Render/LowLevel/DX12/Pass/D12AttachmentInfo.hpp>
+	#include <SA/Render/LowLevel/DX12/Pass/Info/D12AttachmentInfo.hpp>
 
 #endif
 
