@@ -1,6 +1,6 @@
 // Copyright (c) 2023 Sapphire's Suite. All Rights Reserved.
 
-#include <Pipeline/Descriptors/CullingMode.hpp>
+#include <Pipeline/Descriptors/RHICullingMode.hpp>
 
 namespace SA::RND
 {

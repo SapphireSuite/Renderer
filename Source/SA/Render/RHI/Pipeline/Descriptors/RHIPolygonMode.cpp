@@ -1,6 +1,6 @@
 // Copyright (c) 2023 Sapphire's Suite. All Rights Reserved.
 
-#include <Pipeline/Descriptors/PolygonMode.hpp>
+#include <Pipeline/Descriptors/RHIPolygonMode.hpp>
 
 namespace SA::RND
 {

@@ -1,6 +1,6 @@
 // Copyright (c) 2023 Sapphire's Suite. All Rights Reserved.
 
-#include <Pipeline/Descriptors/PipelineRasterizationInfo.hpp>
+#include <Pipeline/Descriptors/RHIPipelineRasterizationInfo.hpp>
 
 namespace SA::RND::RHI
 {

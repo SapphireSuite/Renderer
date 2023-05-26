@@ -5,15 +5,9 @@
 #ifndef SAPPHIRE_RENDER_RHI_PIPELINE_RASTERIZATION_INFO_GUARD
 #define SAPPHIRE_RENDER_RHI_PIPELINE_RASTERIZATION_INFO_GUARD
 
-#include "CullingMode.hpp"
-#include "FrontFaceMode.hpp"
-#include "PolygonMode.hpp"
-
-#if SA_RENDER_LOWLEVEL_VULKAN_IMPL
-
-	#include <SA/Render/LowLevel/Vulkan/Pass/VkRenderPassInfo.hpp>
-
-#endif
+#include "RHICullingMode.hpp"
+#include "RHIFrontFaceMode.hpp"
+#include "RHIPolygonMode.hpp"
 
 namespace SA::RND::RHI
 {

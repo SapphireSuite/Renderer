@@ -1,6 +1,6 @@
 // Copyright (c) 2023 Sapphire's Suite. All Rights Reserved.
 
-#include <Pipeline/Descriptors/FrontFaceMode.hpp>
+#include <Pipeline/Descriptors/RHIFrontFaceMode.hpp>
 
 namespace SA::RND
 {
