@@ -13,12 +13,10 @@
 
 namespace SA::RND::DX12
 {
-	struct SubpassInfo : public SubpassInfoBase
+	struct SubpassInfo : public SubpassInfoBase<AttachmentInfo>
 	{
 		// All color attachments must have the same sample count.
 		uint32_t sampling = 1;
-
-		std::vector<AttachmentInfo> attachments;
 	};
 }
 

@@ -13,12 +13,10 @@
 
 namespace SA::RND::VK
 {
-	struct SubpassInfo : public SubpassInfoBase
+	struct SubpassInfo : public SubpassInfoBase<AttachmentInfo>
 	{
 		// All color attachments must have the same sample count.
 		VkSampleCountFlagBits sampling = VK_SAMPLE_COUNT_1_BIT;
-
-		std::vector<AttachmentInfo> attachments;
 	};
 }
 

@@ -24,12 +24,10 @@
 
 namespace SA::RND::RHI
 {
-	struct SubpassInfo : public SubpassInfoBase
+	struct SubpassInfo : public SubpassInfoBase<AttachmentInfo>
 	{
 		// All color attachments must have the same sample count.
 		Sampling sampling = Sampling::Sample1Bit;
-
-		std::vector<AttachmentInfo> attachments;
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 

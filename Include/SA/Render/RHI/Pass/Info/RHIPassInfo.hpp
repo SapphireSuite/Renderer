@@ -23,10 +23,8 @@
 
 namespace SA::RND::RHI
 {
-	struct PassInfo : public PassInfoBase
+	struct PassInfo : public PassInfoBase<SubpassInfo>
 	{
-		std::vector<SubpassInfo> subpasses;
-
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
 		VK::PassInfo API_Vulkan() const;

@@ -10,7 +10,7 @@ namespace SA::RND::RHI
 	{
 		VK::PassInfo vkInfo;
 
-		static_cast<PassInfoBase&>(vkInfo) = *this;
+		vkInfo.name = name;
 
 
 		vkInfo.subpasses.reserve(subpasses.size());
@@ -30,7 +30,7 @@ namespace SA::RND::RHI
 	{
 		DX12::PassInfo d12Info;
 
-		static_cast<PassInfoBase&>(d12Info) = *this;
+		d12Info.name = name;
 
 
 		d12Info.subpasses.reserve(subpasses.size());

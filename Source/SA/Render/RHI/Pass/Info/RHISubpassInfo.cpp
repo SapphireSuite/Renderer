@@ -10,7 +10,7 @@ namespace SA::RND::RHI
 	{
 		VK::SubpassInfo vkInfo;
 
-		static_cast<SubpassInfoBase&>(vkInfo) = *this;
+		vkInfo.name = name;
 
 		vkInfo.sampling = VK::API_GetSampleCount(sampling);
 
@@ -32,7 +32,7 @@ namespace SA::RND::RHI
 	{
 		DX12::SubpassInfo d12Info;
 
-		static_cast<SubpassInfoBase&>(d12Info) = *this;
+		d12Info.name = name;
 
 		d12Info.sampling = DX12::API_GetSampleCount(sampling);
 

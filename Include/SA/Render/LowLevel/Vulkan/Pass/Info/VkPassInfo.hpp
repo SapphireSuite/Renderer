@@ -11,9 +11,8 @@
 
 namespace SA::RND::VK
 {
-	struct PassInfo : public PassInfoBase
+	struct PassInfo : public PassInfoBase<SubpassInfo>
 	{
-		std::vector<SubpassInfo> subpasses;
 	};
 }
 

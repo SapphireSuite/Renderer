@@ -9,6 +9,8 @@
 
 #include <SA/Render/LowLevel/Common/Misc/Color.hpp>
 
+#include <SA/Maths/Space/Vector2.hpp>
+
 #include "AttachmentType.hpp"
 #include "AttachmentUsage.hpp"
 
@@ -23,6 +25,12 @@ namespace SA::RND
 		AttachmentType type = AttachmentType::Color;
 
 		AttachmentUsage usage = AttachmentUsage::InputNext;
+
+		/**
+		 * @brief Extents used for framebuffer creation only.
+		 * API RenderPass implementation does not need this value.
+		 */
+		Vec2ui extents;
 	};
 }
 

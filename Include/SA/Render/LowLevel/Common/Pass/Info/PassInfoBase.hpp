@@ -6,13 +6,17 @@
 #define SAPPHIRE_RENDER_PASS_INFO_BASE_GUARD
 
 #include <string>
-#include <vector> // Used by all children.
+#include <vector>
 
 namespace SA::RND
 {
+	template <typename SubpassT>
 	struct PassInfoBase
 	{
 		std::string name;
+
+		std::vector<SubpassT> subpasses;
+
 	};
 }
 
