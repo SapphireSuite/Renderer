@@ -2,8 +2,8 @@
 
 #pragma once
 
-#ifndef SAPPHIRE_RENDER_RHI_SAMPLE_BITS_GUARD
-#define SAPPHIRE_RENDER_RHI_SAMPLE_BITS_GUARD
+#ifndef SAPPHIRE_RENDER_RHI_SAMPLING_GUARD
+#define SAPPHIRE_RENDER_RHI_SAMPLING_GUARD
 
 #include <cstdint>
 
@@ -13,11 +13,17 @@
 
 #endif
 
+#if SA_RENDER_LOWLEVEL_DX12_IMPL
+
+	#include <SA/Render/LowLevel/DX12/DX12API.hpp>
+
+#endif
+
 namespace SA::RND
 {
 	namespace RHI
 	{
-		enum class SampleBits : uint8_t
+		enum class Sampling : uint8_t
 		{
 			/// no multisampling.
 			Sample1Bit,
@@ -39,12 +45,6 @@ namespace SA::RND
 
 			/// 64 bits multisampling.
 			Sample64Bits,
-
-
-			/// Use maximum multisampling allowed by hardware.
-			Max,
-
-			Default = Sample8Bits,
 		};
 	}
 
@@ -52,10 +52,19 @@ namespace SA::RND
 
 	namespace VK
 	{
-		VkSampleCountFlagBits API_GetSampleCount(RHI::SampleBits _sampleBits);
+		VkSampleCountFlagBits API_GetSampleCount(RHI::Sampling _sampling);
+	}
+
+#endif
+
+#if SA_RENDER_LOWLEVEL_DX12_IMPL
+
+	namespace DX12
+	{
+		uint32_t API_GetSampleCount(RHI::Sampling _sampling);
 	}
 
 #endif
 }
 
-#endif // SAPPHIRE_RENDER_RHI_SAMPLE_BITS_GUARD
+#endif // SAPPHIRE_RENDER_RHI_SAMPLING_GUARD
