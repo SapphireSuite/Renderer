@@ -1,6 +1,6 @@
 // Copyright (c) 2023 Sapphire's Suite. All Rights Reserved.
 
-#include <Pass/Info/AttachmentLoadMode.hpp>
+#include <Pass/RHIAttachmentLoadMode.hpp>
 
 #include <SA/Collections/Debug>
 
