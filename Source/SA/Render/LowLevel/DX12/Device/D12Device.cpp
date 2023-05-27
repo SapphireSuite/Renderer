@@ -100,4 +100,8 @@ namespace SA::RND::DX12
 
 //}
 
+	ID3D12Device* Device::operator->() const
+	{
+		return mLogicalDevice.Get();
+	}
 }

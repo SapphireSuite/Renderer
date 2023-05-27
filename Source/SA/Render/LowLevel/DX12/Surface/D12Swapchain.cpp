@@ -8,7 +8,12 @@
 
 namespace SA::RND::DX12
 {
-	void Swapchain::Create(const Factory& _factory, const Device& _device, const WindowSurface& _surface, const SwapchainSettings& _settings)
+//{ DXSwapchain
+
+	void Swapchain::CreateDXSwapchain(const Factory& _factory,
+		const Device& _device,
+		const WindowSurface& _surface,
+		const SwapchainSettings& _settings)
 	{
 		// Extents
 		{
@@ -30,8 +35,10 @@ namespace SA::RND::DX12
 			mFormat = _settings.format;
 		}
 
+		const uint32_t frameNum = _settings.frameNum != uint32_t(-1) ? _settings.frameNum : 3u;
+
 		DXGI_SWAP_CHAIN_DESC1 desc = {};
-		desc.BufferCount = _settings.frameNum != uint32_t(-1) ? _settings.frameNum : 3u;
+		desc.BufferCount = frameNum;
 		desc.Width = mExtents.x;
 		desc.Height = mExtents.y;
 		desc.Format = _settings.format;
@@ -51,9 +58,18 @@ namespace SA::RND::DX12
 		MComPtr<IDXGISwapChain1> swapChain1;
 		SA_DX12_API(_factory->CreateSwapChainForHwnd(queue, _surface, &desc, nullptr, nullptr, &swapChain1));
 		SA_DX12_API(swapChain1.As(&mHandle));
+
+		// Frame
+		mFrames.resize(frameNum);
+
+		for(uint32_t i = 0; i < frameNum; ++i)
+			mHandle->GetBuffer(i, IID_PPV_ARGS(&mFrames[i].image));
+		//
+
+		SA_LOG(L"Swapchain created!", Info, SA.Render.DX12, (L"Handle [%1]", mHandle.Get()));
 	}
-	
-	void Swapchain::Destroy()
+
+	void Swapchain::DestroyDXSwapchain()
 	{
 		if (mHandle)
 		{
@@ -62,9 +78,89 @@ namespace SA::RND::DX12
 			mHandle.Reset();
 		}
 	}
+//}
+
+//{ Sync
+
+	void Swapchain::CreateSynchronisation(const Device& _device)
+	{
+		SA_DX12_API(_device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&mFence)));
+		mFrames[0].fenceValue = 1;
+
+		mFenceEvent = CreateEvent(nullptr, false, false, nullptr);
+		SA_ASSERT((Nullptr, mFenceEvent), SA.Render.DX12, (L"Failed to create FenceEvent: %1", HRESULT_FROM_WIN32(GetLastError())));
+	
+		SA_LOG(L"Swapchain synchronisation created.", Info, SA.Render.DX12);
+	}
+	
+	void Swapchain::DestroySynchronisation()
+	{
+		mFence.Reset();
+
+		CloseHandle(mFenceEvent);
+
+		SA_LOG(L"Swapchain synchronisation destroyed.", Info, SA.Render.DX12);
+	}
+
+//}
+
+	void Swapchain::Create(const Factory& _factory, const Device& _device, const WindowSurface& _surface, const SwapchainSettings& _settings)
+	{
+		CreateDXSwapchain(_factory, _device, _surface, _settings);
+		CreateSynchronisation(_device);
+	}
+	
+	void Swapchain::Destroy()
+	{
+		DestroySynchronisation();
+		DestroyDXSwapchain();
+	}
+
+	uint32_t Swapchain::GetImageNum() const noexcept
+	{
+		return static_cast<uint32_t>(mFrames.size());
+	}
+
+	MComPtr<ID3D12Resource> Swapchain::GetBackBufferHandle(uint32_t _index) const
+	{
+		SA_ASSERT((OutOfArrayRange, _index, mFrames), SA.Render.DX12);
+
+		return mFrames[_index].image;
+	}
+
 
 	DXGI_FORMAT Swapchain::GetFormat() const noexcept
 	{
 		return mFormat;
+	}
+
+
+	uint32_t Swapchain::Begin(const Device& _device)
+	{
+		// TODO: Implement
+		(void)_device;
+
+		return mFrameIndex;
+	}
+
+	void Swapchain::End()
+	{
+		// TODO: Implement
+
+		// Schedule a Signal command in the queue.
+		const UINT64 currFenceValue = mFrames[mFrameIndex].fenceValue;
+		// SA_DX12_API(m_commandQueue->Signal(mFence.Get(), currFenceValue)); // TODO: ADD.
+
+    	mFrameIndex = mHandle->GetCurrentBackBufferIndex();
+
+		// If the next frame is not ready to be rendered yet, wait until it is ready.
+		if (mFence->GetCompletedValue() < mFrames[mFrameIndex].fenceValue)
+		{
+			SA_DX12_API(mFence->SetEventOnCompletion(mFrames[mFrameIndex].fenceValue, mFenceEvent));
+			WaitForSingleObjectEx(mFenceEvent, INFINITE, FALSE);
+		}
+
+		// Set the fence value for the next frame.
+		mFrames[mFrameIndex].fenceValue = currFenceValue + 1;
 	}
 }

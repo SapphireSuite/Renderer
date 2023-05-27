@@ -30,7 +30,7 @@ namespace SA::RND::DX12
 		static std::vector<DeviceInfo> QueryDeviceInfos(const Factory& _factory,
 			const DeviceRequirements& _reqs = DeviceRequirements{});
 
-		operator ID3D12Device* () noexcept;
+		ID3D12Device* operator->() const;
 	};
 }
 
