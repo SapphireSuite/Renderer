@@ -7,34 +7,91 @@
 
 namespace SA::RND::VK
 {
-	void FrameBuffer::Create(const Device& _device, const FrameBufferInfo& _info)
+	void FrameBuffer::Create(const Device& _device,
+			const RenderPass& _pass,
+			const PassInfo& _info,
+			VkImage _presentImage)
 	{
-		SA_ASSERT((Nullptr, _info.pass), SA.Render.Vulkan, L"Valid RenderPass is required to create FrameBuffer")
-
 		Vec2ui fameBufferExtents{INT_MAX, INT_MAX};
-		std::vector<VkImageView> views;
 
-		mClearValues = _info.clearValues;
-		mAttachments.reserve(_info.imageInfos.size());
-		views.reserve(_info.imageInfos.size());
-
-		for(auto& imageInfo : _info.imageInfos)
+		for(auto& subpass : _info.subpasses)
 		{
-			auto& imgBuffer = mAttachments.emplace_back();
-			imgBuffer.Create(_device, imageInfo);
+			for(auto& attach : subpass.attachments)
+			{
+				VK::ImageBufferInfo imgInfo;
 
-			views.emplace_back(imgBuffer);
+				imgInfo.sampling = subpass.sampling;
 
-			fameBufferExtents.x = std::min(fameBufferExtents.x, imageInfo.extents.x);
-			fameBufferExtents.y = std::min(fameBufferExtents.y, imageInfo.extents.y);
+				imgInfo.format = attach.format;
+				imgInfo.extents = attach.extents;
+
+				fameBufferExtents.x = std::min(fameBufferExtents.x, attach.extents.x);
+				fameBufferExtents.y = std::min(fameBufferExtents.y, attach.extents.y);
+
+				if(attach.type == AttachmentType::Color)
+				{
+					imgInfo.usage |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+					imgInfo.aspectFlags |= VK_IMAGE_ASPECT_COLOR_BIT;
+
+					if(imgInfo.sampling > VK_SAMPLE_COUNT_1_BIT)
+					{
+						// Add multisampled image
+						ImageBuffer& multSampledImg = mAttachments.emplace_back();
+						multSampledImg.Create(_device, imgInfo);
+
+						if(attach.loadMode == VK_ATTACHMENT_LOAD_OP_CLEAR) // multisampled clear color.
+							mClearValues.push_back(attach.clearColor);
+
+						// reset current to single sampling for resolution.
+						imgInfo.sampling = VK_SAMPLE_COUNT_1_BIT;
+					}
+
+					if(attach.loadMode == VK_ATTACHMENT_LOAD_OP_CLEAR)
+						mClearValues.push_back(attach.clearColor);
+				}
+				else if(attach.type == AttachmentType::Depth)
+				{
+					imgInfo.usage |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+					imgInfo.aspectFlags |= VK_IMAGE_ASPECT_DEPTH_BIT;
+
+					if(attach.loadMode == VK_ATTACHMENT_LOAD_OP_CLEAR)
+						mClearValues.push_back(VkClearValue{ { 1.0f, 0u } }); // TODO: Color IMPL
+				}
+
+
+				ImageBuffer& imgBuffer = mAttachments.emplace_back();
+
+				if(attach.usage == AttachmentUsage::Present)
+				{
+					SA_ASSERT((Default, _presentImage != VK_NULL_HANDLE), SA.Render.Vulkan,
+						L"Input present image handle must be valid with AttachmentUsage::Present");
+
+					imgBuffer.CreateFromImage(_device, _presentImage, imgInfo);
+				}
+				else
+				{
+					if(attach.usage == AttachmentUsage::InputNext)
+						imgInfo.usage |= VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;
+
+					imgBuffer.Create(_device, imgInfo);
+				}
+			}
 		}
+	
 
+		// Image views only required.
+		std::vector<VkImageView> views;
+		views.reserve(mAttachments.size());
+
+		for(const auto& imgBuffer : mAttachments)
+			views.emplace_back(imgBuffer);
+		//
 
 		VkFramebufferCreateInfo createInfo{};
 		createInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
 		createInfo.pNext = nullptr;
 		createInfo.flags = 0;
-		createInfo.renderPass = *_info.pass;
+		createInfo.renderPass = _pass;
 		createInfo.attachmentCount = static_cast<uint32_t>(views.size());
 		createInfo.pAttachments = views.data();
 		createInfo.width = fameBufferExtents.x;
@@ -50,17 +107,21 @@ namespace SA::RND::VK
 	void FrameBuffer::Destroy(const Device& _device)
 	{
 		SA_VK_API(vkDestroyFramebuffer(_device, mHandle, nullptr));
-
-
+		
 		for(auto& attach : mAttachments)
 			attach.Destroy(_device);
 
 		mAttachments.clear();
 		mClearValues.clear();
 
-
 		SA_LOG("FrameBuffer destroyed.", Info, SA.Render.Vulkan, (L"Handle [%1]", mHandle));
 
 		mHandle = VK_NULL_HANDLE;
+	}
+
+
+	FrameBuffer::operator VkFramebuffer() const noexcept
+	{
+		return mHandle;
 	}
 }
