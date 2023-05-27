@@ -8,9 +8,7 @@
 #include <SA/Render/LowLevel/Vulkan/Surface/VkSwapchain.hpp>
 #include <SA/Render/LowLevel/Vulkan/Device/Command/VkCommandPool.hpp>
 #include <SA/Render/LowLevel/Vulkan/Pass/VkRenderPass.hpp>
-#include <SA/Render/LowLevel/Vulkan/Pass/VkFrameBuffer.hpp>
-#include <SA/Render/RHI/Pass/Info/PassInfo.hpp>
-#include <SA/Render/RHI/Pass/FrameBuffer/RHIFrameBufferInfo.hpp>
+#include <SA/Render/RHI/Pass/Info/RHIPassInfo.hpp>
 using namespace SA::RND;
 
 // Must be included after vulkan.
@@ -24,7 +22,6 @@ VK::Device device;
 VK::Swapchain swapchain;
 VK::CommandPool cmdPool;
 VK::RenderPass renderPass;
-VK::FrameBuffer frameBuffer;
 std::vector<VK::CommandBuffer> cmdBuffers;
 
 void GLFWErrorCallback(int32_t error, const char* description)
@@ -109,18 +106,18 @@ void Init()
 				auto& mainSubpass = passInfo.subpasses.emplace_back();
 
 				if(bMSAA)
-					mainSubpass.sampling = RHI::SampleBits::Sample8Bits;
+					mainSubpass.sampling = RHI::Sampling::Sample8Bits;
 
 				// Color and present attachment.
-				auto& colorRT = mainSubpass.RTs.emplace_back();
+				auto& colorRT = mainSubpass.attachments.emplace_back();
 				colorRT.format = VK::API_GetFormat(swapchain.GetFormat());
-				colorRT.usage = RHI::AttachmentUsage::Present;
+				colorRT.usage = AttachmentUsage::Present;
 
 				if(bDepth)
 				{
-					auto& depthRT = mainSubpass.RTs.emplace_back();
+					auto& depthRT = mainSubpass.attachments.emplace_back();
 					depthRT.format = RHI::Format::D16_UNORM;
-					depthRT.type = RHI::AttachmentType::Depth;
+					depthRT.type = AttachmentType::Depth;
 				}
 			}
 			else if(true) // Deferred
@@ -132,27 +129,27 @@ void Init()
 					auto& pbrSubpass = passInfo.subpasses.emplace_back();
 
 					if(bMSAA)
-						pbrSubpass.sampling = RHI::SampleBits::Sample8Bits;
+						pbrSubpass.sampling = RHI::Sampling::Sample8Bits;
 
 					// Render Targets
 					{
 						// Deferred position attachment.
-						auto& posRT = pbrSubpass.RTs.emplace_back();
+						auto& posRT = pbrSubpass.attachments.emplace_back();
 
 						// Deferred normal attachment.
-						auto& normRT = pbrSubpass.RTs.emplace_back();
+						auto& normRT = pbrSubpass.attachments.emplace_back();
 
 						// Deferred albedo attachment.
-						auto& albedoRT = pbrSubpass.RTs.emplace_back();
+						auto& albedoRT = pbrSubpass.attachments.emplace_back();
 
 						// Deferred PBR (Metallic, Roughness, Ambiant occlusion) attachment.
-						auto& pbrRT = pbrSubpass.RTs.emplace_back();
+						auto& pbrRT = pbrSubpass.attachments.emplace_back();
 
 						if(bDepth)
 						{
-							auto& pbrDepthRT = pbrSubpass.RTs.emplace_back();
+							auto& pbrDepthRT = pbrSubpass.attachments.emplace_back();
 							pbrDepthRT.format = RHI::Format::D16_UNORM;
-							pbrDepthRT.type = RHI::AttachmentType::Depth;
+							pbrDepthRT.type = AttachmentType::Depth;
 						}
 					}
 				}
@@ -162,11 +159,11 @@ void Init()
 					auto& presentSubpass = passInfo.subpasses.emplace_back();
 
 					if(bMSAA)
-						presentSubpass.sampling = RHI::SampleBits::Sample8Bits;
+						presentSubpass.sampling = RHI::Sampling::Sample8Bits;
 
-					auto& presentRT = presentSubpass.RTs.emplace_back();
+					auto& presentRT = presentSubpass.attachments.emplace_back();
 					presentRT.format = VK::API_GetFormat(swapchain.GetFormat());
-					presentRT.usage = RHI::AttachmentUsage::Present;
+					presentRT.usage = AttachmentUsage::Present;
 				}
 			}
 
@@ -174,17 +171,17 @@ void Init()
 			renderPass.Create(device, passInfo.API_Vulkan());
 
 
-			// FrameBuffers
-			{
-				RHI::FrameBufferInfo info;
-				info.InitFromPass(nullptr, passInfo);
-				info.SetAllAttachmentsExtents(swapchain.GetExtents());
+			// // FrameBuffers
+			// {
+			// 	RHI::FrameBufferInfo info;
+			// 	info.InitFromPass(nullptr, passInfo);
+			// 	info.SetAllAttachmentsExtents(swapchain.GetExtents());
 
-				VK::FrameBufferInfo vkInfo = info.API_Vulkan();
-				vkInfo.pass = &renderPass;
+			// 	VK::FrameBufferInfo vkInfo = info.API_Vulkan();
+			// 	vkInfo.pass = &renderPass;
 
-				frameBuffer.Create(device, vkInfo);
-			}
+			// 	frameBuffer.Create(device, vkInfo);
+			// }
 		}
 	}
 }
@@ -193,7 +190,7 @@ void Uninit()
 {
 	// Render
 	{
-		frameBuffer.Destroy(device);
+		// frameBuffer.Destroy(device);
 
 		renderPass.Destroy(device);
 
