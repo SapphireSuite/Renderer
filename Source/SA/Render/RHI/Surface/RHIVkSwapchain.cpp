@@ -23,6 +23,11 @@ namespace SA::RND::RHI
 		(void)_renderIntf;
 		mHandle.Destroy(_device->API_Vulkan());
 	}
+
+	Format VkSwapchain::GetFormat() const
+	{
+		return VK::API_GetFormat(mHandle.GetFormat());
+	}
 }
 
 #endif // SA_RENDER_LOWLEVEL_VULKAN_IMPL

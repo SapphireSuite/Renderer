@@ -26,6 +26,8 @@ namespace SA::RND::DX12
 			//const int pixelFormatIndex = GetPixelFormat(hdc);
 			//PIXELFORMATDESCRIPTOR pfd;
 			//DescribePixelFormat(hdc, pixelFormatIndex, sizeof(pfd), &pfd);
+
+			mFormat = _settings.format;
 		}
 
 		DXGI_SWAP_CHAIN_DESC1 desc = {};
@@ -59,5 +61,10 @@ namespace SA::RND::DX12
 
 			mHandle.Reset();
 		}
+	}
+
+	DXGI_FORMAT Swapchain::GetFormat() const noexcept
+	{
+		return mFormat;
 	}
 }

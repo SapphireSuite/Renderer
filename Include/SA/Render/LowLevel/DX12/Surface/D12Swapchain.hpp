@@ -21,9 +21,13 @@ namespace SA::RND::DX12
 	{
 		DXSwapchainT mHandle = nullptr;
 
+		DXGI_FORMAT mFormat = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+
 	public:
 		void Create(const Factory& _factory, const Device& _device, const WindowSurface& _surface, const SwapchainSettings& _settings);
 		void Destroy();
+
+		DXGI_FORMAT GetFormat() const noexcept;
 	};
 }
 

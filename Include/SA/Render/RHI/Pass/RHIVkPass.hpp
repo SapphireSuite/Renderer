@@ -5,9 +5,9 @@
 #ifndef SAPPHIRE_RENDER_RHI_VK_PASS_GUARD
 #define SAPPHIRE_RENDER_RHI_VK_PASS_GUARD
 
-#if SA_RENDER_LOWLEVEL_VULKAN_IMPL
-
 #include "RHIPass.hpp"
+
+#if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
 #include <SA/Render/LowLevel/Vulkan/Pass/VkRenderPass.hpp>
 
@@ -18,10 +18,10 @@ namespace SA::RND::RHI
 		VK::RenderPass mHandle;
 
 	public:
-		void Create(const Device* _device, const PassInfo& _info) override final;
+		void Create(const Device* _device, PassInfo _info) override final;
 		void Destroy(const Device* _device) override final;
 
-		const VK::RenderPass* API_Vulkan() const override final;
+		const VK::RenderPass& API_Vulkan() const override final;
 	};
 }
 

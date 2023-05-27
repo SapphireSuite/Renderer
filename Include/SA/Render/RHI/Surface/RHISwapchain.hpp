@@ -43,6 +43,8 @@ namespace SA::RND
 				const WindowSurface* _winSurface,
 				const SwapchainSettings& _settings) = 0;
 			virtual void Destroy(const RenderInterface* _renderIntf, const Device* _device) = 0;
+
+			virtual Format GetFormat() const = 0;
 		};
 	}
 }

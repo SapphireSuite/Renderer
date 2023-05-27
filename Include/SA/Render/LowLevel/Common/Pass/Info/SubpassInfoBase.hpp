@@ -19,6 +19,30 @@ namespace SA::RND
 
 		std::vector<AttachT> attachments;
 
+		AttachT& AddAttachment(std::string _name)
+		{
+			AttachT& attach = attachments.emplace_back();
+
+			attach.name = std::move(_name);
+
+			return attach;
+		}
+
+		bool RemoveAttachment(std::string _name)
+		{
+			for(auto it = attachments.begin(); it != attachments.end(); ++it)
+			{
+				if(it->name == _name)
+				{
+					attachments.erase(it);
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+
 		void SetAllAttachmentExtents(const Vec2ui& _extents)
 		{
 			for(auto& attach : attachments)

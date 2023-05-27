@@ -23,6 +23,8 @@ namespace SA::RND::RHI
 			const WindowSurface* _winSurface,
 			const SwapchainSettings& _settings) override final;
 		void Destroy(const RenderInterface* _renderIntf, const Device* _device) override final;
+
+		Format GetFormat() const override final;
 	};
 }
 

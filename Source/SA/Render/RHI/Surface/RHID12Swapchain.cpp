@@ -24,6 +24,11 @@ namespace SA::RND::RHI
 		(void)_device;
 		mHandle.Destroy();
 	}
+
+	Format D12Swapchain::GetFormat() const
+	{
+		return DX12::API_GetFormat(mHandle.GetFormat());
+	}
 }
 
 #endif // SA_RENDER_LOWLEVEL_DX12_IMPL

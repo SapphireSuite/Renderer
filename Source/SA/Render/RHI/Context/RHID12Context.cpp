@@ -2,8 +2,7 @@
 
 #include <Context/RHID12Context.hpp>
 
-// TODO: IMPLEMENT.
-// #include <Pass/RHID12Pass.hpp>
+#include <Pass/RHID12Pass.hpp>
 
 #if SA_RENDER_LOWLEVEL_DX12_IMPL
 
@@ -11,8 +10,7 @@ namespace SA::RND::RHI
 {
 	Pass* D12Context::InstantiatePassClass()
 	{
-		// TODO: IMPLEMENT.
-		throw nullptr;
+		return new D12Pass();
 	}
 }
 

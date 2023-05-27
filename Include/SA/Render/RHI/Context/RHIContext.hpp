@@ -33,7 +33,7 @@ namespace SA::RND::RHI
 		virtual void DeletePassClass(Pass* _pass);
 
 	public:
-		Pass* CreatePass(const PassInfo& _info);
+		Pass* CreatePass(PassInfo _info);
 		void DestroyPass(Pass* _pass);
 		void DestroyAllPasses();
 
