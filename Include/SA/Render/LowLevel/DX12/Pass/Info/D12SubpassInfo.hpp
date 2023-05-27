@@ -7,8 +7,6 @@
 
 #include <SA/Render/LowLevel/Common/Pass/Info/SubpassInfoBase.hpp>
 
-#include <SA/Render/LowLevel/DX12/DX12API.hpp>
-
 #include "D12AttachmentInfo.hpp"
 
 namespace SA::RND::DX12
