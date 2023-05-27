@@ -8,6 +8,12 @@
 
 namespace SA::RND::RHI
 {
+	Context* VkDevice::InstantiateContextClass()
+	{
+		return new VkContext();
+	}
+	
+
 	void VkDevice::Create(const DeviceInfo* _info)
 	{
 		SA_ASSERT((Nullptr, _info), SA.Render.RHI.Vulkan);
@@ -23,9 +29,9 @@ namespace SA::RND::RHI
 	}
 
 
-	Context* VkDevice::InstantiateContextClass()
+	void VkDevice::WaitIdle()
 	{
-		return new VkContext();
+		mHandle.WaitIdle();
 	}
 
 

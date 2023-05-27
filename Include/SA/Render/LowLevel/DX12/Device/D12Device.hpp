@@ -21,11 +21,24 @@ namespace SA::RND::DX12
 		/// Physical device handle.
 		PhysicalDevice mPhysicalDevice = nullptr;
 
+//{ Sync
+
+		HANDLE mFenceEvent;
+		uint64_t mFenceValue = 0;
+		MComPtr<ID3D12Fence> mFence;
+
+		void CreateSynchronisation();
+		void DestroySynchronisation();
+
+//}
+
 	public:
 		QueueMgr queueMgr;
 
 		void Create(const DeviceInfo& _info);
 		void Destroy();
+
+		void WaitIdle();
 
 		static std::vector<DeviceInfo> QueryDeviceInfos(const Factory& _factory,
 			const DeviceRequirements& _reqs = DeviceRequirements{});

@@ -63,6 +63,42 @@ namespace SA::RND::DX12
 		}
 	}
 
+//{ Sync
+
+	void Device::CreateSynchronisation()
+	{
+		SA_DX12_API(mLogicalDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&mFence)));
+		mFenceValue = 1;
+
+		mFenceEvent = CreateEvent(nullptr, false, false, nullptr);
+		SA_ASSERT((Nullptr, mFenceEvent), SA.Render.DX12, (L"Failed to create FenceEvent: %1", HRESULT_FROM_WIN32(GetLastError())));
+	
+		SA_LOG(L"Device synchronisation created.", Info, SA.Render.DX12);
+	}
+	
+	void Device::DestroySynchronisation()
+	{
+		mFence.Reset();
+		CloseHandle(mFenceEvent);
+
+		SA_LOG(L"Device synchronisation destroyed.", Info, SA.Render.DX12);
+	}
+
+	void Device::WaitIdle()
+	{
+		// Schedule a Signal command in the queue.
+		// _cmd->Signal(mFence.Get(), mFenceValue); // TODO: ADD.
+
+		// Wait until the fence has been processed.
+		mFence->SetEventOnCompletion(mFenceValue, mFenceEvent);
+		WaitForSingleObjectEx(mFenceEvent, INFINITE, false);
+
+		// Increment for next use.
+		++mFenceValue;
+	}
+
+//}
+
 
 //{ Query Device
 

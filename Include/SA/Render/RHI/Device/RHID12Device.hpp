@@ -25,6 +25,8 @@ namespace SA::RND::RHI
 		void Create(const DeviceInfo* _info) override final;
 		void Destroy() override final;
 
+		void WaitIdle() override final;
+
 		const DX12::Device& API_DirectX12() const override final;
 	};
 }
