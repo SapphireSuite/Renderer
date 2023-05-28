@@ -8,10 +8,11 @@
 
 namespace SA::RND::RHI
 {
-	void VkFrameBuffer::Create(const Device* _device, const Pass* _pass)
+	void VkFrameBuffer::Create(const Device* _device, const Pass* _pass,
+		std::shared_ptr<Swapchain::BackBufferHandle> _img)
 	{
-		// TODO: ADD Swapchain image handle.
-		mHandle.Create(_device->API_Vulkan(), _pass->API_Vulkan(), _pass->GetInfo().API_Vulkan());
+		mHandle.Create(_device->API_Vulkan(), _pass->API_Vulkan(), _pass->GetInfo().API_Vulkan(),
+			_img ? _img->API_Vulkan() : VK_NULL_HANDLE);
 	}
 	
 	void VkFrameBuffer::Destroy(const Device* _device)
@@ -20,7 +21,7 @@ namespace SA::RND::RHI
 	}
 
 	
-	const const VK::FrameBuffer& VkFrameBuffer::API_Vulkan() const
+	const VK::FrameBuffer& VkFrameBuffer::API_Vulkan() const
 	{
 		return mHandle;
 	}

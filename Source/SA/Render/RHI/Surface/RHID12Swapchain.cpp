@@ -29,6 +29,34 @@ namespace SA::RND::RHI
 	{
 		return DX12::API_GetFormat(mHandle.GetFormat());
 	}
+
+	uint32_t D12Swapchain::GetImageNum() const
+	{
+		return mHandle.GetImageNum();
+	}
+
+	const Vec2ui& D12Swapchain::GetExtents() const
+	{
+		return mHandle.GetExtents();
+	}
+
+//{ BackBuffer
+
+	MComPtr<ID3D12Resource> D12Swapchain::BackBufferHandle::API_DirectX12() const
+	{
+		return handle;
+	}
+
+	std::shared_ptr<Swapchain::BackBufferHandle> D12Swapchain::GetBackBufferHandle(uint32_t _index)
+	{
+		auto backBufferHandle = std::make_shared<D12Swapchain::BackBufferHandle>();
+
+		backBufferHandle->handle = mHandle.GetBackBufferHandle(_index);
+
+		return backBufferHandle;
+	}
+
+//}
 }
 
 #endif // SA_RENDER_LOWLEVEL_DX12_IMPL

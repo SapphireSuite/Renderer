@@ -9,6 +9,7 @@
 
 #include <SA/Render/RHI/Pass/RHIPass.hpp>
 #include <SA/Render/RHI/Pass/RHIFrameBuffer.hpp>
+#include <SA/Render/RHI/Surface/RHID12Swapchain.hpp>
 
 namespace SA::RND::RHI
 {
@@ -50,7 +51,7 @@ namespace SA::RND::RHI
 		virtual void DeleteFrameBufferClass(FrameBuffer* _frameBuffer);
 
 	public:
-		FrameBuffer* CreateFrameBuffer(const Pass* _pass);
+		FrameBuffer* CreateFrameBuffer(const Pass* _pass, std::shared_ptr<Swapchain::BackBufferHandle> _img = nullptr);
 		void DestroyFrameBuffer(FrameBuffer* _frameBuffer);
 		void DestroyAllFrameBuffers();
 

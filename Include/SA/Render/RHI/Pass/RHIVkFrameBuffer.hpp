@@ -18,10 +18,11 @@ namespace SA::RND::RHI
 		VK::FrameBuffer mHandle;
 
 	public:
-		void Create(const Device* _device, const Pass* _pass) override final;
+		void Create(const Device* _device, const Pass* _pass,
+			std::shared_ptr<Swapchain::BackBufferHandle> _img) override final;
 		void Destroy(const Device* _device) override final;
 
-		const const VK::FrameBuffer& API_Vulkan() const override final;
+		const VK::FrameBuffer& API_Vulkan() const override final;
 	};
 }
 

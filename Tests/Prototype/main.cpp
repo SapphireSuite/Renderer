@@ -92,6 +92,7 @@ public:
 	RHI::Swapchain* swapchain = nullptr;
 	RHI::Context* context = nullptr;
 	RHI::Pass* pass = nullptr;
+	std::vector<RHI::FrameBuffer*> frameBuffers;
 
 	struct CreateInfo
 	{
@@ -174,6 +175,8 @@ public:
 						depthRT.format = RHI::Format::D16_UNORM;
 						depthRT.type = AttachmentType::Depth;
 					}
+
+					mainSubpass.SetAllAttachmentExtents(swapchain->GetExtents());
 				}
 				else if(true) // Deferred
 				{
@@ -181,32 +184,34 @@ public:
 
 					// GBuffer
 					{
-						auto& pbrSubpass = passInfo.AddSubpass("GBuffer Pass");
+						auto& GBufferSubpass = passInfo.AddSubpass("GBuffer Pass");
 
 						if(bMSAA)
-							pbrSubpass.sampling = RHI::Sampling::Sample8Bits;
+							GBufferSubpass.sampling = RHI::Sampling::Sample8Bits;
 
 						// Render Targets
 						{
 							// Deferred position attachment.
-							auto& posRT = pbrSubpass.AddAttachment("GBuffer_Position");
+							auto& posRT = GBufferSubpass.AddAttachment("GBuffer_Position");
 
 							// Deferred normal attachment.
-							auto& normRT = pbrSubpass.AddAttachment("GBuffer_Normal");
+							auto& normRT = GBufferSubpass.AddAttachment("GBuffer_Normal");
 
 							// Deferred albedo attachment.
-							auto& albedoRT = pbrSubpass.AddAttachment("GBuffer_Color");
+							auto& albedoRT = GBufferSubpass.AddAttachment("GBuffer_Color");
 
 							// Deferred PBR (Metallic, Roughness, Ambiant occlusion) attachment.
-							auto& pbrRT = pbrSubpass.AddAttachment("GBuffer_PBR");
+							auto& pbrRT = GBufferSubpass.AddAttachment("GBuffer_PBR");
 
 							if(bDepth)
 							{
-								auto& pbrDepthRT = pbrSubpass.AddAttachment("Depth");
+								auto& pbrDepthRT = GBufferSubpass.AddAttachment("Depth");
 								pbrDepthRT.format = RHI::Format::D16_UNORM;
 								pbrDepthRT.type = AttachmentType::Depth;
 							}
 						}
+
+						GBufferSubpass.SetAllAttachmentExtents(swapchain->GetExtents());
 					}
 
 					// Present Subpass
@@ -219,11 +224,22 @@ public:
 						auto& presentRT = presentSubpass.AddAttachment("Color");
 						presentRT.format = swapchain->GetFormat();
 						presentRT.usage = AttachmentUsage::Present;
+
+						presentSubpass.SetAllAttachmentExtents(swapchain->GetExtents());
 					}
 				}
 			}
 
 			pass = context->CreatePass(std::move(passInfo));
+		}
+
+		// FrameBuffers
+		{
+			uint32_t num = swapchain->GetImageNum();
+			frameBuffers.resize(num);
+
+			for(uint32_t i = 0; i < num; ++i)
+				frameBuffers[i] = context->CreateFrameBuffer(pass, swapchain->GetBackBufferHandle(i));
 		}
 	}
 
@@ -231,6 +247,9 @@ public:
 	{
 		// Render
 		{
+			for(auto& frameBuffer : frameBuffers)
+				context->DestroyFrameBuffer(frameBuffer);
+
 			context->DestroyPass(pass);
 
 			device->DestroyContext(context);

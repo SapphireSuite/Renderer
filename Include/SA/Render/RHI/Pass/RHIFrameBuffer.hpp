@@ -5,6 +5,8 @@
 #ifndef SAPPHIRE_RENDER_RHI_FRAMEBUFFER_GUARD
 #define SAPPHIRE_RENDER_RHI_FRAMEBUFFER_GUARD
 
+#include <SA/Render/RHI/Surface/RHISwapchain.hpp>
+
 namespace SA::RND
 {
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
@@ -33,7 +35,10 @@ namespace SA::RND
 		class FrameBuffer
 		{
 		public:
-			virtual void Create(const Device* _device, const Pass* _pass) = 0;
+			virtual ~FrameBuffer() = default;
+
+			virtual void Create(const Device* _device, const Pass* _pass,
+				std::shared_ptr<Swapchain::BackBufferHandle> _img) = 0;
 			virtual void Destroy(const Device* _device) = 0;
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL

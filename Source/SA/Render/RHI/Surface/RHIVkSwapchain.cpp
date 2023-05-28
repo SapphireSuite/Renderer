@@ -28,6 +28,34 @@ namespace SA::RND::RHI
 	{
 		return VK::API_GetFormat(mHandle.GetFormat());
 	}
+
+	uint32_t VkSwapchain::GetImageNum() const
+	{
+		return mHandle.GetImageNum();
+	}
+
+	const Vec2ui& VkSwapchain::GetExtents() const
+	{
+		return mHandle.GetExtents();
+	}
+
+//{ BackBuffer
+
+	VkImage VkSwapchain::BackBufferHandle::API_Vulkan() const
+	{
+		return handle;
+	}
+
+	std::shared_ptr<Swapchain::BackBufferHandle> VkSwapchain::GetBackBufferHandle(uint32_t _index)
+	{
+		auto backBufferHandle = std::make_shared<VkSwapchain::BackBufferHandle>();
+
+		backBufferHandle->handle = mHandle.GetBackBufferHandle(_index);
+
+		return backBufferHandle;
+	}
+
+//}
 }
 
 #endif // SA_RENDER_LOWLEVEL_VULKAN_IMPL

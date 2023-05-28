@@ -8,10 +8,11 @@
 
 namespace SA::RND::RHI
 {
-	void D12FrameBuffer::Create(const Device* _device, const Pass* _pass)
+	void D12FrameBuffer::Create(const Device* _device, const Pass* _pass,
+		std::shared_ptr<Swapchain::BackBufferHandle> _img)
 	{
-		// TODO: ADD Swapchain image handle.
-		mHandle.Create(_device->API_DirectX12(), _pass->GetInfo().API_DirectX12());
+		mHandle.Create(_device->API_DirectX12(), _pass->GetInfo().API_DirectX12(),
+			_img ? _img->API_DirectX12() : nullptr);
 	}
 	
 	void D12FrameBuffer::Destroy(const Device* _device)
