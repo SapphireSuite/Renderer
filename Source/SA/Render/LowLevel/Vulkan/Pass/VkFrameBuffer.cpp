@@ -55,7 +55,7 @@ namespace SA::RND::VK
 					imgInfo.aspectFlags |= VK_IMAGE_ASPECT_DEPTH_BIT;
 
 					if(attach.loadMode == VK_ATTACHMENT_LOAD_OP_CLEAR)
-						mClearValues.push_back(VkClearValue{ { 1.0f, 0u } }); // TODO: Color IMPL
+						mClearValues.push_back(VkClearValue{ { attach.clearColor.r, attach.clearColor.g } });
 				}
 
 
