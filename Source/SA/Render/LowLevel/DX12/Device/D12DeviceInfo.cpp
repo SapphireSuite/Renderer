@@ -4,6 +4,14 @@
 
 namespace SA::RND::DX12
 {
+	DeviceInfo::DeviceInfo()
+	{
+		graphics.type = D3D12_COMMAND_LIST_TYPE_DIRECT;
+		compute.type = D3D12_COMMAND_LIST_TYPE_COMPUTE;
+		transfer.type = D3D12_COMMAND_LIST_TYPE_COPY;
+		present.type = D3D12_COMMAND_LIST_TYPE_DIRECT;
+	}
+
 	void DeviceInfo::SetPhysicalDevice(PhysicalDevice _device)
 	{
 		physicalDevice = _device;

@@ -13,6 +13,7 @@ namespace SA::RND::DX12
 
 	class QueueFamilyMgr
 	{
+		D3D12_COMMAND_LIST_TYPE mType = D3D12_COMMAND_LIST_TYPE_DIRECT;
 		std::vector<MComPtr<ID3D12CommandQueue>> mQueues;
 
 	public:
@@ -24,6 +25,7 @@ namespace SA::RND::DX12
 		void Destroy();
 		
 		uint32_t GetQueueNum() const;
+		D3D12_COMMAND_LIST_TYPE GetFamilyType() const;
 
 		ID3D12CommandQueue* GetQueue(uint32_t _index) const;
 		ID3D12CommandQueue* operator[](uint32_t _index) const;

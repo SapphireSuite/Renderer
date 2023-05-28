@@ -15,6 +15,8 @@ namespace SA::RND::DX12
 {
 	struct DeviceInfo : public DeviceInfoBase
 	{
+		DeviceInfo();
+
 //{ Physical Device
 
 		DXGI_ADAPTER_DESC2 desc;

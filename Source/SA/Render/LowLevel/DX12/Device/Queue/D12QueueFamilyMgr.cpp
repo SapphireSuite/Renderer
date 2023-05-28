@@ -8,6 +8,7 @@ namespace SA::RND::DX12
 {
 	void QueueFamilyMgr::Create(const QueueFamilyInfo& _info)
 	{
+		mType = _info.type;
 		mQueues = _info.queues;	
 
 		SA_LOG((L"%1 Queue Family Manager created", debugName), Info, SA.Render.DX12);
@@ -24,6 +25,11 @@ namespace SA::RND::DX12
 	uint32_t QueueFamilyMgr::GetQueueNum() const
 	{
 		return static_cast<uint32_t>(mQueues.size());
+	}
+
+	D3D12_COMMAND_LIST_TYPE QueueFamilyMgr::GetFamilyType() const
+	{
+		return mType;
 	}
 
 	

@@ -13,6 +13,7 @@ namespace SA::RND::DX12
 {
 	struct QueueFamilyInfo
 	{
+		D3D12_COMMAND_LIST_TYPE type = D3D12_COMMAND_LIST_TYPE_DIRECT;
 		std::vector<MComPtr<ID3D12CommandQueue>> queues;
 	};
 }
