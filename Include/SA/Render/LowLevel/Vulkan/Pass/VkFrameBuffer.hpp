@@ -5,13 +5,14 @@
 #ifndef SAPPHIRE_RENDER_VK_FRAME_BUFFER_GUARD
 #define SAPPHIRE_RENDER_VK_FRAME_BUFFER_GUARD
 
-#include <SA/Render/LowLevel/Vulkan/Buffers/VkImageBuffer.hpp>
+#include "Info/VkPassInfo.hpp"
 
-#include "VkFrameBufferInfo.hpp"
+#include <SA/Render/LowLevel/Vulkan/Buffers/VkImageBuffer.hpp>
 
 namespace SA::RND::VK
 {
 	class Device;
+	class RenderPass;
 
 	class FrameBuffer
 	{
@@ -21,8 +22,13 @@ namespace SA::RND::VK
 		std::vector<VkClearValue> mClearValues;
 
 	public:
-		void Create(const Device& _device, const FrameBufferInfo& _info);
+		void Create(const Device& _device,
+			const RenderPass& _pass,
+			const PassInfo& _info,
+			VkImage _presentImage = VK_NULL_HANDLE);
 		void Destroy(const Device& _device);
+
+		operator VkFramebuffer() const noexcept;
 	};
 }
 

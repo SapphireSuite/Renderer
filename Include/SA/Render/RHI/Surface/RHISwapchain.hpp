@@ -7,6 +7,8 @@
 
 #include "RHISwapchainSettings.hpp"
 
+#include <SA/Maths/Space/Vector2.hpp>
+
 namespace SA::RND
 {
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
@@ -43,6 +45,34 @@ namespace SA::RND
 				const WindowSurface* _winSurface,
 				const SwapchainSettings& _settings) = 0;
 			virtual void Destroy(const RenderInterface* _renderIntf, const Device* _device) = 0;
+
+			virtual Format GetFormat() const = 0;
+			virtual uint32_t GetImageNum() const = 0;
+			virtual const Vec2ui& GetExtents() const = 0;
+
+//{ BackBuffer
+	
+			class BackBufferHandle
+			{
+			public:
+#if SA_RENDER_LOWLEVEL_VULKAN_IMPL
+
+				virtual VkImage API_Vulkan() const;
+
+#endif
+
+#if SA_RENDER_LOWLEVEL_DX12_IMPL
+
+				virtual MComPtr<ID3D12Resource> API_DirectX12() const;
+
+#endif
+			};
+	
+
+			virtual std::shared_ptr<BackBufferHandle> GetBackBufferHandle(uint32_t _index) = 0;
+	
+//}
+	
 		};
 	}
 }

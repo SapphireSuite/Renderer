@@ -41,6 +41,8 @@ namespace SA::RND
 			virtual void Create(const DeviceInfo* _info) = 0;
 			virtual void Destroy();
 
+			virtual void WaitIdle() = 0;
+
 //{ Context
 
 		private:

@@ -25,6 +25,8 @@ namespace SA::RND::RHI
 		void Create(const DeviceInfo* _info) override final;
 		void Destroy() override final;
 
+		void WaitIdle() override final;
+
 		const VK::Device& API_Vulkan() const override final;
 	};
 }

@@ -8,6 +8,8 @@
 #include <forward_list>
 
 #include <SA/Render/RHI/Pass/RHIPass.hpp>
+#include <SA/Render/RHI/Pass/RHIFrameBuffer.hpp>
+#include <SA/Render/RHI/Surface/RHID12Swapchain.hpp>
 
 namespace SA::RND::RHI
 {
@@ -33,9 +35,25 @@ namespace SA::RND::RHI
 		virtual void DeletePassClass(Pass* _pass);
 
 	public:
-		Pass* CreatePass(const PassInfo& _info);
+		Pass* CreatePass(PassInfo _info);
 		void DestroyPass(Pass* _pass);
 		void DestroyAllPasses();
+
+//}
+
+//{ FrameBuffer
+
+	private:
+		std::forward_list<FrameBuffer*> mFrameBuffers;
+
+	protected:
+		virtual FrameBuffer* InstantiateFrameBufferClass() = 0;
+		virtual void DeleteFrameBufferClass(FrameBuffer* _frameBuffer);
+
+	public:
+		FrameBuffer* CreateFrameBuffer(const Pass* _pass, std::shared_ptr<Swapchain::BackBufferHandle> _img = nullptr);
+		void DestroyFrameBuffer(FrameBuffer* _frameBuffer);
+		void DestroyAllFrameBuffers();
 
 //}
 

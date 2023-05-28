@@ -91,6 +91,8 @@ public:
 	RHI::WindowSurface* winSurface = nullptr;
 	RHI::Swapchain* swapchain = nullptr;
 	RHI::Context* context = nullptr;
+	RHI::Pass* pass = nullptr;
+	std::vector<RHI::FrameBuffer*> frameBuffers;
 
 	struct CreateInfo
 	{
@@ -141,8 +143,103 @@ public:
 			swapchain = intf->CreateSwapchain(device, winSurface);
 		}
 
+		// Context
 		{
 			context = device->CreateContext();
+		}
+
+		// RenderPass
+		{
+			// Info
+			RHI::PassInfo passInfo;
+			{
+				constexpr bool bDepth = true;
+				constexpr bool bMSAA = true;
+
+				// Forward
+				if (false)
+				{
+					auto& mainSubpass = passInfo.AddSubpass("Main");
+
+					if(bMSAA)
+						mainSubpass.sampling = RHI::Sampling::Sample8Bits;
+
+					// Color and present attachment.
+					auto& colorRT = mainSubpass.AddAttachment("Color");
+					colorRT.format = swapchain->GetFormat();
+					colorRT.usage = AttachmentUsage::Present;
+
+					if(bDepth)
+					{
+						auto& depthRT = mainSubpass.AddAttachment("Depth");
+						depthRT.format = RHI::Format::D16_UNORM;
+						depthRT.type = AttachmentType::Depth;
+					}
+
+					mainSubpass.SetAllAttachmentExtents(swapchain->GetExtents());
+				}
+				else if(true) // Deferred
+				{
+					passInfo.subpasses.reserve(2u);
+
+					// GBuffer
+					{
+						auto& GBufferSubpass = passInfo.AddSubpass("GBuffer Pass");
+
+						if(bMSAA)
+							GBufferSubpass.sampling = RHI::Sampling::Sample8Bits;
+
+						// Render Targets
+						{
+							// Deferred position attachment.
+							auto& posRT = GBufferSubpass.AddAttachment("GBuffer_Position");
+
+							// Deferred normal attachment.
+							auto& normRT = GBufferSubpass.AddAttachment("GBuffer_Normal");
+
+							// Deferred albedo attachment.
+							auto& albedoRT = GBufferSubpass.AddAttachment("GBuffer_Color");
+
+							// Deferred PBR (Metallic, Roughness, Ambiant occlusion) attachment.
+							auto& pbrRT = GBufferSubpass.AddAttachment("GBuffer_PBR");
+
+							if(bDepth)
+							{
+								auto& pbrDepthRT = GBufferSubpass.AddAttachment("Depth");
+								pbrDepthRT.format = RHI::Format::D16_UNORM;
+								pbrDepthRT.type = AttachmentType::Depth;
+							}
+						}
+
+						GBufferSubpass.SetAllAttachmentExtents(swapchain->GetExtents());
+					}
+
+					// Present Subpass
+					{
+						auto& presentSubpass = passInfo.AddSubpass("Present Pass");
+
+						if(bMSAA)
+							presentSubpass.sampling = RHI::Sampling::Sample8Bits;
+
+						auto& presentRT = presentSubpass.AddAttachment("Color");
+						presentRT.format = swapchain->GetFormat();
+						presentRT.usage = AttachmentUsage::Present;
+
+						presentSubpass.SetAllAttachmentExtents(swapchain->GetExtents());
+					}
+				}
+			}
+
+			pass = context->CreatePass(std::move(passInfo));
+		}
+
+		// FrameBuffers
+		{
+			uint32_t num = swapchain->GetImageNum();
+			frameBuffers.resize(num);
+
+			for(uint32_t i = 0; i < num; ++i)
+				frameBuffers[i] = context->CreateFrameBuffer(pass, swapchain->GetBackBufferHandle(i));
 		}
 	}
 
@@ -150,6 +247,11 @@ public:
 	{
 		// Render
 		{
+			for(auto& frameBuffer : frameBuffers)
+				context->DestroyFrameBuffer(frameBuffer);
+
+			context->DestroyPass(pass);
+
 			device->DestroyContext(context);
 
 			intf->DestroySwapchain(device, swapchain);

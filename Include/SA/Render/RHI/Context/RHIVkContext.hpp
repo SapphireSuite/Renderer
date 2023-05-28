@@ -15,6 +15,7 @@ namespace SA::RND::RHI
 	{
 	protected:
 		Pass* InstantiatePassClass() override final;
+		FrameBuffer* InstantiateFrameBufferClass() override final;
 	};
 }
 

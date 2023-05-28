@@ -18,6 +18,7 @@ namespace SA::RND::RHI
 	void Context::Destroy()
 	{
 		DestroyAllPasses();
+		DestroyAllFrameBuffers();
 
 		mDevice = nullptr;
 
@@ -34,13 +35,13 @@ namespace SA::RND::RHI
 		delete _pass;
 	}
 
-	Pass* Context::CreatePass(const PassInfo& _info)
+	Pass* Context::CreatePass(PassInfo _info)
 	{
 		Pass* const pass = mPasses.emplace_front(InstantiatePassClass());
 
 		SA_ASSERT((Nullptr, pass), SA.Render.RHI, (L"Pass instantiate class failed!"));
 
-		pass->Create(mDevice, _info);
+		pass->Create(mDevice, std::move(_info));
 
 		return pass;
 	}
@@ -67,6 +68,55 @@ namespace SA::RND::RHI
 		}
 
 		mPasses.clear();
+	}
+
+//}
+
+
+//{ FrameBuffer
+
+	void Context::DeleteFrameBufferClass(FrameBuffer* _frameBuffer)
+	{
+		SA_ASSERT((Nullptr, _frameBuffer), SA.Render.RHI);
+
+		delete _frameBuffer;
+	}
+
+	FrameBuffer* Context::CreateFrameBuffer(const Pass* _pass, std::shared_ptr<Swapchain::BackBufferHandle> _img)
+	{
+		SA_ASSERT((Nullptr, _pass), SA.Render.RHI);
+
+		FrameBuffer* const frameBuffer = mFrameBuffers.emplace_front(InstantiateFrameBufferClass());
+
+		SA_ASSERT((Nullptr, frameBuffer), SA.Render.RHI, (L"FrameBuffer instantiate class failed!"));
+
+		frameBuffer->Create(mDevice, _pass, _img);
+
+		return frameBuffer;
+	}
+	
+	void Context::DestroyFrameBuffer(FrameBuffer* _frameBuffer)
+	{
+		SA_ASSERT((Nullptr, _frameBuffer), SA.Render.RHI);
+
+		if(std::erase(mFrameBuffers, _frameBuffer))
+		{
+			_frameBuffer->Destroy(mDevice);
+			DeleteFrameBufferClass(_frameBuffer);
+		}
+		else
+			SA_LOG((L"Try destroy FrameBuffer [%1] that does not belong to this context!", _frameBuffer), Error, SA.Render.RHI);
+	}
+
+	void Context::DestroyAllFrameBuffers()
+	{
+		for(auto frameBuffer : mFrameBuffers)
+		{
+			frameBuffer->Destroy(mDevice);
+			DeleteFrameBufferClass(frameBuffer);
+		}
+
+		mFrameBuffers.clear();
 	}
 
 //}

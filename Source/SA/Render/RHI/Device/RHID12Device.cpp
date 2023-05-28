@@ -13,6 +13,7 @@ namespace SA::RND::RHI
 		return new D12Context();
 	}
 
+
 	void D12Device::Create(const DeviceInfo* _info)
 	{
 		SA_ASSERT((Nullptr, _info), SA.Render.RHI.DX12);
@@ -25,6 +26,12 @@ namespace SA::RND::RHI
 		Device::Destroy();
 
 		mHandle.Destroy();
+	}
+
+
+	void D12Device::WaitIdle()
+	{
+		mHandle.WaitIdle();
 	}
 
 
