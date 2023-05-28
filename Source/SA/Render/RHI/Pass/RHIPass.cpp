@@ -2,6 +2,8 @@
 
 #include <Pass/RHIPass.hpp>
 
+#include <SA/Collections/Debug>
+
 namespace SA::RND::RHI
 {
 	const PassInfo& Pass::GetInfo() const

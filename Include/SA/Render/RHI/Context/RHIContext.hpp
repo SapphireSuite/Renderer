@@ -8,6 +8,7 @@
 #include <forward_list>
 
 #include <SA/Render/RHI/Pass/RHIPass.hpp>
+#include <SA/Render/RHI/Pass/RHIFrameBuffer.hpp>
 
 namespace SA::RND::RHI
 {
@@ -36,6 +37,22 @@ namespace SA::RND::RHI
 		Pass* CreatePass(PassInfo _info);
 		void DestroyPass(Pass* _pass);
 		void DestroyAllPasses();
+
+//}
+
+//{ FrameBuffer
+
+	private:
+		std::forward_list<FrameBuffer*> mFrameBuffers;
+
+	protected:
+		virtual FrameBuffer* InstantiateFrameBufferClass() = 0;
+		virtual void DeleteFrameBufferClass(FrameBuffer* _frameBuffer);
+
+	public:
+		FrameBuffer* CreateFrameBuffer(const Pass* _pass);
+		void DestroyFrameBuffer(FrameBuffer* _frameBuffer);
+		void DestroyAllFrameBuffers();
 
 //}
 

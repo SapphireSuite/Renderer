@@ -70,4 +70,53 @@ namespace SA::RND::RHI
 	}
 
 //}
+
+
+//{ FrameBuffer
+
+	void Context::DeleteFrameBufferClass(FrameBuffer* _frameBuffer)
+	{
+		SA_ASSERT((Nullptr, _frameBuffer), SA.Render.RHI);
+
+		delete _frameBuffer;
+	}
+
+	FrameBuffer* Context::CreateFrameBuffer(const Pass* _pass)
+	{
+		SA_ASSERT((Nullptr, _pass), SA.Render.RHI);
+
+		FrameBuffer* const frameBuffer = mFrameBuffers.emplace_front(InstantiateFrameBufferClass());
+
+		SA_ASSERT((Nullptr, frameBuffer), SA.Render.RHI, (L"FrameBuffer instantiate class failed!"));
+
+		frameBuffer->Create(mDevice, _pass);
+
+		return frameBuffer;
+	}
+	
+	void Context::DestroyFrameBuffer(FrameBuffer* _frameBuffer)
+	{
+		SA_ASSERT((Nullptr, _frameBuffer), SA.Render.RHI);
+
+		if(std::erase(mFrameBuffers, _frameBuffer))
+		{
+			_frameBuffer->Destroy(mDevice);
+			DeleteFrameBufferClass(_frameBuffer);
+		}
+		else
+			SA_LOG((L"Try destroy FrameBuffer [%1] that does not belong to this context!", _frameBuffer), Error, SA.Render.RHI);
+	}
+
+	void Context::DestroyAllFrameBuffers()
+	{
+		for(auto frameBuffer : mFrameBuffers)
+		{
+			frameBuffer->Destroy(mDevice);
+			DeleteFrameBufferClass(frameBuffer);
+		}
+
+		mFrameBuffers.clear();
+	}
+
+//}
 }
