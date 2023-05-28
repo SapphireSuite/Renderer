@@ -1,0 +1,20 @@
+{
+	"name": "Forward Pass",
+	"subpasses": [
+		{
+			"name": "Main",
+			"sampling": 8,
+			"attachments": [
+				{
+					"name": "Color",
+					"usage": "Present"
+				},
+				{
+					"name": "Depth",
+					"usage": "Depth",
+					"format": "D16_UNORM"
+				}
+			]
+		}
+	]
+}

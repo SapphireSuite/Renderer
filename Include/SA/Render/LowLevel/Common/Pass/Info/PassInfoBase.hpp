@@ -8,6 +8,10 @@
 #include <string>
 #include <vector>
 
+#include <SA/Collections/Debug>
+
+#include "AttachmentUsage.hpp"
+
 namespace SA::RND
 {
 	template <typename SubpassT>
@@ -26,7 +30,7 @@ namespace SA::RND
 			return subpass;
 		}
 
-		bool RemoveSubpass(std::string _name)
+		bool RemoveSubpass(std::string_view _name)
 		{
 			for(auto it = subpasses.begin(); it != subpasses.end(); ++it)
 			{
@@ -38,6 +42,36 @@ namespace SA::RND
 			}
 
 			return false;
+		}
+	
+		auto& FindAttachment(std::string_view _attachName, std::string_view _subpassName = "")
+		{
+			for(auto& subpass : subpasses)
+			{
+				if(_subpassName.empty() || subpass.name == _subpassName)
+				{
+					for(auto& attach : subpass.attachments)
+					{
+						if(attach.name == _attachName)
+							return attach;
+					}
+				}
+			}
+
+			SA_LOG((L"No attachment named [%1::%2] found!", _subpassName.data(), _attachName.data()), Error, SA.Render.Common);
+		}
+
+		auto& FindPresentAttachment()
+		{
+			for(auto& attach : subpasses.back().attachments)
+			{
+				if(attach.usage == AttachmentUsage::Present)
+					return attach;
+			}
+
+			SA_LOG(L"No present attachment found!", Error, SA.Render.Common);
+
+			return subpasses.back().attachments.back();
 		}
 	};
 }

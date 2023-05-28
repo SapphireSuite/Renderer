@@ -25,6 +25,8 @@ namespace SA::RND::RHI
 {
 	struct PassInfo : public PassInfoBase<SubpassInfo>
 	{
+		void SetAllSubpassesSampling(Sampling _sampling);
+
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
 		VK::PassInfo API_Vulkan() const;

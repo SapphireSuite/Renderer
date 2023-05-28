@@ -28,7 +28,7 @@ namespace SA::RND
 			return attach;
 		}
 
-		bool RemoveAttachment(std::string _name)
+		bool RemoveAttachment(std::string_view _name)
 		{
 			for(auto it = attachments.begin(); it != attachments.end(); ++it)
 			{
@@ -42,6 +42,18 @@ namespace SA::RND
 			return false;
 		}
 
+		AttachT& FindAttachment(std::string_view _name)
+		{
+			for(auto it = attachments.begin(); it != attachments.end(); ++it)
+			{
+				if(it->name == _name)
+					return *it;
+			}
+
+			SA_LOG((L"No attachment named [%1] found!", _name.data()), Error, SA.Render.Common);
+
+			return attachments[0];
+		}
 
 		void SetAllAttachmentExtents(const Vec2ui& _extents)
 		{

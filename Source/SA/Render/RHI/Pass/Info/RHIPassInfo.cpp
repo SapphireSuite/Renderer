@@ -4,6 +4,12 @@
 
 namespace SA::RND::RHI
 {
+	void PassInfo::SetAllSubpassesSampling(Sampling _sampling)
+	{
+		for(auto& subpass : subpasses)
+			subpass.sampling = _sampling;
+	}
+
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
 	VK::PassInfo PassInfo::API_Vulkan() const
