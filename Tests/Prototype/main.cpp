@@ -4,6 +4,7 @@
 #include <thread>
 
 #include <SA/Collections/Debug>
+#include <SA/Collections/Maths>
 
 #include <SA/Render/RHI/RHIVkRenderInterface.hpp>
 #include <SA/Render/RHI/RHID12RenderInterface.hpp>
@@ -240,6 +241,12 @@ public:
 
 			for(uint32_t i = 0; i < num; ++i)
 				frameBuffers[i] = context->CreateFrameBuffer(pass, swapchain->GetBackBufferHandle(i));
+		}
+
+		// Mesh
+		{
+			std::vector<SA::Vec3f> positions {{0.0f, 0.5f, 0.0f}, {0.5f, -0.5f, 0.0}, {-0.5f, -0.5f, 0.0}};
+			std::vector<Color> colors {Color::red, Color::green, Color::blue};
 		}
 	}
 
