@@ -9,7 +9,7 @@
 #include <vector>
 
 #include <Shader/RHIShader.hpp>
-#include <Shader/Descriptors/RHIShaderStage.hpp>
+#include <Shader/Info/RHIShaderStage.hpp>
 
 namespace SA::RND
 {

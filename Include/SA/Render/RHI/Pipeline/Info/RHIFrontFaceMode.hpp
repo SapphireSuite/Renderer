@@ -13,6 +13,12 @@
 
 #endif
 
+#if SA_RENDER_LOWLEVEL_DX12_IMPL
+
+	#include <SA/Render/LowLevel/DX12/DX12API.hpp>
+
+#endif
+
 namespace SA::RND
 {
 	namespace RHI
@@ -32,6 +38,15 @@ namespace SA::RND
 	namespace VK
 	{
 		VkFrontFace API_GetFrontFaceMode(RHI::FrontFaceMode _mode);
+	}
+
+#endif
+
+#if SA_RENDER_LOWLEVEL_DX12_IMPL
+
+	namespace DX12
+	{
+		bool API_GetFrontFaceMode(RHI::FrontFaceMode _mode);
 	}
 
 #endif

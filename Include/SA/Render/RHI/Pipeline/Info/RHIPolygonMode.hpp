@@ -13,6 +13,12 @@
 
 #endif
 
+#if SA_RENDER_LOWLEVEL_DX12_IMPL
+
+	#include <SA/Render/LowLevel/DX12/DX12API.hpp>
+
+#endif
+
 namespace SA::RND
 {
 	namespace RHI
@@ -35,6 +41,15 @@ namespace SA::RND
 	namespace VK
 	{
 		VkPolygonMode API_GetPolygonMode(RHI::PolygonMode _mode);
+	}
+
+#endif
+
+#if SA_RENDER_LOWLEVEL_DX12_IMPL
+
+	namespace DX12
+	{
+		D3D12_PRIMITIVE_TOPOLOGY_TYPE API_GetPolygonMode(RHI::PolygonMode _mode);
 	}
 
 #endif

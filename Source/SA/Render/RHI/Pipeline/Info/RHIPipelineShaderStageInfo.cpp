@@ -1,6 +1,6 @@
 // Copyright (c) 2023 Sapphire's Suite. All Rights Reserved.
 
-#include <Pipeline/Descriptors/RHIPipelineShaderStageInfo.hpp>
+#include <Pipeline/Info/RHIPipelineShaderStageInfo.hpp>
 
 namespace SA::RND
 {

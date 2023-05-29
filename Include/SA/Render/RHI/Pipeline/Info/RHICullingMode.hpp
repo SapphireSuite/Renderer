@@ -13,6 +13,12 @@
 
 #endif
 
+#if SA_RENDER_LOWLEVEL_DX12_IMPL
+
+	#include <SA/Render/LowLevel/DX12/DX12API.hpp>
+
+#endif
+
 namespace SA::RND
 {
 	namespace RHI
@@ -35,6 +41,15 @@ namespace SA::RND
 	namespace VK
 	{
 		VkCullModeFlags API_GetCullingMode(RHI::CullingMode _mode);
+	}
+
+#endif
+
+#if SA_RENDER_LOWLEVEL_DX12_IMPL
+
+	namespace DX12
+	{
+		D3D12_CULL_MODE API_GetCullingMode(RHI::CullingMode _mode);
 	}
 
 #endif

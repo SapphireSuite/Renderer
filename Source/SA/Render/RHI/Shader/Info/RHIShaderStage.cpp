@@ -1,6 +1,6 @@
 // Copyright (c) 2023 Sapphire's Suite. All Rights Reserved.
 
-#include <Shader/Descriptors/RHIShaderStage.hpp>
+#include <Shader/Info/RHIShaderStage.hpp>
 
 namespace SA::RND
 {

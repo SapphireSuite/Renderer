@@ -26,12 +26,18 @@ namespace SA::RND::RHI
 		CullingMode cullingMode = CullingMode::Back;
 
 		/// Rasterization front face mode.
-		FrontFaceMode frontFace = FrontFaceMode::Clockwise;
+		FrontFaceMode frontFace = FrontFaceMode::CounterClockwise;
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
 	VkPipelineRasterizationStateCreateInfo API_Vulkan() const;
 	
+#endif
+
+#if SA_RENDER_LOWLEVEL_DX12_IMPL
+
+	D3D12_RASTERIZER_DESC API_DirectX12() const;
+
 #endif
 	};
 }

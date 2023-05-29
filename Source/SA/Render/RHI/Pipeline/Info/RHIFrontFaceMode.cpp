@@ -1,6 +1,6 @@
 // Copyright (c) 2023 Sapphire's Suite. All Rights Reserved.
 
-#include <Pipeline/Descriptors/RHIFrontFaceMode.hpp>
+#include <Pipeline/Info/RHIFrontFaceMode.hpp>
 
 namespace SA::RND
 {
@@ -21,6 +21,18 @@ namespace SA::RND
 				(L"FrontFaceMode value [%1] invalid", index));
 
 			return vkFrontFaceIndexMap[index];
+		}
+	}
+
+#endif
+
+#if SA_RENDER_LOWLEVEL_DX12_IMPL
+
+	namespace DX12
+	{
+		bool API_GetFrontFaceMode(RHI::FrontFaceMode _mode)
+		{
+			return _mode == RHI::FrontFaceMode::CounterClockwise;
 		}
 	}
 
