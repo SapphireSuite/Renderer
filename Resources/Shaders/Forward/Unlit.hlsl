@@ -1,9 +1,14 @@
 // Copyright (c) 2023 Sapphire's Suite. All Rights Reserved.
 
+#ifndef SA_RENDER_SHADER_UNLIT_GUARD
+#define SA_RENDER_SHADER_UNLIT_GUARD
+
 //-------------------- Vertex Shader --------------------
 
-/// Vertex Input Assembly.
-struct VertexInput
+#include <Common/Object.hlsl>
+#include <Common/Camera.hlsl>
+
+struct VertexInputAssembly
 {
 	float3 position : POSITION;
 
@@ -21,7 +26,7 @@ struct VertexInput
 /// Vertex to Pixel data
 struct V2P
 {
-	float4 position : SV_POSITION;
+	float4 svPosition : SV_POSITION;
 
 #if SA_HAS_UV
 
@@ -34,15 +39,17 @@ struct V2P
 #endif
 };
 
-V2P mainVS(VertexInput _input)
+V2P mainVS(VertexInputAssembly _input,
+	uint _instanceID : SV_InstanceID)
 {
 	V2P output;
 
-	// TODO: apply model and camera transformation.
-	output.position = float4(_input.position, 1.0);
+	const float4 objPosition = ComputeObjectPosition(float4(_input.position, 1.0), _instanceID);
+	output.svPosition = ComputeObjectViewPosition(objPosition);
 
 #if SA_HAS_UV
 
+	// TODO: Apply material tilling.
 	output.uv = _input.uv;
 
 #elif SA_HAS_COLOR
@@ -56,16 +63,16 @@ V2P mainVS(VertexInput _input)
 
 //-------------------- Pixel Shader --------------------
 
-#if SA_HAS_UV
+#if SA_HAS_UV && SA_HAS_ALBEDO
 
-Texture2D albedo : register(t0);
-SamplerState albedoSampler : register(s0);
+	Texture2D albedo : register(t0);
+	SamplerState albedoSampler : register(s0);
 
 #endif
 
 float4 mainPS(V2P _input) : SV_TARGET
 {
-#if SA_HAS_UV
+#if SA_HAS_UV && SA_HAS_ALBEDO
 
 	const float4 color = albedo.Sample(albedoSampler, _input.uv);
 
@@ -84,3 +91,5 @@ float4 mainPS(V2P _input) : SV_TARGET
 
 	return color;
 }
+
+#endif // SA_RENDER_SHADER_UNLIT_GUARD
