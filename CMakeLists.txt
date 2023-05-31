@@ -168,6 +168,33 @@ if(SA_RENDER_RHI_OPT)
 endif()
 
 
+## ShaderCompiler
+option(SA_RENDER_SHADER_COMPILER_OPT "Should compile shader compiler" ON)
+
+if(SA_RENDER_SHADER_COMPILER_OPT)
+
+	add_library(SA_Render_ShaderCompiler STATIC)
+	SA_ConfigureTarget(SA_Render_ShaderCompiler)
+	SA_TargetSources(SA_Render_ShaderCompiler
+		PUBLIC_SRC_DIR "Include/SA/Render/ShaderCompiler"
+		PUBLIC_INCL_DIR "OFF"
+		PRIVATE_SRC_DIR "Source/SA/Render/ShaderCompiler"
+	)
+
+	### Link dependencies.
+	target_link_libraries(SA_Render_ShaderCompiler
+		PUBLIC SA_Logger SA_DirectXShaderCompiler
+		
+		# Add Lowlevel link for preprocessors.
+		SA_Render_LowLevel
+	)
+
+	### Link to main lib.
+	target_link_libraries(SA_Render INTERFACE SA_Render_ShaderCompiler)
+
+endif()
+
+
 
 # Options
 
