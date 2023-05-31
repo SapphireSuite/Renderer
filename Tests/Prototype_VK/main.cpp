@@ -2,247 +2,141 @@
 
 #include <SA/Collections/Debug>
 
-#include <SA/Render/LowLevel/Vulkan/VkInstance.hpp>
-#include <SA/Render/LowLevel/Vulkan/Device/VkDevice.hpp>
-#include <SA/Render/LowLevel/Vulkan/Surface/VkWindowSurface.hpp>
-#include <SA/Render/LowLevel/Vulkan/Surface/VkSwapchain.hpp>
-#include <SA/Render/LowLevel/Vulkan/Device/Command/VkCommandPool.hpp>
-#include <SA/Render/LowLevel/Vulkan/Pass/VkRenderPass.hpp>
-#include <SA/Render/LowLevel/Vulkan/Pass/VkFrameBuffer.hpp>
-#include <SA/Render/RHI/Pass/Info/RHIPassInfo.hpp>
-using namespace SA::RND;
+#include <dxc/dxcapi.h>
+#include <dxc/WinAdapter.h>
 
-// Must be included after vulkan.
-#include <GLFW/glfw3.h>
-
-GLFWwindow* window = nullptr;
-
-VK::Instance instance;
-VK::WindowSurface winSurface;
-VK::Device device;
-VK::Swapchain swapchain;
-VK::CommandPool cmdPool;
-VK::PassInfo passInfo;
-VK::RenderPass renderPass;
-std::vector<VK::FrameBuffer> frameBuffers;
-std::vector<VK::CommandBuffer> cmdBuffers;
-
-void GLFWErrorCallback(int32_t error, const char* description)
-{
-	SA_LOG((L"GLFW Error [%1]: %2", error, description), Error, SA.Render.Proto.GLFW.API);
-}
-
-void Init()
-{
-	SA::Debug::InitDefaultLogger();
-
-	// GLFW
-	{
-		glfwSetErrorCallback(GLFWErrorCallback);
-		glfwInit();
-
-		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-		window = glfwCreateWindow(1200, 900, "Vulkan Prototype", nullptr, nullptr);
-		SA_ASSERT((Nullptr, window), SA.Render.Proto.GLFW, L"GLFW create window failed!");
-	}
-
-	// Render
-	{
-		// Instance
-		{
-			std::vector<const char*> vkExts;
-
-			// Query GLFW extensions.
-			{
-				uint32_t glfwExtensionCount = 0;
-				const char** glfwExtensions = nullptr;
-
-				glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-
-				vkExts.reserve(glfwExtensionCount);
-				vkExts.insert(vkExts.end(), glfwExtensions, glfwExtensions + glfwExtensionCount);
-			}
-
-			instance.Create(vkExts);
-		}
-
-		VK::DeviceRequirements deviceReqs;
-
-		// Window Surface
-		{
-			VkSurfaceKHR glfwsurface;
-			glfwCreateWindowSurface(instance, window, nullptr, &glfwsurface);
-			
-			winSurface.Create(std::move(glfwsurface));
-
-			deviceReqs.SetWindowSurface(&winSurface);
-		}
-
-		// Device
-		{
-			std::vector<VK::DeviceInfo> deviceInfos = instance.QueryDeviceInfos(deviceReqs);
-			device.Create(deviceInfos[0]);
-		}
-
-		// Swapchain
-		{
-			swapchain.Create(device, winSurface);
-		}
-
-		// Cmd Buffers
-		{
-			cmdPool.Create(device, device.queueMgr.graphics[0].GetFamilyIndex());
-
-			cmdBuffers = cmdPool.AllocateMultiple(device, swapchain.GetImageNum());
-		}
-
-		// Render Pass
-		{
-			constexpr bool bDepth = true;
-			constexpr bool bMSAA = true;
-
-			// Forward
-			if (false)
-			{
-				auto& mainSubpass = passInfo.subpasses.emplace_back();
-
-				if(bMSAA)
-					mainSubpass.sampling = VK_SAMPLE_COUNT_8_BIT;
-
-				// Color and present attachment.
-				auto& colorRT = mainSubpass.attachments.emplace_back();
-				colorRT.format = swapchain.GetFormat();
-				colorRT.usage = AttachmentUsage::Present;
-
-				if(bDepth)
-				{
-					auto& depthRT = mainSubpass.attachments.emplace_back();
-					depthRT.format = VK_FORMAT_D16_UNORM;
-					depthRT.type = AttachmentType::Depth;
-				}
-				
-				mainSubpass.SetAllAttachmentExtents(swapchain.GetExtents());
-			}
-			else if(true) // Deferred
-			{
-				passInfo.subpasses.reserve(2u);
-
-				// PBR Subpass
-				{
-					auto& pbrSubpass = passInfo.subpasses.emplace_back();
-
-					if(bMSAA)
-						pbrSubpass.sampling = VK_SAMPLE_COUNT_8_BIT;
-
-					// Render Targets
-					{
-						// Deferred position attachment.
-						auto& posRT = pbrSubpass.attachments.emplace_back();
-
-						// Deferred normal attachment.
-						auto& normRT = pbrSubpass.attachments.emplace_back();
-
-						// Deferred albedo attachment.
-						auto& albedoRT = pbrSubpass.attachments.emplace_back();
-
-						// Deferred PBR (Metallic, Roughness, Ambiant occlusion) attachment.
-						auto& pbrRT = pbrSubpass.attachments.emplace_back();
-
-						if(bDepth)
-						{
-							auto& pbrDepthRT = pbrSubpass.attachments.emplace_back();
-							pbrDepthRT.format = VK_FORMAT_D16_UNORM;
-							pbrDepthRT.type = AttachmentType::Depth;
-						}
-
-						pbrSubpass.SetAllAttachmentExtents(swapchain.GetExtents());
-					}
-				}
-
-				// Present Subpass
-				{
-					auto& presentSubpass = passInfo.subpasses.emplace_back();
-
-					if(bMSAA)
-						presentSubpass.sampling = VK_SAMPLE_COUNT_8_BIT;
-
-					auto& presentRT = presentSubpass.attachments.emplace_back();
-					presentRT.format = swapchain.GetFormat();
-					presentRT.usage = AttachmentUsage::Present;
-
-					presentSubpass.SetAllAttachmentExtents(swapchain.GetExtents());
-				}
-			}
-
-
-			renderPass.Create(device, passInfo);
-
-
-			// FrameBuffers
-			{
-				uint32_t num = swapchain.GetImageNum();
-				frameBuffers.resize(num);
-
-				for(uint32_t i = 0; i < num; ++i)
-					frameBuffers[i].Create(device, renderPass, passInfo, swapchain.GetBackBufferHandle(i));
-			}
-		}
-	}
-}
-
-void Uninit()
-{
-	// Render
-	{
-		for(auto& frameBuffer : frameBuffers)
-			frameBuffer.Destroy(device);
-
-		renderPass.Destroy(device);
-
-		cmdPool.Destroy(device);
-
-		swapchain.Destroy(device);
-
-		device.Destroy();
-
-		winSurface.Destroy(instance);
-		
-		instance.Destroy();
-	}
-
-	// GLFW
-	{
-		glfwTerminate();
-	}
-}
-
-void Loop()
-{
-	// const uint32_t frameIndex = swapchain.Begin(device);
-
-	// SA::VK::CommandBuffer& cmdBuffer = cmdBuffers[frameIndex];
-
-	// cmdBuffer.Begin();
-
-
-
-	// cmdBuffer.End();
-
-	// swapchain.End(device, {cmdBuffer});
-}
+#include <fstream>
 
 int main()
 {
-	Init();
+	std::vector<LPWSTR> arguments;
 
-	while(!glfwWindowShouldClose(window))
+
+	// // Vertex Shader
+	// {
+	// 	// Read file.
+	// 	std::ifstream fStream("Resources/Shaders/Forward/unlit.hlsl");
+
+	// 	if (!fStream.is_open())
+	// 	{
+	// 		SA_LOG(L"Failed to open file !", Error);
+	// 		return -1;
+	// 	}
+
+	// 	std::string code;
+
+	// 	std::stringstream sstream;
+	// 	sstream << fStream.rdbuf();
+
+	// 	code = sstream.str();
+	// 	//
+
+
+	// 	IDxcUtils* pUtils = nullptr;
+	// 	DxcCreateInstance(CLSID_DxcUtils, IID_PPV_ARGS(&pUtils));
+	// 	IDxcBlobEncoding* pSource = nullptr;
+	// 	pUtils->CreateBlob(code.c_str(), static_cast<uint32>(code.size()), CP_UTF8, &pSource));
+
+	// 	arguments.push_back(L"-E");
+	// 	arguments.push_back(L"mainVS");
+
+	// 	arguments.push_back(L"-T");
+	// 	arguments.push_back(L"vs_6_0");
+
+	// 	arguments.push_back(DXC_ARG_WARNINGS_ARE_ERRORS); //-WX
+	// 	arguments.push_back(DXC_ARG_DEBUG); //-Zi
+	// 	arguments.push_back(DXC_ARG_PACK_MATRIX_ROW_MAJOR); //-Zp
+
+	// 	arguments.push_back(L"-D");
+	// 	arguments.push_back(L"SA_HAS_UV");
+
+	// 	DxcBuffer sourceBuffer;
+	// 	sourceBuffer.Ptr = pSource->GetBufferPointer();
+	// 	sourceBuffer.Size = pSource->GetBufferSize();
+	// 	sourceBuffer.Encoding = 0;
+
+	// 	IDxcResult* pCompileResult = nullptr;
+
+	// 	pCompiler->Compile(&sourceBuffer, arguments.data(), (uint32_t)arguments.size(), nullptr, IID_PPV_ARGS(&pCompileResult))
+	// }
+
+
+	CComPtr<IDxcUtils> utils = nullptr;
+	DxcCreateInstance(CLSID_DxcUtils, IID_PPV_ARGS(&utils));
+
+	CComPtr<IDxcCompiler3> pCompiler;
+	DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(&pCompiler));
+
+	// Vertex
 	{
-		glfwPollEvents();
+		CComPtr<IDxcBlobEncoding> sourceBlob;
+		if(FAILED(utils->LoadFile(L"Resources/Shaders/Forward/unlit.hlsl", nullptr, &sourceBlob)))
+		{
+			SA_LOG(L"Failed to open file !", Error);
+			return -1;
+		}
 
-		Loop();
+		DxcBuffer sourceBuffer
+		{
+			.Ptr = sourceBlob->GetBufferPointer(),
+			.Size = sourceBlob->GetBufferSize(),
+			.Encoding = 0u,
+		};
+
+		std::vector<LPCWSTR> cArgs
+		{
+			L"-E",
+			L"mainVS",
+			L"-T",
+			L"vs_6_5",
+			L"-HV",
+			L"2021",
+			L"-D",
+			L"SA_HAS_UV",
+			DXC_ARG_WARNINGS_ARE_ERRORS,
+			DXC_ARG_PACK_MATRIX_ROW_MAJOR,
+			DXC_ARG_ALL_RESOURCES_BOUND,
+			DXC_ARG_DEBUG
+		};
+
+		CComPtr<IDxcResult> cShader;
+		
+		auto result = pCompiler->Compile(&sourceBuffer,
+			cArgs.data(),
+			static_cast<uint32_t>(cArgs.size()),
+			nullptr,
+			IID_PPV_ARGS(&cShader)
+		);
+		
+		if(FAILED(result))
+			SA_LOG(L"Compilation failed!", Error);
+
+		CComPtr<IDxcBlobUtf8> errors;
+		/*SA_DX_API()*/cShader->GetOutput(DXC_OUT_ERRORS, IID_PPV_ARGS(&errors), nullptr);
+
+		if (errors && errors->GetStringLength() > 0)
+		{
+			const std::string errorsStr = errors->GetStringPointer();
+			SA_LOG(errorsStr, Error);
+		}
+
+
+		// Reflection
+		CComPtr<IDxcBlob> reflectionBlob;
+		/*SA_DX_API()*/cShader->GetOutput(DXC_OUT_REFLECTION, IID_PPV_ARGS(&reflectionBlob), nullptr);
+
+		const DxcBuffer reflectionBuffer
+		{
+			.Ptr = reflectionBlob->GetBufferPointer(),
+			.Size = reflectionBlob->GetBufferSize(),
+			.Encoding = 0,
+		};
+
+		// CComPtr<ID3D12ShaderReflection> shaderReflection;
+		// utils->CreateReflection(&reflectionBuffer, IID_PPV_ARGS(&shaderReflection));
+		// D3D12_SHADER_DESC shaderDesc{};
+		// shaderReflection->GetDesc(&shaderDesc);
 	}
-
-	Uninit();
 
 	return 0;
 }

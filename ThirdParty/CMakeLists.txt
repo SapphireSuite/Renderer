@@ -4,3 +4,5 @@
 
 ## Sapphire Suite Third Party.
 add_subdirectory(SA)
+
+add_subdirectory(DirectXShaderCompiler)
