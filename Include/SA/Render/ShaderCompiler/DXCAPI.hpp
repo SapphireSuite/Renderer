@@ -14,8 +14,8 @@
 *	\{
 */
 
-#include <SA/Support/Platforms.hpp>
 #include <SA/Support/Compilers.hpp>
+#include <SA/Support/API/Windows.hpp>
 
 #if SA_UNIX && SA_CLANG
 // Force UUID emulation on unix clang.
@@ -23,7 +23,6 @@
 #endif
 
 #include <dxc/dxcapi.h>
-#include <dxc/WinAdapter.h> // CComPtr
 
 #if SA_RENDER_API_TRACKING || defined(SA_DOXIGEN)
 
@@ -68,6 +67,14 @@
 
 #endif
 
+#if SA_WIN
+
+#include <wrl.h> // ComPtr
+
+template <typename T>
+using CComPtr = Microsoft::WRL::ComPtr<T>;
+
+#endif
 
 /** \} */
 

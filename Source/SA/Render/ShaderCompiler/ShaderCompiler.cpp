@@ -143,10 +143,10 @@ namespace SA::RND
 			.Encoding = 0,
 		};
 
-		CComPtr<ID3D12ShaderReflection> shaderReflection;
-		mUtils->CreateReflection(&reflectionBuffer, IID_PPV_ARGS(&shaderReflection));
-		D3D12_SHADER_DESC shaderDesc{};
-		shaderReflection->GetDesc(&shaderDesc);
+		// CComPtr<ID3D12ShaderReflection> shaderReflection;
+		// mUtils->CreateReflection(&reflectionBuffer, IID_PPV_ARGS(&shaderReflection));
+		// D3D12_SHADER_DESC shaderDesc{};
+		// shaderReflection->GetDesc(&shaderDesc);
 
 	//}
 
