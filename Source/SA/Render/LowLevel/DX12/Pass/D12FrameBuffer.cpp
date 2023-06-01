@@ -107,7 +107,7 @@ namespace SA::RND::DX12
 						desc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
 
 						clearValue.DepthStencil.Depth = attach.clearColor.r;
-						clearValue.DepthStencil.Stencil = attach.clearColor.g;
+						clearValue.DepthStencil.Stencil = static_cast<uint8_t>(attach.clearColor.g);
 					}
 
 					SA_DX12_API(_device->CreateCommittedResource(&heapProps,
