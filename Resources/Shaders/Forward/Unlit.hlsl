@@ -1,5 +1,7 @@
 // Copyright (c) 2023 Sapphire's Suite. All Rights Reserved.
 
+#include <Common/Preprocessors.hlsl>
+
 //-------------------- Vertex Shader --------------------
 
 /// Vertex Input Assembly.
@@ -58,8 +60,8 @@ V2P mainVS(VertexInput _input)
 
 #if SA_HAS_UV
 
-Texture2D albedo : register(t0);
-SamplerState albedoSampler : register(s0);
+Texture2D albedo : SA_REG(t, SA_ALBEDO_ID);
+SamplerState albedoSampler : SA_REG(s, SA_ALBEDO_ID);
 
 #endif
 

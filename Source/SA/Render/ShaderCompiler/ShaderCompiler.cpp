@@ -4,6 +4,8 @@
 
 #include <SA/Collections/Debug>
 
+#include <ShaderIncluder.hpp>
+
 namespace SA::RND
 {
 	void ShaderCompiler::Create()
@@ -50,6 +52,8 @@ namespace SA::RND
 			DXC_ARG_WARNINGS_ARE_ERRORS,
 			DXC_ARG_PACK_MATRIX_ROW_MAJOR,
 			DXC_ARG_ALL_RESOURCES_BOUND,
+			L"-I",
+			SA_CMAKE_SOURCE_DIR L"/Resources/Shaders"
 		};
 
 
@@ -80,12 +84,13 @@ namespace SA::RND
 		const std::vector<LPCWSTR>& _cArgs,
 		const ShaderCompilInfo& _info)
 	{
+		ShaderIncluder includer(mUtils);
 		CComPtr<IDxcResult> compilResult;
 		
 		SA_DXC_API(mCompiler->Compile(&_src,
 			const_cast<LPCWSTR*>(_cArgs.data()),
 			static_cast<uint32_t>(_cArgs.size()),
-			nullptr,
+			&includer,
 			IID_PPV_ARGS(&compilResult)));
 
 		CComPtr<IDxcBlobUtf8> errors;
@@ -164,6 +169,7 @@ namespace SA::RND
 
 		std::vector<LPCWSTR> cArgs = ProcessParams(_info);
 		cArgs.push_back(L"-spirv"); // Add SPIRV compile option.
+		cArgs.push_back(L"-fspv-reflect"); // Aid SPIRV reflection.
 
 
 		CComPtr<IDxcResult> compilResult = Compile_Internal(src.dx, cArgs, _info);
