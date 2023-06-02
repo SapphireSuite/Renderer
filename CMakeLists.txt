@@ -189,6 +189,10 @@ if(SA_RENDER_SHADER_COMPILER_OPT)
 		SA_Render_LowLevel
 	)
 
+	if(SA_RENDER_VULKAN_OPT OR SA_RENDER_OPENGL_OPT)
+		target_link_libraries(SA_Render_ShaderCompiler PRIVATE spirv-reflect-static)
+	endif()
+
 	### Link to main lib.
 	target_link_libraries(SA_Render INTERFACE SA_Render_ShaderCompiler)
 

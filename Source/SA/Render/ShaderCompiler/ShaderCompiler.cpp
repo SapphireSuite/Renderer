@@ -6,6 +6,10 @@
 
 #include <ShaderIncluder.hpp>
 
+#if SA_RENDER_LOWLEVEL_VULKAN_IMPL || SA_RENDER_LOWLEVEL_OPENLG_IMPL
+#include <spirv_reflect.h>
+#endif
+
 namespace SA::RND
 {
 	void ShaderCompiler::Create()
@@ -53,7 +57,9 @@ namespace SA::RND
 			DXC_ARG_PACK_MATRIX_ROW_MAJOR,
 			DXC_ARG_ALL_RESOURCES_BOUND,
 			L"-I",
-			SA_CMAKE_SOURCE_DIR L"/Resources/Shaders"
+			SA_CMAKE_SOURCE_DIR L"/Resources/Shaders",
+			L"-I",
+			L"/Resources/Shaders"
 		};
 
 
