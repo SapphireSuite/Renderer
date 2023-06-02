@@ -26,6 +26,10 @@ namespace SA::RND
 			const std::vector<LPCWSTR>& _cArgs,
 			const ShaderCompilInfo& _info);
 
+	#if SA_RENDER_LOWLEVEL_VULKAN_IMPL || SA_RENDER_LOWLEVEL_OPENLG_IMPL
+		void ReflectSPIRV(CComPtr<IDxcBlob> _shader);
+	#endif
+
 	public:
 		void Create();
 		void Destroy();
@@ -34,7 +38,7 @@ namespace SA::RND
 		bool CompileDX(const ShaderCompilInfo& _info);
 	#endif
 
-	#if SA_RENDER_LOWLEVEL_VULKAN_IMPL
+	#if SA_RENDER_LOWLEVEL_VULKAN_IMPL || SA_RENDER_LOWLEVEL_OPENLG_IMPL
 		bool CompileSPIRV(const ShaderCompilInfo& _info);
 	#endif
 	};

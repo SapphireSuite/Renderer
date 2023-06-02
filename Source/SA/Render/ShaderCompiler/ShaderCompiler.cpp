@@ -6,9 +6,7 @@
 
 #include <ShaderIncluder.hpp>
 
-#if SA_RENDER_LOWLEVEL_VULKAN_IMPL || SA_RENDER_LOWLEVEL_OPENLG_IMPL
-#include <spirv_reflect.h>
-#endif
+#include "SPIRV-ReflectAPI.hpp"
 
 namespace SA::RND
 {
@@ -175,7 +173,7 @@ namespace SA::RND
 
 		std::vector<LPCWSTR> cArgs = ProcessParams(_info);
 		cArgs.push_back(L"-spirv"); // Add SPIRV compile option.
-		cArgs.push_back(L"-fspv-reflect"); // Aid SPIRV reflection.
+		cArgs.push_back(L"-fspv-reflect"); // Better SPIRV reflection.
 
 
 		CComPtr<IDxcResult> compilResult = Compile_Internal(src.dx, cArgs, _info);
@@ -184,23 +182,46 @@ namespace SA::RND
 			return false;
 
 
-	//{ Object
-
 		CComPtr<IDxcBlob> shader;
 		SA_DXC_API(compilResult->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(&shader), nullptr));
 
-	//}
+		ReflectSPIRV(shader);
 
-
-	//{ Reflection
-	
-
-
-	//}
 
 		SA_LOG((L"Shader {%1:%2} compilation success!", _info.path, _info.entrypoint), Normal, SA.Render.ShaderCompiler);
 
 		return true;
+	}
+
+	void ShaderCompiler::ReflectSPIRV(CComPtr<IDxcBlob> _shader)
+	{
+		SpvReflectShaderModule module;
+		SA_SPIRVR_API(spvReflectCreateShaderModule(_shader->GetBufferSize(), _shader->GetBufferPointer(), &module));
+
+		// uint32_t varCount = 0;
+		// SA_SPIRVR_API(spvReflectEnumerateInputVariables(&module, &varCount, NULL));
+
+		// std::vector<SpvReflectInterfaceVariable*> inputVars(varCount);
+		// SA_SPIRVR_API(spvReflectEnumerateInputVariables(&module, &varCount, inputVars.data()));
+
+		// for(auto var : inputVars)
+		// {
+		// 	SA_LOG(var->name);
+		// }
+
+		uint32_t count;
+		spvReflectEnumerateDescriptorSets(&module, &count, nullptr);
+		std::vector<SpvReflectDescriptorSet*> descs(count);
+		spvReflectEnumerateDescriptorSets(&module, &count, descs.data());
+
+		for(auto desc : descs)
+		{
+			for(int i = 0; i < desc->binding_count; ++i)
+				SA_LOG(desc->bindings[i]->name);
+		}
+
+
+		spvReflectDestroyShaderModule(&module);
 	}
 
 #endif // SA_RENDER_LOWLEVEL_VULKAN_IMPL

@@ -44,13 +44,13 @@
 		[&]<typename T>(T)\
 		{\
 			if constexpr (std::is_same_v<RType, HRESULT>)\
-				SA_ASSERT((DX12, _dxcFunc), SA.Render.DXC.API, ##__VA_ARGS__)\
+				SA_ASSERT((DX12, _dxcFunc), SA.Render.ShaderCompiler.DXC.API, ##__VA_ARGS__)\
 			else if constexpr (std::is_same_v<RType, bool>)\
-				SA_ASSERT((Default, _dxcFunc), SA.Render.DXC.API, ##__VA_ARGS__)\
+				SA_ASSERT((Default, _dxcFunc), SA.Render.ShaderCompiler.DXC.API, ##__VA_ARGS__)\
 			else\
 			{\
 				_dxcFunc;\
-				SA_LOG(#_dxcFunc, AssertSuccess, SA.Render.DXC.API, ##__VA_ARGS__)\
+				SA_LOG(#_dxcFunc, AssertSuccess, SA.Render.ShaderCompiler.DXC.API, ##__VA_ARGS__)\
 			}\
 		}(0);\
 	}
