@@ -6,6 +6,7 @@
 #include <SA/Collections/Debug>
 #include <SA/Collections/Maths>
 
+#include <SA/Render/LowLevel/Common/Mesh/RawMesh.hpp>
 #include <SA/Render/RHI/RHIVkRenderInterface.hpp>
 #include <SA/Render/RHI/RHID12RenderInterface.hpp>
 #include <SA/Render/RHI/Compatibility/IRenderWindow.hpp>
@@ -245,8 +246,11 @@ public:
 
 		// Mesh
 		{
-			std::vector<SA::Vec3f> positions {{0.0f, 0.5f, 0.0f}, {0.5f, -0.5f, 0.0}, {-0.5f, -0.5f, 0.0}};
-			std::vector<Color> colors {Color::red, Color::green, Color::blue};
+			RawMesh triangle;
+
+			triangle.vertices.AddVertexComponent<VertexPosition>({{0.0f, 0.5f, 0.0f}, {0.5f, -0.5f, 0.0}, {-0.5f, -0.5f, 0.0}});
+			triangle.vertices.AddVertexComponent<VertexColor>({Color::red, Color::green, Color::blue});
+			triangle.indices = {0, 1, 2};
 		}
 	}
 
