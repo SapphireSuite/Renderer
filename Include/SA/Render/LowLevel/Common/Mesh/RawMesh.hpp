@@ -6,6 +6,7 @@
 #define SAPPHIRE_RENDER_COMMON_RAW_MESH_GUARD
 
 #include "Vertex/Verticies.hpp"
+#include "RawIndexBuffer.hpp"
 
 #include <SA/Maths/Geometry/AABB3D.hpp>
 
@@ -14,7 +15,7 @@ namespace SA::RND
 	struct RawMesh
 	{
 		Verticies vertices;
-		std::vector<uint32_t> indices;
+		RawIndexBuffer indices;
 
 		AABB3Df aabb;
 	};

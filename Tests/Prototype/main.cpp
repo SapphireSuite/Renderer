@@ -250,7 +250,7 @@ public:
 
 			triangle.vertices.AddVertexComponent<VertexPosition>({{0.0f, 0.5f, 0.0f}, {0.5f, -0.5f, 0.0}, {-0.5f, -0.5f, 0.0}});
 			triangle.vertices.AddVertexComponent<VertexColor>({Color::red, Color::green, Color::blue});
-			triangle.indices = {0, 1, 2};
+			triangle.indices.U16({0, 1, 2});
 		}
 	}
 
