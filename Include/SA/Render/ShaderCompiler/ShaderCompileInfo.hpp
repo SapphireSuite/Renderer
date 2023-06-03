@@ -2,15 +2,15 @@
 
 #pragma once
 
-#ifndef SAPPHIRE_RENDER_SHADER_COMPIL_INFO_GUARD
-#define SAPPHIRE_RENDER_SHADER_COMPIL_INFO_GUARD
+#ifndef SAPPHIRE_RENDER_SHADER_COMPILE_INFO_GUARD
+#define SAPPHIRE_RENDER_SHADER_COMPILE_INFO_GUARD
 
 #include <string>
 #include <vector>
 
 namespace SA::RND
 {
-	class ShaderCompilInfo
+	class ShaderCompileInfo
 	{
 	public:
 		std::wstring path;
@@ -25,4 +25,4 @@ namespace SA::RND
 	};
 }
 
-#endif // SAPPHIRE_RENDER_SHADER_COMPIL_INFO_GUARD
+#endif // SAPPHIRE_RENDER_SHADER_COMPILE_INFO_GUARD

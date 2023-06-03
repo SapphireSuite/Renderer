@@ -41,7 +41,7 @@ namespace SA::RND
 		return true;
 	}
 
-	std::vector<LPCWSTR> ShaderCompiler::ProcessParams(const ShaderCompilInfo& _info)
+	std::vector<LPCWSTR> ShaderCompiler::ProcessParams(const ShaderCompileInfo& _info)
 	{
 		std::vector<LPCWSTR> cArgs
 		{
@@ -86,7 +86,8 @@ namespace SA::RND
 
 	CComPtr<IDxcResult> ShaderCompiler::Compile_Internal(const DxcBuffer& _src,
 		const std::vector<LPCWSTR>& _cArgs,
-		const ShaderCompilInfo& _info)
+		const ShaderCompileInfo& _info,
+		ShaderCompileResult& _result)
 	{
 		ShaderIncluder includer(mUtils);
 		CComPtr<IDxcResult> compilResult;
@@ -106,11 +107,13 @@ namespace SA::RND
 			return nullptr;
 		}
 
+		_result.includedFiles = std::move(includer.includedFiles);
+
 		return compilResult;
 	}
 
 #if SA_RENDER_LOWLEVEL_DX12_IMPL
-	bool ShaderCompiler::CompileDX(const ShaderCompilInfo& _info)
+	bool ShaderCompiler::CompileDX(const ShaderCompileInfo& _info)
 	{
 		SourceBuffer src;
 		if (!ReadSourceShader(_info.path, src))
@@ -164,11 +167,13 @@ namespace SA::RND
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
-	bool ShaderCompiler::CompileSPIRV(const ShaderCompilInfo& _info)
+	ShaderCompileResult ShaderCompiler::CompileSPIRV(const ShaderCompileInfo& _info)
 	{
+		ShaderCompileResult result;
+
 		SourceBuffer src;
 		if (!ReadSourceShader(_info.path, src))
-			return false;
+			return result;
 
 
 		std::vector<LPCWSTR> cArgs = ProcessParams(_info);
@@ -176,52 +181,53 @@ namespace SA::RND
 		cArgs.push_back(L"-fspv-reflect"); // Better SPIRV reflection.
 
 
-		CComPtr<IDxcResult> compilResult = Compile_Internal(src.dx, cArgs, _info);
+		CComPtr<IDxcResult> compilResult = Compile_Internal(src.dx, cArgs, _info, result);
 
 		if(!compilResult)
-			return false;
+			return result;
 
 
 		CComPtr<IDxcBlob> shader;
 		SA_DXC_API(compilResult->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(&shader), nullptr));
 
-		ReflectSPIRV(shader);
+		if(!ReflectSPIRV(shader, result.desc))
+			return result;
 
-
+		result.bSuccess = true;
 		SA_LOG((L"Shader {%1:%2} compilation success!", _info.path, _info.entrypoint), Normal, SA.Render.ShaderCompiler);
 
-		return true;
+		return result;
 	}
 
-	void ShaderCompiler::ReflectSPIRV(CComPtr<IDxcBlob> _shader)
+	bool ShaderCompiler::ReflectSPIRV(CComPtr<IDxcBlob> _shader, RHI::ShaderDescriptor& _desc)
 	{
 		SpvReflectShaderModule module;
 		SA_SPIRVR_API(spvReflectCreateShaderModule(_shader->GetBufferSize(), _shader->GetBufferPointer(), &module));
 
-		// uint32_t varCount = 0;
-		// SA_SPIRVR_API(spvReflectEnumerateInputVariables(&module, &varCount, NULL));
-
-		// std::vector<SpvReflectInterfaceVariable*> inputVars(varCount);
-		// SA_SPIRVR_API(spvReflectEnumerateInputVariables(&module, &varCount, inputVars.data()));
-
-		// for(auto var : inputVars)
-		// {
-		// 	SA_LOG(var->name);
-		// }
-
 		uint32_t count;
 		spvReflectEnumerateDescriptorSets(&module, &count, nullptr);
-		std::vector<SpvReflectDescriptorSet*> descs(count);
-		spvReflectEnumerateDescriptorSets(&module, &count, descs.data());
+		std::vector<SpvReflectDescriptorSet*> descSets(count);
+		spvReflectEnumerateDescriptorSets(&module, &count, descSets.data());
 
-		for(auto desc : descs)
+		for(auto inDescSet : descSets)
 		{
-			for(int i = 0; i < desc->binding_count; ++i)
-				SA_LOG(desc->bindings[i]->name);
+			auto& outDescSet = _desc.sets.emplace_back();
+
+			for(int i = 0; i < inDescSet->binding_count; ++i)
+			{
+				auto& inDesc = *inDescSet->bindings[i];
+				auto& outDesc = outDescSet.bindings.emplace_back();
+
+				outDesc.name = inDesc.name;
+				outDesc.binding = inDesc.binding;
+				outDesc.num = inDesc.count;
+			}
 		}
 
 
 		spvReflectDestroyShaderModule(&module);
+
+		return true;
 	}
 
 #endif // SA_RENDER_LOWLEVEL_VULKAN_IMPL

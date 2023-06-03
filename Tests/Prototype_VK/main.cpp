@@ -15,7 +15,7 @@ int main()
 	compiler.Create();	
 
 
-	ShaderCompilInfo vsInfo
+	ShaderCompileInfo vsInfo
 	{
 		.path = L"Resources/Shaders/Forward/Unlit.hlsl",
 		.entrypoint = L"mainVS",
@@ -23,10 +23,10 @@ int main()
 		.defines{L"SA_HAS_UV", L"SA_ALBEDO_ID=0"}
 	};
 
-	compiler.CompileSPIRV(vsInfo);
+	ShaderCompileResult vsShaderRes = compiler.CompileSPIRV(vsInfo);
 
 
-	ShaderCompilInfo psInfo
+	ShaderCompileInfo psInfo
 	{
 		.path = L"Resources/Shaders/Forward/Unlit.hlsl",
 		.entrypoint = L"mainPS",
@@ -34,7 +34,7 @@ int main()
 		.defines{L"SA_HAS_UV", L"SA_ALBEDO_ID=0"}
 	};
 
-	compiler.CompileSPIRV(psInfo);
+	ShaderCompileResult psShaderRes = compiler.CompileSPIRV(psInfo);
 
 
 	compiler.Destroy();	

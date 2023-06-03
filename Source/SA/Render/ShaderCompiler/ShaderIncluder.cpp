@@ -19,7 +19,7 @@ namespace SA::RND
 		std::wstring filename = _pFilename;
 
 		// Already included?
-		if(mIncludedFiles.find(filename) != mIncludedFiles.end())
+		if(includedFiles.find(filename) != includedFiles.end())
 		{
 			*_ppIncludeSource = nullptr;
 			return S_OK;
@@ -30,7 +30,7 @@ namespace SA::RND
 
 		if(SUCCEEDED(hr))
 		{
-			mIncludedFiles.emplace(std::move(filename));
+			includedFiles.emplace(std::move(filename));
 			*_ppIncludeSource = encoding.Detach();
 		}
 		else

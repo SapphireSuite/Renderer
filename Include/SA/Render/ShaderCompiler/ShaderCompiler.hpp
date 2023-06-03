@@ -5,7 +5,8 @@
 
 #include "DXCAPI.hpp"
 
-#include "ShaderCompilInfo.hpp"
+#include "ShaderCompileInfo.hpp"
+#include "ShaderCompileResult.hpp"
 
 namespace SA::RND
 {
@@ -21,13 +22,14 @@ namespace SA::RND
 		};
 
 		bool ReadSourceShader(const std::wstring& _path, SourceBuffer& _src);
-		std::vector<LPCWSTR> ProcessParams(const ShaderCompilInfo& _info);
+		std::vector<LPCWSTR> ProcessParams(const ShaderCompileInfo& _info);
 		CComPtr<IDxcResult> Compile_Internal(const DxcBuffer& _src,
 			const std::vector<LPCWSTR>& _cArgs,
-			const ShaderCompilInfo& _info);
+			const ShaderCompileInfo& _info,
+			ShaderCompileResult& _result);
 
 	#if SA_RENDER_LOWLEVEL_VULKAN_IMPL || SA_RENDER_LOWLEVEL_OPENLG_IMPL
-		void ReflectSPIRV(CComPtr<IDxcBlob> _shader);
+		bool ReflectSPIRV(CComPtr<IDxcBlob> _shader, RHI::ShaderDescriptor& _desc);
 	#endif
 
 	public:
@@ -35,11 +37,11 @@ namespace SA::RND
 		void Destroy();
 
 	#if SA_RENDER_LOWLEVEL_DX12_IMPL
-		bool CompileDX(const ShaderCompilInfo& _info);
+		ShaderCompileResult CompileDX(const ShaderCompileInfo& _info);
 	#endif
 
 	#if SA_RENDER_LOWLEVEL_VULKAN_IMPL || SA_RENDER_LOWLEVEL_OPENLG_IMPL
-		bool CompileSPIRV(const ShaderCompilInfo& _info);
+		ShaderCompileResult CompileSPIRV(const ShaderCompileInfo& _info);
 	#endif
 	};
 }

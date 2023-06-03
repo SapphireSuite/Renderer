@@ -159,7 +159,7 @@ if(SA_RENDER_RHI_OPT)
 
 	### Link dependencies.
 	target_link_libraries(SA_Render_RHI
-		PUBLIC SA_Render_LowLevel
+		PUBLIC SA_Render_LowLevel SA_Render_ShaderCompiler
 	)
 
 	### Link to main lib.
@@ -183,10 +183,7 @@ if(SA_RENDER_SHADER_COMPILER_OPT)
 
 	### Link dependencies.
 	target_link_libraries(SA_Render_ShaderCompiler
-		PUBLIC SA_Logger SA_DirectXShaderCompiler
-		
-		# Add Lowlevel link for preprocessors.
-		SA_Render_LowLevel
+		PUBLIC SA_Logger SA_DirectXShaderCompiler SA_Render_RHI
 	)
 
 	if(SA_RENDER_VULKAN_OPT OR SA_RENDER_OPENGL_OPT)

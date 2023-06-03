@@ -7,6 +7,7 @@
 #include <SA/Collections/Maths>
 
 #include <SA/Render/LowLevel/Common/Mesh/RawMesh.hpp>
+#include <SA/Render/ShaderCompiler/ShaderCompiler.hpp>
 #include <SA/Render/RHI/RHIVkRenderInterface.hpp>
 #include <SA/Render/RHI/RHID12RenderInterface.hpp>
 #include <SA/Render/RHI/Compatibility/IRenderWindow.hpp>
@@ -95,6 +96,8 @@ public:
 	RHI::Context* context = nullptr;
 	RHI::Pass* pass = nullptr;
 	std::vector<RHI::FrameBuffer*> frameBuffers;
+	RawMesh triangle;
+
 
 	struct CreateInfo
 	{
@@ -159,7 +162,7 @@ public:
 				constexpr bool bMSAA = true;
 
 				// Forward
-				if (false)
+				if (true)
 				{
 					auto& mainSubpass = passInfo.AddSubpass("Main");
 
@@ -246,11 +249,36 @@ public:
 
 		// Mesh
 		{
-			RawMesh triangle;
-
 			triangle.vertices.AddVertexComponent<VertexPosition>({{0.0f, 0.5f, 0.0f}, {0.5f, -0.5f, 0.0}, {-0.5f, -0.5f, 0.0}});
 			triangle.vertices.AddVertexComponent<VertexColor>({Color::red, Color::green, Color::blue});
 			triangle.indices.U16({0, 1, 2});
+		}
+
+		// Shaders
+		{
+			// Vertex
+			{
+				ShaderCompileInfo vsInfo
+				{
+					.path = L"Resources/Shaders/Forward/Unlit.hlsl",
+					.entrypoint = L"mainVS",
+					.target = L"vs_6_5",
+				};
+
+				triangle.vertices.AppendDefines(vsInfo.defines);
+			}
+
+			// Pixel
+			{
+				ShaderCompileInfo psInfo
+				{
+					.path = L"Resources/Shaders/Forward/Unlit.hlsl",
+					.entrypoint = L"mainPS",
+					.target = L"ps_6_5",
+				};
+
+				triangle.vertices.AppendDefines(psInfo.defines);
+			}
 		}
 	}
 

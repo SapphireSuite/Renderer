@@ -13,9 +13,9 @@ namespace SA::RND
 	class ShaderIncluder : public IDxcIncludeHandler
 	{
 		CComPtr<IDxcUtils> mUtils;
-		std::unordered_set<std::wstring> mIncludedFiles;
-
 	public:
+		std::unordered_set<std::wstring> includedFiles;
+
 		ShaderIncluder(CComPtr<IDxcUtils> _utils);
 
 		HRESULT STDMETHODCALLTYPE LoadSource(_In_z_ LPCWSTR _pFilename,
