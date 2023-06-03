@@ -2,8 +2,8 @@
 
 #pragma once
 
-#ifndef SAPPHIRE_RENDER_COMMON_VERTICIES_GUARD
-#define SAPPHIRE_RENDER_COMMON_VERTICIES_GUARD
+#ifndef SAPPHIRE_RENDER_COMMON_VERTEX_BUFFER_GUARD
+#define SAPPHIRE_RENDER_COMMON_VERTEX_BUFFER_GUARD
 
 #include <vector>
 
@@ -17,13 +17,13 @@
 
 namespace SA::RND
 {
-	struct Verticies
+	struct VertexBuffers
 	{
 	private:
 		std::vector<VertexComponent*> mComponents;
 
 	public:
-		inline ~Verticies()
+		inline ~VertexBuffers()
 		{
 			Clear();
 		}
@@ -80,7 +80,7 @@ namespace SA::RND
 		template <typename T>
 		const T* GetVertexComponent() const
 		{
-			return const_cast<Verticies&>(*this).GetVertexComponent<T>();
+			return const_cast<VertexBuffers&>(*this).GetVertexComponent<T>();
 		}
 	
 		inline void Clear()
@@ -93,4 +93,4 @@ namespace SA::RND
 	};
 }
 
-#endif // SAPPHIRE_RENDER_COMMON_VERTICIES_GUARD
+#endif // SAPPHIRE_RENDER_COMMON_VERTEX_BUFFER_GUARD
