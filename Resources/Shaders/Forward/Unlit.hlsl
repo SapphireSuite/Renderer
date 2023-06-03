@@ -1,47 +1,16 @@
 // Copyright (c) 2023 Sapphire's Suite. All Rights Reserved.
 
+#include <Common/VertexFactory.hlsl>
 #include <Common/Preprocessors.hlsl>
 
 //-------------------- Vertex Shader --------------------
 
-/// Vertex Input Assembly.
-struct VertexInput
+SA::V2P mainVS(SA::VertexInputAssembly _input)
 {
-	float3 position : POSITION;
-
-#if SA_HAS_UV
-
-	float2 uv : TEXCOORD;
-
-#elif SA_HAS_COLOR
-
-	float4 color : COLOR;
-
-#endif
-};
-
-/// Vertex to Pixel data
-struct V2P
-{
-	float4 position : SV_POSITION;
-
-#if SA_HAS_UV
-
-	float2 uv : TEXCOORD;
-
-#elif SA_HAS_COLOR
-
-	float4 color : COLOR;
-
-#endif
-};
-
-V2P mainVS(VertexInput _input)
-{
-	V2P output;
+	SA::V2P output;
 
 	// TODO: apply model and camera transformation.
-	output.position = float4(_input.position, 1.0);
+	output.svPosition = float4(_input.position, 1.0);
 
 #if SA_HAS_UV
 
@@ -65,7 +34,7 @@ SamplerState albedoSampler : SA_REG(s, SA_ALBEDO_ID);
 
 #endif
 
-float4 mainPS(V2P _input) : SV_TARGET
+float4 mainPS(SA::V2P _input) : SV_TARGET
 {
 #if SA_HAS_UV
 
