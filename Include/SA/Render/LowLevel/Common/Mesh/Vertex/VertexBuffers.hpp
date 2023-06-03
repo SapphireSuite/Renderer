@@ -23,10 +23,10 @@ namespace SA::RND
 		std::vector<VertexComponent*> mComponents;
 
 	public:
-		inline ~VertexBuffers()
-		{
-			Clear();
-		}
+		using iterator = std::vector<VertexComponent*>::iterator;
+		using const_iterator = std::vector<VertexComponent*>::const_iterator;
+
+		~VertexBuffers();
 
 
 		template <typename T>
@@ -50,19 +50,7 @@ namespace SA::RND
 		}
 
 
-		inline bool RemoveVertexComponent(VertexComponent* _comp)
-		{
-			for(auto it = mComponents.begin(); it != mComponents.end(); ++it)
-			{
-				if(*it == _comp)
-				{
-					mComponents.erase(it);
-					return true;
-				}
-			}
-
-			return false;
-		}
+		inline bool RemoveVertexComponent(VertexComponent* _comp);
 
 
 		template <typename T>
@@ -83,13 +71,15 @@ namespace SA::RND
 			return const_cast<VertexBuffers&>(*this).GetVertexComponent<T>();
 		}
 	
-		inline void Clear()
-		{
-			for(auto comp : mComponents)
-				delete comp;
+		void Clear();
 
-			mComponents.clear();
-		}
+		inline iterator begin();
+		inline const_iterator begin() const;
+		
+		inline iterator end();
+		inline const_iterator end() const;
+
+		void AppendDefines(std::vector<std::wstring>& _defines);
 	};
 }
 

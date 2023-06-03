@@ -25,7 +25,8 @@ namespace SA::RND
 		}
 
 		inline const char* GetData() const noexcept override final { return reinterpret_cast<const char*>(uvs.data()); };
-		inline const char* GetSemanticName() const noexcept override final { return "UV"; }
+		inline const char* GetSemanticName() const noexcept override final { return "TEXCOORD"; }
+		inline const char* GetComponentName() const noexcept override final { return "UV"; }
 	};
 
 	using VertexUV = VertexUVComponent;

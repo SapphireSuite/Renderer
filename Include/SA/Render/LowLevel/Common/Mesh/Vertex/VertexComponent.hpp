@@ -16,6 +16,7 @@ namespace SA::RND
 		
 		virtual const char* GetData() const noexcept = 0;
 		virtual const char* GetSemanticName() const noexcept = 0;
+		virtual const char* GetComponentName() const noexcept { return GetSemanticName(); };
 	};
 }
 
