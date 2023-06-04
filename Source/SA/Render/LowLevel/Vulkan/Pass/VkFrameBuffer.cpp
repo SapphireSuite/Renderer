@@ -119,6 +119,10 @@ namespace SA::RND::VK
 		mHandle = VK_NULL_HANDLE;
 	}
 
+	const std::vector<VkClearValue>& FrameBuffer::GetClearValues() const
+	{
+		return mClearValues;
+	}
 
 	FrameBuffer::operator VkFramebuffer() const noexcept
 	{

@@ -28,6 +28,8 @@ namespace SA::RND::VK
 			VkImage _presentImage = VK_NULL_HANDLE);
 		void Destroy(const Device& _device);
 
+		const std::vector<VkClearValue>& GetClearValues() const;
+
 		operator VkFramebuffer() const noexcept;
 	};
 }
