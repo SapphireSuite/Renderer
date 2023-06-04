@@ -19,7 +19,7 @@
 
 #endif
 
-#include <SA/Render/RHI/Misc/Format.hpp>
+#include <SA/Render/RHI/Misc/RHIFormat.hpp>
 
 #include "RHIAttachmentLoadMode.hpp"
 

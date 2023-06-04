@@ -8,7 +8,7 @@
 #include <string>
 #include <cstdint>
 
-#include <SA/Render/RHI/Misc/Format.hpp>
+#include <SA/Render/RHI/Misc/RHIFormat.hpp>
 
 namespace SA::RND::RHI
 {

@@ -23,9 +23,9 @@ namespace SA::RND::DX12
 			/// Number of render target in subapss.
 			uint32_t colorRTNum = 0u;
 
-			D3D12_CPU_DESCRIPTOR_HANDLE colorViewHeap = 0u;
+			D3D12_CPU_DESCRIPTOR_HANDLE colorViewHeap{0};
 
-			D3D12_CPU_DESCRIPTOR_HANDLE depthViewHeap = 0u;
+			D3D12_CPU_DESCRIPTOR_HANDLE depthViewHeap{0};
 		};
 
 		/// Per-subpass render target view heap handle.
