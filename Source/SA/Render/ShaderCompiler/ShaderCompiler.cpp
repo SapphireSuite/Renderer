@@ -168,7 +168,69 @@ namespace SA::RND
 #endif // SA_RENDER_LOWLEVEL_DX12_IMPL
 
 
-#if SA_RENDER_LOWLEVEL_VULKAN_IMPL || SA_RENDER_LOWLEVEL_OPENLG_IMPL
+#if SA_RENDER_LOWLEVEL_VULKAN_IMPL || SA_RENDER_LOWLEVEL_OPENGL_IMPL
+
+	namespace SPV
+	{
+		static const RHI::Format formatIndexMap[] = {
+			RHI::Format::R32_UINT,
+			RHI::Format::R32_SINT,
+			RHI::Format::R32_SFLOAT,
+
+			RHI::Format::R32G32_UINT,
+			RHI::Format::R32G32_SINT,
+			RHI::Format::R32G32_SFLOAT,
+
+			RHI::Format::R32G32B32_UINT,
+			RHI::Format::R32G32B32_SINT,
+			RHI::Format::R32G32B32_SFLOAT,
+
+			RHI::Format::R32G32B32A32_UINT,
+			RHI::Format::R32G32B32A32_SINT,
+			RHI::Format::R32G32B32A32_SFLOAT,
+		};
+
+		RHI::Format API_GetFormat(SpvReflectFormat _spvFormat)
+		{
+			// SpvReflectFormat enum does *not* start at 0: remove offset.
+			const uint32_t index = static_cast<uint32_t>(_spvFormat - SPV_REFLECT_FORMAT_R32_UINT);
+
+			SA_ASSERT((OutOfRange, index, 0u, sizeof(formatIndexMap)), SA.Render.ShaderCompiler.SPV,
+				(L"Format value [%1] invalid", index));
+
+			return formatIndexMap[index];
+		}
+
+
+		static const uint32_t sizeIndexMap[] = {
+			sizeof(uint32_t),
+			sizeof(uint32_t),
+			sizeof(float),
+
+			2 * sizeof(uint32_t),
+			2 * sizeof(uint32_t),
+			2 * sizeof(float),
+
+			3 * sizeof(uint32_t),
+			3 * sizeof(uint32_t),
+			3 * sizeof(float),
+
+			4 * sizeof(uint32_t),
+			4 * sizeof(uint32_t),
+			4 * sizeof(float),
+		};
+
+		uint32_t API_GetSizeFromFormat(SpvReflectFormat _spvFormat)
+		{
+			// SpvReflectFormat enum does *not* start at 0: remove offset.
+			const uint32_t index = static_cast<uint32_t>(_spvFormat - SPV_REFLECT_FORMAT_R32_UINT);
+
+			SA_ASSERT((OutOfRange, index, 0u, sizeof(sizeIndexMap)), SA.Render.ShaderCompiler.SPV,
+				(L"Format value [%1] invalid", index));
+
+			return sizeIndexMap[index];
+		}
+	}
 
 	ShaderCompileResult ShaderCompiler::CompileSPIRV(const ShaderCompileInfo& _info)
 	{
@@ -211,23 +273,49 @@ namespace SA::RND
 		SpvReflectShaderModule module;
 		SA_SPIRVR_API(spvReflectCreateShaderModule(_shader->GetBufferSize(), _shader->GetBufferPointer(), &module));
 
-		uint32_t count;
-		spvReflectEnumerateDescriptorSets(&module, &count, nullptr);
-		std::vector<SpvReflectDescriptorSet*> descSets(count);
-		spvReflectEnumerateDescriptorSets(&module, &count, descSets.data());
-
-		for(auto inDescSet : descSets)
+		// Inputs
 		{
-			auto& outDescSet = _desc.sets.emplace_back();
+			uint32_t count = 0u;
+			spvReflectEnumerateInputVariables(&module, &count, nullptr);
+			std::vector<SpvReflectInterfaceVariable*> inputs(count);
+			spvReflectEnumerateInputVariables(&module, &count, inputs.data());
 
-			for(int i = 0; i < inDescSet->binding_count; ++i)
+			for(auto inInput : inputs)
 			{
-				auto& inDesc = *inDescSet->bindings[i];
-				auto& outDesc = outDescSet.bindings.emplace_back();
+				// Skip system input type (ex: SV_VertexID).
+				if(inInput->location == uint32_t(-1))
+					continue;
 
-				outDesc.name = inDesc.name;
-				outDesc.binding = inDesc.binding;
-				outDesc.num = inDesc.count;
+				auto& outInput = _desc.inputs.emplace_back();
+
+				outInput.name = inInput->name;
+				outInput.semantic = inInput->semantic;
+				outInput.location = inInput->location;
+				outInput.format = SPV::API_GetFormat(inInput->format);
+				outInput.size = SPV::API_GetSizeFromFormat(inInput->format);
+			}
+		}
+
+		// Bindings
+		{
+			uint32_t count = 0u;
+			spvReflectEnumerateDescriptorSets(&module, &count, nullptr);
+			std::vector<SpvReflectDescriptorSet*> descSets(count);
+			spvReflectEnumerateDescriptorSets(&module, &count, descSets.data());
+
+			for(auto inDescSet : descSets)
+			{
+				auto& outDescSet = _desc.sets.emplace_back();
+
+				for(size_t i = 0; i < inDescSet->binding_count; ++i)
+				{
+					auto& inDesc = *inDescSet->bindings[i];
+					auto& outDesc = outDescSet.bindings.emplace_back();
+
+					outDesc.name = inDesc.name;
+					outDesc.binding = inDesc.binding;
+					outDesc.num = inDesc.count;
+				}
 			}
 		}
 
@@ -237,5 +325,5 @@ namespace SA::RND
 		return true;
 	}
 
-#endif // SA_RENDER_LOWLEVEL_VULKAN_IMPL || SA_RENDER_LOWLEVEL_OPENLG_IMPL
+#endif // SA_RENDER_LOWLEVEL_VULKAN_IMPL || SA_RENDER_LOWLEVEL_OPENGL_IMPL
 }

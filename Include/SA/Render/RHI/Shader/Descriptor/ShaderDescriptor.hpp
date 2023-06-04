@@ -6,12 +6,26 @@
 #define SAPPHIRE_RENDER_RHI_SHADER_DESCRIPTOR_GUARD
 
 #include "ShaderBindingSetDescriptor.hpp"
+#include "ShaderInputDescriptor.hpp"
+
+#if SA_RENDER_LOWLEVEL_VULKAN_IMPL
+
+	#include <SA/Render/LowLevel/Vulkan/Pipeline/Info/VkPipelineVertexInputStateInfo.hpp>
+
+#endif
 
 namespace SA::RND::RHI
 {
 	struct ShaderDescriptor
 	{
+		std::vector<ShaderInputDescriptor> inputs;
 		std::vector<ShaderBindingSetDescriptor> sets;
+
+#if SA_RENDER_LOWLEVEL_VULKAN_IMPL
+
+		VK::PipelineVertexInputStateInfo MakePipelineVertexInputStateInfo() const;
+
+#endif
 	};
 }
 

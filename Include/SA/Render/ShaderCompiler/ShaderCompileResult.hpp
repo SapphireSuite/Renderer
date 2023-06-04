@@ -25,8 +25,10 @@ namespace SA::RND
 #endif
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL || SA_RENDER_LOWLEVEL_OPENLG_IMPL
+
 		/// Raw shader from SPIRV compilation used for OpenGL/Vulkans
 		RawShader rawSPIRV;
+
 #endif
 
 		std::unordered_set<std::wstring> includedFiles;

@@ -28,7 +28,7 @@ namespace SA::RND
 			const ShaderCompileInfo& _info,
 			ShaderCompileResult& _result);
 
-	#if SA_RENDER_LOWLEVEL_VULKAN_IMPL || SA_RENDER_LOWLEVEL_OPENLG_IMPL
+	#if SA_RENDER_LOWLEVEL_VULKAN_IMPL || SA_RENDER_LOWLEVEL_OPENGL_IMPL
 		bool ReflectSPIRV(CComPtr<IDxcBlob> _shader, RHI::ShaderDescriptor& _desc);
 	#endif
 
@@ -40,7 +40,7 @@ namespace SA::RND
 		ShaderCompileResult CompileDX(const ShaderCompileInfo& _info);
 	#endif
 
-	#if SA_RENDER_LOWLEVEL_VULKAN_IMPL || SA_RENDER_LOWLEVEL_OPENLG_IMPL
+	#if SA_RENDER_LOWLEVEL_VULKAN_IMPL || SA_RENDER_LOWLEVEL_OPENGL_IMPL
 		ShaderCompileResult CompileSPIRV(const ShaderCompileInfo& _info);
 	#endif
 	};

@@ -35,6 +35,8 @@ VK::Shader fragmentShader;
 VK::PipelineLayout pipLayout;
 VK::Pipeline pipeline;
 RawMesh triangle;
+RHI::ShaderDescriptor vsDesc;
+RHI::ShaderDescriptor fsDesc;
 
 VkBuffer vertexPositionBuffer = VK_NULL_HANDLE;
 VkDeviceMemory vertexPositionDeviceMemory = VK_NULL_HANDLE;
@@ -259,6 +261,7 @@ void Init()
 				triangle.vertices.AppendDefines(vsInfo.defines);
 
 				ShaderCompileResult vsShaderRes = compiler.CompileSPIRV(vsInfo);
+				vsDesc = vsShaderRes.desc;
 
 				vertexShader.Create(device, vsShaderRes.rawSPIRV);
 			}
@@ -276,6 +279,7 @@ void Init()
 				triangle.vertices.AppendDefines(psInfo.defines);
 
 				ShaderCompileResult psShaderRes = compiler.CompileSPIRV(psInfo);
+				fsDesc = psShaderRes.desc;
 
 				fragmentShader.Create(device, psShaderRes.rawSPIRV);
 			}
@@ -321,44 +325,8 @@ void Init()
 				}
 			};
 
-			std::vector<VkVertexInputBindingDescription> bindDescs{
-				{
-					.binding = 0u,
-					.stride = sizeof(SA::Vec3f),
-					.inputRate = VK_VERTEX_INPUT_RATE_VERTEX
-				},
-				{
-					.binding = 1u,
-					.stride = sizeof(Color),
-					.inputRate = VK_VERTEX_INPUT_RATE_VERTEX
-				}
-			};
-
-			std::vector<VkVertexInputAttributeDescription> attribDescs
-			{
-				{
-					.location = 0,
-					.binding = 0,
-					.format = VK_FORMAT_R32G32B32_SFLOAT,
-					.offset = 0,
-				},
-				{
-					.location = 1,
-					.binding = 1,
-					.format = VK_FORMAT_R32G32B32A32_SFLOAT,
-					.offset = 0,
-				}
-			};
-
-			VkPipelineVertexInputStateCreateInfo vertInputInfos{
-				.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
-				.pNext = nullptr,
-				.flags = 0u,
-				.vertexBindingDescriptionCount = static_cast<uint32_t>(bindDescs.size()),
-				.pVertexBindingDescriptions = bindDescs.data(),
-				.vertexAttributeDescriptionCount = static_cast<uint32_t>(attribDescs.size()),
-				.pVertexAttributeDescriptions = attribDescs.data(),
-			};
+			auto vertInputState = vsDesc.MakePipelineVertexInputStateInfo();
+			VkPipelineVertexInputStateCreateInfo vkVertInputState = vertInputState.MakeVkInfo();
 
 			VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo{
 				.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
@@ -465,7 +433,7 @@ void Init()
 				.flags = 0u,
 				.stageCount = static_cast<uint32_t>(shaderStages.size()),
 				.pStages = shaderStages.data(),
-				.pVertexInputState = &vertInputInfos,
+				.pVertexInputState = &vkVertInputState,
 				.pInputAssemblyState = &inputAssemblyInfo,
 				.pTessellationState = nullptr,
 				.pViewportState = &viewportStateInfo,
