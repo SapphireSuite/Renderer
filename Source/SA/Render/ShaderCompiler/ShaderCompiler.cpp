@@ -4,8 +4,7 @@
 
 #include <SA/Collections/Debug>
 
-#include <ShaderIncluder.hpp>
-
+#include "ShaderIncluder.hpp"
 #include "SPIRV-ReflectAPI.hpp"
 
 namespace SA::RND
@@ -126,7 +125,7 @@ namespace SA::RND
 		cArgs.push_back(L"-Qstrip_reflect"); // Enable shader reflection.
 
 
-		CComPtr<IDxcResult> compilResult = Compile_Internal(src.dx, cArgs, _info);
+		CComPtr<IDxcResult> compilResult = Compile_Internal(src.dx, cArgs, _info, result);
 
 		if(!compilResult)
 			return result;
