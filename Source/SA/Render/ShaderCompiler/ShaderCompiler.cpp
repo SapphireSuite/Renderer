@@ -113,11 +113,13 @@ namespace SA::RND
 	}
 
 #if SA_RENDER_LOWLEVEL_DX12_IMPL
-	bool ShaderCompiler::CompileDX(const ShaderCompileInfo& _info)
+	ShaderCompileResult ShaderCompiler::CompileDX(const ShaderCompileInfo& _info)
 	{
+		ShaderCompileResult result;
+
 		SourceBuffer src;
 		if (!ReadSourceShader(_info.path, src))
-			return false;
+			return result;
 
 
 		std::vector<LPCWSTR> cArgs = ProcessParams(_info);
@@ -127,7 +129,7 @@ namespace SA::RND
 		CComPtr<IDxcResult> compilResult = Compile_Internal(src.dx, cArgs, _info);
 
 		if(!compilResult)
-			return false;
+			return result;
 
 
 	//{ Object
@@ -157,15 +159,16 @@ namespace SA::RND
 
 	//}
 
+		result.bSuccess = true;
 		SA_LOG((L"Shader {%1:%2} compilation success!", _info.path, _info.entrypoint), Normal, SA.Render.ShaderCompiler);
 
-		return true;
+		return result;
 	}
 
 #endif // SA_RENDER_LOWLEVEL_DX12_IMPL
 
 
-#if SA_RENDER_LOWLEVEL_VULKAN_IMPL
+#if SA_RENDER_LOWLEVEL_VULKAN_IMPL || SA_RENDER_LOWLEVEL_OPENLG_IMPL
 
 	ShaderCompileResult ShaderCompiler::CompileSPIRV(const ShaderCompileInfo& _info)
 	{
@@ -192,6 +195,10 @@ namespace SA::RND
 
 		if(!ReflectSPIRV(shader, result.desc))
 			return result;
+
+		// Move to SPIRV-raw data type.
+		result.rawSPIRV.data.resize(shader->GetBufferSize() / sizeof(decltype(result.rawSPIRV.data)::value_type));
+		std::memmove(result.rawSPIRV.data.data(), shader->GetBufferPointer(), shader->GetBufferSize());
 
 		result.bSuccess = true;
 		SA_LOG((L"Shader {%1:%2} compilation success!", _info.path, _info.entrypoint), Normal, SA.Render.ShaderCompiler);
@@ -230,5 +237,5 @@ namespace SA::RND
 		return true;
 	}
 
-#endif // SA_RENDER_LOWLEVEL_VULKAN_IMPL
+#endif // SA_RENDER_LOWLEVEL_VULKAN_IMPL || SA_RENDER_LOWLEVEL_OPENLG_IMPL
 }
