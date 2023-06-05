@@ -40,16 +40,20 @@ namespace SA::RND
 		return true;
 	}
 
-	std::vector<LPCWSTR> ShaderCompiler::ProcessParams(const ShaderCompileInfo& _info)
+	std::vector<LPCWSTR> ShaderCompiler::ProcessParams(const ShaderCompileInfo& _info, std::list<std::wstring>& _strBuff)
 	{
+		std::wstring& wEntrypoint = _strBuff.emplace_back(SA::ToWString(_info.entrypoint));
+		std::wstring& wTarget = _strBuff.emplace_back(SA::ToWString(_info.target));
+		std::wstring& wStandard = _strBuff.emplace_back(SA::ToWString(_info.standard));
+
 		std::vector<LPCWSTR> cArgs
 		{
 			L"-E",
-			_info.entrypoint.c_str(),
+			wEntrypoint.c_str(),
 			L"-T",
-			_info.target.c_str(),
+			wTarget.c_str(),
 			L"-HV",
-			_info.standard.c_str(),
+			wStandard.c_str(),
 			DXC_ARG_WARNINGS_ARE_ERRORS,
 			DXC_ARG_PACK_MATRIX_ROW_MAJOR,
 			DXC_ARG_ALL_RESOURCES_BOUND,
@@ -72,12 +76,13 @@ namespace SA::RND
 
 
 		cArgs.reserve(_info.defines.size() * 2);
-		static const wchar_t* definePreStr = L"-D";
 
 		for(auto& define : _info.defines)
 		{
-			cArgs.push_back(definePreStr);
-			cArgs.push_back(define.c_str());
+			std::wstring& wDefine = _strBuff.emplace_back(SA::ToWString(define));
+
+			cArgs.push_back(L"-D");
+			cArgs.push_back(wDefine.c_str());
 		}
 
 		return cArgs;
@@ -108,6 +113,9 @@ namespace SA::RND
 
 		_result.includedFiles = std::move(includer.includedFiles);
 
+		_result.desc.entrypoint = _info.entrypoint;
+		_result.desc.stage = RHI::GetShaderStageFromTarget(_info.target);
+
 		return compilResult;
 	}
 
@@ -120,8 +128,8 @@ namespace SA::RND
 		if (!ReadSourceShader(_info.path, src))
 			return result;
 
-
-		std::vector<LPCWSTR> cArgs = ProcessParams(_info);
+		std::list<std::wstring> strBuff;
+		std::vector<LPCWSTR> cArgs = ProcessParams(_info, strBuff);
 		cArgs.push_back(L"-Qstrip_reflect"); // Enable shader reflection.
 
 
@@ -240,7 +248,8 @@ namespace SA::RND
 			return result;
 
 
-		std::vector<LPCWSTR> cArgs = ProcessParams(_info);
+		std::list<std::wstring> strBuff;
+		std::vector<LPCWSTR> cArgs = ProcessParams(_info, strBuff);
 		cArgs.push_back(L"-spirv"); // Add SPIRV compile option.
 		cArgs.push_back(L"-fspv-reflect"); // Better SPIRV reflection.
 

@@ -79,7 +79,7 @@ namespace SA::RND
 		inline iterator end();
 		inline const_iterator end() const;
 
-		void AppendDefines(std::vector<std::wstring>& _defines);
+		void AppendDefines(std::vector<std::string>& _defines);
 	};
 }
 

@@ -22,7 +22,7 @@ namespace SA::RND
 		};
 
 		bool ReadSourceShader(const std::wstring& _path, SourceBuffer& _src);
-		std::vector<LPCWSTR> ProcessParams(const ShaderCompileInfo& _info);
+		std::vector<LPCWSTR> ProcessParams(const ShaderCompileInfo& _info, std::list<std::wstring>& _strBuff);
 		CComPtr<IDxcResult> Compile_Internal(const DxcBuffer& _src,
 			const std::vector<LPCWSTR>& _cArgs,
 			const ShaderCompileInfo& _info,

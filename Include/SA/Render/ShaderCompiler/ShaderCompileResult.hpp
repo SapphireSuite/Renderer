@@ -8,6 +8,12 @@
 #include <string>
 #include <unordered_set>
 
+#if SA_RENDER_LOWLEVEL_DX12_IMPL
+
+#include <SA/Render/ShaderCompiler/DXCAPI.hpp>
+
+#endif
+
 #include <SA/Render/LowLevel/Common/Shader/RawShader.hpp>
 #include <SA/Render/RHI/Shader/Descriptor/ShaderDescriptor.hpp>
 

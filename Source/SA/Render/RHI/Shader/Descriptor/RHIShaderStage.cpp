@@ -1,9 +1,26 @@
 // Copyright (c) 2023 Sapphire's Suite. All Rights Reserved.
 
-#include <Shader/Info/RHIShaderStage.hpp>
+#include <Shader/Descriptor/RHIShaderStage.hpp>
 
 namespace SA::RND
 {
+	namespace RHI
+	{
+		ShaderStage GetShaderStageFromTarget(const std::string& _target)
+		{
+			if (_target.starts_with("vs"))
+				return ShaderStage::Vertex;
+			if (_target.starts_with("ps"))
+				return ShaderStage::Pixel;
+			if (_target.starts_with("gs"))
+				return ShaderStage::Geometry;
+			if (_target.starts_with("cs"))
+				return ShaderStage::Compute;
+
+			return ShaderStage::Unknown;
+		}
+	}
+
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
 	namespace VK

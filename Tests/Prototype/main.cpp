@@ -261,8 +261,8 @@ public:
 				ShaderCompileInfo vsInfo
 				{
 					.path = L"Resources/Shaders/Forward/Unlit.hlsl",
-					.entrypoint = L"mainVS",
-					.target = L"vs_6_5",
+					.entrypoint = "mainVS",
+					.target = "vs_6_5",
 				};
 
 				triangle.vertices.AppendDefines(vsInfo.defines);
@@ -273,8 +273,8 @@ public:
 				ShaderCompileInfo psInfo
 				{
 					.path = L"Resources/Shaders/Forward/Unlit.hlsl",
-					.entrypoint = L"mainPS",
-					.target = L"ps_6_5",
+					.entrypoint = "mainPS",
+					.target = "ps_6_5",
 				};
 
 				triangle.vertices.AppendDefines(psInfo.defines);

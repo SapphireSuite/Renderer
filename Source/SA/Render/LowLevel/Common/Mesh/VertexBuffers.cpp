@@ -37,9 +37,9 @@ namespace SA::RND
 	VertexBuffers::iterator VertexBuffers::end() { return mComponents.end(); }
 	VertexBuffers::const_iterator VertexBuffers::end() const { return mComponents.end(); }
 
-	void VertexBuffers::AppendDefines(std::vector<std::wstring>& _defines)
+	void VertexBuffers::AppendDefines(std::vector<std::string>& _defines)
 	{
 		for(auto comp : mComponents)
-			_defines.push_back(L"SA_HAS_"  + SA::ToWString(comp->GetComponentName()));
+			_defines.push_back("SA_HAS_"  + std::string(comp->GetComponentName()));
 	}
 }

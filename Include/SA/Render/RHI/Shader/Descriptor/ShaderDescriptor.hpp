@@ -8,6 +8,8 @@
 #include "ShaderBindingSetDescriptor.hpp"
 #include "ShaderInputDescriptor.hpp"
 
+#include <SA/Render/RHI/Shader/Descriptor/RHIShaderStage.hpp>
+
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
 	#include <SA/Render/LowLevel/Vulkan/Pipeline/Info/VkPipelineVertexInputStateInfo.hpp>
@@ -18,6 +20,10 @@ namespace SA::RND::RHI
 {
 	struct ShaderDescriptor
 	{
+		std::string entrypoint = "main";
+
+		ShaderStage stage = ShaderStage::Unknown;
+
 		std::vector<ShaderInputDescriptor> inputs;
 		std::vector<ShaderBindingSetDescriptor> sets;
 

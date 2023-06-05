@@ -15,13 +15,13 @@ namespace SA::RND
 	public:
 		std::wstring path;
 
-		std::wstring entrypoint = L"main";
+		std::string entrypoint = "main";
 
-		std::wstring target;
+		std::string target;
 
-		std::wstring standard = L"2021";
+		std::string standard = "2021";
 
-		std::vector<std::wstring> defines;
+		std::vector<std::string> defines;
 	};
 }
 

@@ -254,8 +254,8 @@ void Init()
 				ShaderCompileInfo vsInfo
 				{
 					.path = L"Resources/Shaders/Forward/Unlit.hlsl",
-					.entrypoint = L"mainVS",
-					.target = L"vs_6_5",
+					.entrypoint = "mainVS",
+					.target = "vs_6_5",
 				};
 
 				triangle.vertices.AppendDefines(vsInfo.defines);
@@ -272,8 +272,8 @@ void Init()
 				ShaderCompileInfo psInfo
 				{
 					.path = L"Resources/Shaders/Forward/Unlit.hlsl",
-					.entrypoint = L"mainPS",
-					.target = L"ps_6_5",
+					.entrypoint = "mainPS",
+					.target = "ps_6_5",
 				};
 
 				triangle.vertices.AppendDefines(psInfo.defines);
@@ -309,18 +309,18 @@ void Init()
 					.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
 					.pNext = nullptr,
 					.flags = 0u,
-					.stage = VK_SHADER_STAGE_VERTEX_BIT,
+					.stage = VK::API_GetShaderStage(vsDesc.stage),
 					.module = vertexShader,
-					.pName = "mainVS",
+					.pName = vsDesc.entrypoint.c_str(),
 					.pSpecializationInfo = nullptr
 				},
 				{
 					.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
 					.pNext = nullptr,
 					.flags = 0u,
-					.stage = VK_SHADER_STAGE_FRAGMENT_BIT,
+					.stage = VK::API_GetShaderStage(fsDesc.stage),
 					.module = fragmentShader,
-					.pName = "mainPS",
+					.pName = fsDesc.entrypoint.c_str(),
 					.pSpecializationInfo = nullptr
 				}
 			};
