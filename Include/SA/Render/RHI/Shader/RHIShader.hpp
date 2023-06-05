@@ -39,8 +39,10 @@ namespace SA::RND
 			ShaderDescriptor mDescriptor;
 
 		public:
-			virtual void Create(const Device& _device, const ShaderCompileResult& _compil);
-			virtual void Destroy(const Device& _device) = 0;
+			virtual ~Shader() = default;
+
+			virtual void Create(const Device* _device, const ShaderCompileResult& _compil);
+			virtual void Destroy(const Device* _device) = 0;
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 			virtual const VK::Shader& API_Vulkan() const;

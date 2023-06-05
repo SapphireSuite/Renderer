@@ -6,7 +6,7 @@
 
 namespace SA::RND::RHI
 {
-	void Shader::Create(const Device& _device, const ShaderCompileResult& _compil)
+	void Shader::Create(const Device* _device, const ShaderCompileResult& _compil)
 	{
 		(void)_device;
 		mDescriptor = _compil.desc;

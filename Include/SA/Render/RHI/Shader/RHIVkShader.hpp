@@ -18,8 +18,8 @@ namespace SA::RND::RHI
 		VK::Shader mHandle;
 		
 	public:
-		void Create(const Device& _device, const ShaderCompileResult& _compil) override final;
-		void Destroy(const Device& _device) override final;
+		void Create(const Device* _device, const ShaderCompileResult& _compil) override final;
+		void Destroy(const Device* _device) override final;
 
 		const VK::Shader& API_Vulkan() const override final;
 	};

@@ -19,6 +19,7 @@ namespace SA::RND::RHI
 	{
 		DestroyAllPasses();
 		DestroyAllFrameBuffers();
+		DestroyAllShaders();
 
 		mDevice = nullptr;
 
@@ -120,4 +121,51 @@ namespace SA::RND::RHI
 	}
 
 //}
+
+
+//{ Shader
+
+	void Context::DeleteShaderClass(Shader* _shader)
+	{
+		SA_ASSERT((Nullptr, _shader), SA.Render.RHI);
+
+		delete _shader;
+	}
+
+	Shader* Context::CreateShader(const ShaderCompileResult& _comp)
+	{
+		Shader* const shader = mShaders.emplace_front(InstantiateShaderClass());
+
+		SA_ASSERT((Nullptr, shader), SA.Render.RHI, (L"Shader instantiate class failed!"));
+
+		shader->Create(mDevice, _comp);
+
+		return shader;
+	}
+
+	void Context::DestroyShader(Shader* _shader)
+	{
+		SA_ASSERT((Nullptr, _shader), SA.Render.RHI);
+
+		if (std::erase(mShaders, _shader))
+		{
+			_shader->Destroy(mDevice);
+			DeleteShaderClass(_shader);
+		}
+		else
+			SA_LOG((L"Try destroy Shader [%1] that does not belong to this context!", _shader), Error, SA.Render.RHI);
+	}
+
+	void Context::DestroyAllShaders()
+	{
+		for (auto shader : mShaders)
+		{
+			shader->Destroy(mDevice);
+			DeleteShaderClass(shader);
+		}
+
+		mShaders.clear();
+	}
+
+	//}
 }

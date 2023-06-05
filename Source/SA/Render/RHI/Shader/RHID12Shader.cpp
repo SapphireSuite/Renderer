@@ -8,14 +8,14 @@
 
 namespace SA::RND::RHI
 {
-	void D12Shader::Create(const Device& _device, const ShaderCompileResult& _compil)
+	void D12Shader::Create(const Device* _device, const ShaderCompileResult& _compil)
 	{
 		Shader::Create(_device, _compil);
 
 		mHandle.handle = reinterpret_cast<const MComPtr<ID3DBlob>&>(_compil.dxShader);
 	}
 	
-	void D12Shader::Destroy(const Device& _device)
+	void D12Shader::Destroy(const Device* _device)
 	{
 		(void)_device;
 

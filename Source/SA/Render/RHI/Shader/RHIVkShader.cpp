@@ -10,16 +10,16 @@
 
 namespace SA::RND::RHI
 {
-	void VkShader::Create(const Device& _device, const ShaderCompileResult& _compil)
+	void VkShader::Create(const Device* _device, const ShaderCompileResult& _compil)
 	{
 		Shader::Create(_device, _compil);
 
-		mHandle.Create(_device.API_Vulkan(), _compil.rawSPIRV);
+		mHandle.Create(_device->API_Vulkan(), _compil.rawSPIRV);
 	}
 
-	void VkShader::Destroy(const Device& _device)
+	void VkShader::Destroy(const Device* _device)
 	{
-		mHandle.Destroy(_device.API_Vulkan());
+		mHandle.Destroy(_device->API_Vulkan());
 	}
 
 
