@@ -12,6 +12,11 @@ namespace SA::RND::RHI
 		mDescriptor = _compil.desc;
 	}
 
+	const ShaderDescriptor& Shader::GetDescriptor() const noexcept
+	{
+		return mDescriptor;
+	}
+
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
 	const VK::Shader& Shader::API_Vulkan() const

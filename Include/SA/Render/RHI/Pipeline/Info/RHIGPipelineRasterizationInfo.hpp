@@ -2,8 +2,8 @@
 
 #pragma once
 
-#ifndef SAPPHIRE_RENDER_RHI_PIPELINE_RASTERIZATION_INFO_GUARD
-#define SAPPHIRE_RENDER_RHI_PIPELINE_RASTERIZATION_INFO_GUARD
+#ifndef SAPPHIRE_RENDER_RHI_GPIPELINE_RASTERIZATION_INFO_GUARD
+#define SAPPHIRE_RENDER_RHI_GPIPELINE_RASTERIZATION_INFO_GUARD
 
 #include "RHICullingMode.hpp"
 #include "RHIFrontFaceMode.hpp"
@@ -11,7 +11,7 @@
 
 namespace SA::RND::RHI
 {
-	struct PipelineRasterizationInfo
+	struct GPipelineRasterizationInfo
 	{
 		/// Whether to use conservative rasterization.
 		bool bConservative = false;
@@ -42,4 +42,4 @@ namespace SA::RND::RHI
 	};
 }
 
-#endif // SAPPHIRE_RENDER_RHI_PIPELINE_RASTERIZATION_INFO_GUARD
+#endif // SAPPHIRE_RENDER_RHI_GPIPELINE_RASTERIZATION_INFO_GUARD

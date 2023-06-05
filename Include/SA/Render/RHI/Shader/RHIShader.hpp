@@ -44,6 +44,8 @@ namespace SA::RND
 			virtual void Create(const Device* _device, const ShaderCompileResult& _compil);
 			virtual void Destroy(const Device* _device) = 0;
 
+			const ShaderDescriptor& GetDescriptor() const noexcept;
+
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 			virtual const VK::Shader& API_Vulkan() const;
 #endif
