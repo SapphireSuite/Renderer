@@ -23,7 +23,7 @@ namespace SA::RND::RHI
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
-		VK::PipelineVertexInputStateInfo MakePipelineVertexInputStateInfo() const;
+		VK::PipelineVertexInputStateInfo MakeVkPipelineVertexInputStateInfo() const;
 
 #endif
 	};

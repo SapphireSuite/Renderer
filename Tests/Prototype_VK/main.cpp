@@ -325,7 +325,7 @@ void Init()
 				}
 			};
 
-			auto vertInputState = vsDesc.MakePipelineVertexInputStateInfo();
+			auto vertInputState = vsDesc.MakeVkPipelineVertexInputStateInfo();
 			VkPipelineVertexInputStateCreateInfo vkVertInputState = vertInputState.MakeVkInfo();
 
 			VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo{

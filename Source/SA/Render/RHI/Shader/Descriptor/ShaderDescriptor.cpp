@@ -6,7 +6,7 @@ namespace SA::RND::RHI
 {
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
-	VK::PipelineVertexInputStateInfo ShaderDescriptor::MakePipelineVertexInputStateInfo() const
+	VK::PipelineVertexInputStateInfo ShaderDescriptor::MakeVkPipelineVertexInputStateInfo() const
 	{
 		VK::PipelineVertexInputStateInfo info;
 
