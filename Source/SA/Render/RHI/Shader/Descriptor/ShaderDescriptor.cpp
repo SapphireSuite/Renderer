@@ -4,6 +4,14 @@
 
 namespace SA::RND::RHI
 {
+	ShaderBindingSetDescriptor& ShaderDescriptor::GetOrEmplaceSet(uint32_t _setIndex)
+	{
+		for (size_t i = sets.size(); i <= _setIndex; ++i)
+			sets.emplace_back();
+
+		return sets[_setIndex];
+	}
+
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
 	VK::PipelineVertexInputStateInfo ShaderDescriptor::MakeVkPipelineVertexInputStateInfo() const

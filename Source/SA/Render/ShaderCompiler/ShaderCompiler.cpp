@@ -7,6 +7,10 @@
 #include "ShaderIncluder.hpp"
 #include "SPIRV-ReflectAPI.hpp"
 
+#if SA_RENDER_LOWLEVEL_DX12_IMPL
+#include <d3d12shader.h>
+#endif
+
 namespace SA::RND
 {
 	void ShaderCompiler::Create()
@@ -120,6 +124,56 @@ namespace SA::RND
 	}
 
 #if SA_RENDER_LOWLEVEL_DX12_IMPL
+	bool ShaderCompiler::ReflectDX(CComPtr<IDxcBlob> _reflectionBlob, RHI::ShaderDescriptor& _desc)
+	{
+		const DxcBuffer reflectionBuffer
+		{
+			.Ptr = _reflectionBlob->GetBufferPointer(),
+			.Size = _reflectionBlob->GetBufferSize(),
+			.Encoding = 0,
+		};
+
+		CComPtr<ID3D12ShaderReflection> shaderReflection;
+		SA_DXC_API(mUtils->CreateReflection(&reflectionBuffer, IID_PPV_ARGS(&shaderReflection)));
+
+		D3D12_SHADER_DESC inDesc{};
+		shaderReflection->GetDesc(&inDesc);
+
+		// Inputs.
+		for (uint32_t i = 0; i < inDesc.InputParameters; ++i)
+		{
+			D3D12_SIGNATURE_PARAMETER_DESC inInput;
+			shaderReflection->GetInputParameterDesc(i, &inInput);
+
+			auto& outInput = _desc.inputs.emplace_back();
+
+			outInput.semantic = inInput.SemanticName;
+			outInput.location = inInput.Register;
+			//outInput.format = ;
+			//outInput.size = ;
+		}
+
+
+		// Bindings
+		{
+			for (uint32_t i = 0; i < inDesc.BoundResources; ++i)
+			{
+				D3D12_SHADER_INPUT_BIND_DESC inDesc;
+				shaderReflection->GetResourceBindingDesc(i, &inDesc);
+
+				auto& outDescSet = _desc.GetOrEmplaceSet(inDesc.Space);
+				auto& outDesc = outDescSet.bindings.emplace_back();
+
+				outDesc.name = inDesc.Name;
+				outDesc.binding = inDesc.BindPoint;
+				outDesc.num = inDesc.BindCount;
+			}
+		}
+
+
+		return true;
+	}
+
 	ShaderCompileResult ShaderCompiler::CompileDX(const ShaderCompileInfo& _info)
 	{
 		ShaderCompileResult result;
@@ -139,32 +193,15 @@ namespace SA::RND
 			return result;
 
 
-	//{ Object
-
-		CComPtr<IDxcBlob> shader;
-		SA_DXC_API(compilResult->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(&shader), nullptr));
-
-	//}
+		SA_DXC_API(compilResult->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(&result.dxShader), nullptr));
 
 
-	//{ Reflection
-	
 		CComPtr<IDxcBlob> reflectionBlob;
 		SA_DXC_API(compilResult->GetOutput(DXC_OUT_REFLECTION, IID_PPV_ARGS(&reflectionBlob), nullptr));
 
-		const DxcBuffer reflectionBuffer
-		{
-			.Ptr = reflectionBlob->GetBufferPointer(),
-			.Size = reflectionBlob->GetBufferSize(),
-			.Encoding = 0,
-		};
+		if (!ReflectDX(reflectionBlob, result.desc))
+			return result;
 
-		// CComPtr<ID3D12ShaderReflection> shaderReflection;
-		// mUtils->CreateReflection(&reflectionBuffer, IID_PPV_ARGS(&shaderReflection));
-		// D3D12_SHADER_DESC shaderDesc{};
-		// shaderReflection->GetDesc(&shaderDesc);
-
-	//}
 
 		result.bSuccess = true;
 		SA_LOG((L"Shader {%1:%2} compilation success!", _info.path, _info.entrypoint), Normal, SA.Render.ShaderCompiler);
@@ -239,6 +276,62 @@ namespace SA::RND
 		}
 	}
 
+	bool ShaderCompiler::ReflectSPIRV(CComPtr<IDxcBlob> _shader, RHI::ShaderDescriptor& _desc)
+	{
+		SpvReflectShaderModule module;
+		SA_SPIRVR_API(spvReflectCreateShaderModule(_shader->GetBufferSize(), _shader->GetBufferPointer(), &module));
+
+		// Inputs
+		{
+			uint32_t count = 0u;
+			spvReflectEnumerateInputVariables(&module, &count, nullptr);
+			std::vector<SpvReflectInterfaceVariable*> inputs(count);
+			spvReflectEnumerateInputVariables(&module, &count, inputs.data());
+
+			for (auto inInput : inputs)
+			{
+				// Skip system input type (ex: SV_VertexID).
+				if (inInput->location == uint32_t(-1))
+					continue;
+
+				auto& outInput = _desc.inputs.emplace_back();
+
+				outInput.semantic = inInput->semantic;
+				outInput.location = inInput->location;
+				outInput.format = SPV::API_GetFormat(inInput->format);
+				outInput.size = SPV::API_GetSizeFromFormat(inInput->format);
+			}
+		}
+
+		// Bindings
+		{
+			uint32_t count = 0u;
+			spvReflectEnumerateDescriptorSets(&module, &count, nullptr);
+			std::vector<SpvReflectDescriptorSet*> descSets(count);
+			spvReflectEnumerateDescriptorSets(&module, &count, descSets.data());
+
+			for (auto inDescSet : descSets)
+			{
+				auto& outDescSet = _desc.sets.emplace_back();
+
+				for (size_t i = 0; i < inDescSet->binding_count; ++i)
+				{
+					auto& inDesc = *inDescSet->bindings[i];
+					auto& outDesc = outDescSet.bindings.emplace_back();
+
+					outDesc.name = inDesc.name;
+					outDesc.binding = inDesc.binding;
+					outDesc.num = inDesc.count;
+				}
+			}
+		}
+
+
+		spvReflectDestroyShaderModule(&module);
+
+		return true;
+	}
+
 	ShaderCompileResult ShaderCompiler::CompileSPIRV(const ShaderCompileInfo& _info)
 	{
 		ShaderCompileResult result;
@@ -274,63 +367,6 @@ namespace SA::RND
 		SA_LOG((L"Shader {%1:%2} compilation success!", _info.path, _info.entrypoint), Normal, SA.Render.ShaderCompiler);
 
 		return result;
-	}
-
-	bool ShaderCompiler::ReflectSPIRV(CComPtr<IDxcBlob> _shader, RHI::ShaderDescriptor& _desc)
-	{
-		SpvReflectShaderModule module;
-		SA_SPIRVR_API(spvReflectCreateShaderModule(_shader->GetBufferSize(), _shader->GetBufferPointer(), &module));
-
-		// Inputs
-		{
-			uint32_t count = 0u;
-			spvReflectEnumerateInputVariables(&module, &count, nullptr);
-			std::vector<SpvReflectInterfaceVariable*> inputs(count);
-			spvReflectEnumerateInputVariables(&module, &count, inputs.data());
-
-			for(auto inInput : inputs)
-			{
-				// Skip system input type (ex: SV_VertexID).
-				if(inInput->location == uint32_t(-1))
-					continue;
-
-				auto& outInput = _desc.inputs.emplace_back();
-
-				outInput.name = inInput->name;
-				outInput.semantic = inInput->semantic;
-				outInput.location = inInput->location;
-				outInput.format = SPV::API_GetFormat(inInput->format);
-				outInput.size = SPV::API_GetSizeFromFormat(inInput->format);
-			}
-		}
-
-		// Bindings
-		{
-			uint32_t count = 0u;
-			spvReflectEnumerateDescriptorSets(&module, &count, nullptr);
-			std::vector<SpvReflectDescriptorSet*> descSets(count);
-			spvReflectEnumerateDescriptorSets(&module, &count, descSets.data());
-
-			for(auto inDescSet : descSets)
-			{
-				auto& outDescSet = _desc.sets.emplace_back();
-
-				for(size_t i = 0; i < inDescSet->binding_count; ++i)
-				{
-					auto& inDesc = *inDescSet->bindings[i];
-					auto& outDesc = outDescSet.bindings.emplace_back();
-
-					outDesc.name = inDesc.name;
-					outDesc.binding = inDesc.binding;
-					outDesc.num = inDesc.count;
-				}
-			}
-		}
-
-
-		spvReflectDestroyShaderModule(&module);
-
-		return true;
 	}
 
 #endif // SA_RENDER_LOWLEVEL_VULKAN_IMPL || SA_RENDER_LOWLEVEL_OPENGL_IMPL

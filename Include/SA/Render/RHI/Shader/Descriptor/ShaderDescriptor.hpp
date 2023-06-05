@@ -27,6 +27,8 @@ namespace SA::RND::RHI
 		std::vector<ShaderInputDescriptor> inputs;
 		std::vector<ShaderBindingSetDescriptor> sets;
 
+		ShaderBindingSetDescriptor& GetOrEmplaceSet(uint32_t _setIndex);
+
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
 		VK::PipelineVertexInputStateInfo MakeVkPipelineVertexInputStateInfo() const;

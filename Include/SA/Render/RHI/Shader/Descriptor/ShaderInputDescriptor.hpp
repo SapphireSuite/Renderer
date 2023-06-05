@@ -14,8 +14,6 @@ namespace SA::RND::RHI
 {
 	struct ShaderInputDescriptor
 	{
-		std::string name;
-
 		std::string semantic;
 
 		uint32_t location = 0u;
