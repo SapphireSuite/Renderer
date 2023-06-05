@@ -10,7 +10,7 @@ namespace SA::RND::RHI
 	{
 		VK::PipelineVertexInputStateInfo info;
 
-		for(size_t i = 0; i < inputs.size(); ++i)
+		for(uint32_t i = 0; i < static_cast<uint32_t>(inputs.size()); ++i)
 		{
 			auto& input = inputs[i];
 	
