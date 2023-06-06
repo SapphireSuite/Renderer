@@ -4,6 +4,8 @@
 
 #include <SA/Collections/Debug>
 
+#include <SA/Render/ShaderCompiler/ShaderCompileResult.hpp>
+
 namespace SA::RND::RHI
 {
 	void Context::Create(Device* _device)
@@ -134,6 +136,8 @@ namespace SA::RND::RHI
 
 	Shader* Context::CreateShader(const ShaderCompileResult& _comp)
 	{
+		SA_ASSERT((Default, _comp.bSuccess), SA.Render.RHI, L"Try creating shader from failed compilation result!");
+
 		Shader* const shader = mShaders.emplace_front(InstantiateShaderClass());
 
 		SA_ASSERT((Nullptr, shader), SA.Render.RHI, (L"Shader instantiate class failed!"));

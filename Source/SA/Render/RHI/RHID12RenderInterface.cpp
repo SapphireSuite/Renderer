@@ -12,7 +12,7 @@ namespace SA::RND::RHI
 {
 	void D12RenderInterface::Create(const IWindowInterface* _winIntf)
 	{
-		(void)_winIntf;
+		RenderInterface::Create(_winIntf);
 
 		mFactory.Create();
 	}
@@ -62,6 +62,16 @@ namespace SA::RND::RHI
 	Swapchain* D12RenderInterface::InstantiateSwapchainClass() const
 	{
 		return new D12Swapchain();
+	}
+
+//}
+
+
+//{ ShaderCompiler
+
+	ShaderCompileResult D12RenderInterface::CompileShader(const ShaderCompileInfo& _info)
+	{
+		return mShaderCompiler.CompileDX(_info);
 	}
 
 //}

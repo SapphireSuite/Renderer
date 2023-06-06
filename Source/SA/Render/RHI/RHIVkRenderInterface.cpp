@@ -12,6 +12,8 @@ namespace SA::RND::RHI
 {
 	void VkRenderInterface::Create(const IWindowInterface* _winIntf)
 	{
+		RenderInterface::Create(_winIntf);
+
 		std::vector<const char*> vkExtensions;
 
 		if(_winIntf)
@@ -59,6 +61,7 @@ namespace SA::RND::RHI
 
 //}
 
+
 //{ Swapchain
 
 	Swapchain* VkRenderInterface::InstantiateSwapchainClass() const
@@ -67,6 +70,17 @@ namespace SA::RND::RHI
 	}
 	
 //}
+
+
+//{ ShaderCompiler
+
+	ShaderCompileResult VkRenderInterface::CompileShader(const ShaderCompileInfo& _info)
+	{
+		return mShaderCompiler.CompileSPIRV(_info);
+	}
+
+//}
+
 
 	const VK::Instance& VkRenderInterface::API_Vulkan() const
 	{

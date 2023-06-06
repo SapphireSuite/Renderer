@@ -46,6 +46,13 @@ namespace SA::RND::RHI
 
 //}
 
+//{ ShaderCompiler
+
+	public:
+		ShaderCompileResult CompileShader(const ShaderCompileInfo& _info) override final;
+
+//}
+
 	public:
 		const VK::Instance& API_Vulkan() const override final;
 

@@ -15,6 +15,8 @@
 #include "Surface/RHISwapchain.hpp"
 #include "Compatibility/IWindowInterface.hpp"
 
+#include <SA/Render/ShaderCompiler/ShaderCompiler.hpp>
+
 namespace SA::RND
 {
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
@@ -39,11 +41,10 @@ namespace SA::RND
 	{
 		class RenderInterface
 		{
-
 		public:
 			virtual ~RenderInterface() = default;
 
-			virtual void Create(const IWindowInterface* _winIntf = nullptr) = 0;
+			virtual void Create(const IWindowInterface* _winIntf = nullptr);
 			virtual void Destroy();
 
 	//{ WindowSurface
@@ -97,6 +98,16 @@ namespace SA::RND
 				const SwapchainSettings& _settings = SwapchainSettings());
 			void DestroySwapchain(const Device* _device, Swapchain* _swapchain);
 			// void DestroyAllSwapchains();
+
+	//}
+
+	//{ ShaderCompiler
+
+		protected:
+			ShaderCompiler mShaderCompiler;
+
+		public:
+			virtual ShaderCompileResult CompileShader(const ShaderCompileInfo& _info) = 0;
 
 	//}
 

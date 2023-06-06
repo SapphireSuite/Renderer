@@ -7,7 +7,6 @@
 #include <SA/Collections/Maths>
 
 #include <SA/Render/LowLevel/Common/Mesh/RawMesh.hpp>
-#include <SA/Render/ShaderCompiler/ShaderCompiler.hpp>
 #include <SA/Render/RHI/RHIVkRenderInterface.hpp>
 #include <SA/Render/RHI/RHID12RenderInterface.hpp>
 #include <SA/Render/RHI/Compatibility/IRenderWindow.hpp>
@@ -97,7 +96,8 @@ public:
 	RHI::Pass* pass = nullptr;
 	std::vector<RHI::FrameBuffer*> frameBuffers;
 	RawMesh triangle;
-
+	RHI::Shader* vertexShader = nullptr;
+	RHI::Shader* pixelShader = nullptr;
 
 	struct CreateInfo
 	{
@@ -266,6 +266,9 @@ public:
 				};
 
 				triangle.vertices.AppendDefines(vsInfo.defines);
+
+				ShaderCompileResult vsShaderRes = intf->CompileShader(vsInfo);
+				vertexShader = context->CreateShader(vsShaderRes);
 			}
 
 			// Pixel
@@ -278,6 +281,9 @@ public:
 				};
 
 				triangle.vertices.AppendDefines(psInfo.defines);
+
+				ShaderCompileResult psShaderRes = intf->CompileShader(psInfo);
+				pixelShader = context->CreateShader(psShaderRes);
 			}
 		}
 	}
@@ -286,6 +292,9 @@ public:
 	{
 		// Render
 		{
+			context->DestroyShader(vertexShader);
+			context->DestroyShader(pixelShader);
+
 			for(auto& frameBuffer : frameBuffers)
 				context->DestroyFrameBuffer(frameBuffer);
 

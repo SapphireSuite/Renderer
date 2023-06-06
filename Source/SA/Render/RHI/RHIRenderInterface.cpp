@@ -6,8 +6,17 @@
 
 namespace SA::RND::RHI
 {
+	void RenderInterface::Create(const IWindowInterface* _winIntf)
+	{
+		(void)_winIntf;
+
+		mShaderCompiler.Create();
+	}
+
 	void RenderInterface::Destroy()
 	{
+		mShaderCompiler.Destroy();
+
 		// DestroyAllSwapchains();
 		DestroyAllDevices();
 		DestroyAllWindowSurfaces();
