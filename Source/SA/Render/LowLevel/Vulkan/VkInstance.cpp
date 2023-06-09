@@ -16,7 +16,7 @@ namespace SA::RND::VK
 		appInfos.applicationVersion = VK_MAKE_VERSION(1, 0, 0); // TODO:
 		appInfos.pEngineName = "Sapphire Engine";
 		appInfos.engineVersion = VK_MAKE_VERSION(1, 0, 0); // TODO:
-		appInfos.apiVersion = VK_API_VERSION_1_0;
+		appInfos.apiVersion = VK_API_VERSION_1_1;
 
 	#if SA_VK_VALIDATION_LAYERS
 
