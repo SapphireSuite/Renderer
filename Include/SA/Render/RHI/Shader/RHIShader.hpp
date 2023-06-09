@@ -50,7 +50,7 @@ namespace SA::RND
 			virtual const VK::Shader& API_Vulkan() const;
 #endif
 
-#if SA_RENDER_LOWLEVEL_VULKAN_IMPL
+#if SA_RENDER_LOWLEVEL_DX12_IMPL
 			virtual const DX12::Shader& API_DirectX12() const;
 #endif
 		};
