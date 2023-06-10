@@ -1,10 +1,10 @@
 // Copyright (c) 2023 Sapphire's Suite. All Rights Reserved.
 
-#include <Pipeline/Info/VkPipelineVertexInputStateInfo.hpp>
+#include <Pipeline/Info/VkVertexInputStateInfo.hpp>
 
 namespace SA::RND::VK
 {
-	VkPipelineVertexInputStateCreateInfo PipelineVertexInputStateInfo::MakeVkInfo() const
+	VkPipelineVertexInputStateCreateInfo VertexInputStateInfo::MakeVkInfo() const
 	{
 		return VkPipelineVertexInputStateCreateInfo{
 			.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,

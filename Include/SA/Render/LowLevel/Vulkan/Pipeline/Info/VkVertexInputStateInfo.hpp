@@ -2,8 +2,8 @@
 
 #pragma once
 
-#ifndef SAPPHIRE_RENDER_VK_PIPELINE_VERTEX_INPUT_STATE_INFO_GUARD
-#define SAPPHIRE_RENDER_VK_PIPELINE_VERTEX_INPUT_STATE_INFO_GUARD
+#ifndef SAPPHIRE_RENDER_VK_VERTEX_INPUT_STATE_INFO_GUARD
+#define SAPPHIRE_RENDER_VK_VERTEX_INPUT_STATE_INFO_GUARD
 
 #include <vector>
 
@@ -11,7 +11,7 @@
 
 namespace SA::RND::VK
 {
-	struct PipelineVertexInputStateInfo
+	struct VertexInputStateInfo
 	{
 		std::vector<VkVertexInputBindingDescription> bindDescs;
 
@@ -21,4 +21,4 @@ namespace SA::RND::VK
 	};
 }
 
-#endif // SAPPHIRE_RENDER_VK_PIPELINE_VERTEX_INPUT_STATE_INFO_GUARD
+#endif // SAPPHIRE_RENDER_VK_VERTEX_INPUT_STATE_INFO_GUARD

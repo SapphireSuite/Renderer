@@ -18,6 +18,7 @@ namespace SA::RND::RHI
 		FrameBuffer* InstantiateFrameBufferClass() override final;
 		Shader* InstantiateShaderClass() override final;
 		PipelineLayout* InstantiatePipelineLayoutClass() override final;
+		Pipeline* InstantiatePipelineClass() override final;
 	};
 }
 

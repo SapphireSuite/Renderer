@@ -99,6 +99,7 @@ public:
 	RHI::Shader* vertexShader = nullptr;
 	RHI::Shader* pixelShader = nullptr;
 	RHI::PipelineLayout* pipLayout = nullptr;
+	RHI::Pipeline* pipeline = nullptr;
 
 	struct CreateInfo
 	{
@@ -292,12 +293,28 @@ public:
 		{
 			pipLayout = context->CreatePipelineLayout();
 		}
+
+		// Pipeline
+		{
+			RHI::GraphicsPipelineInfo info;
+			info.shaders.vs = vertexShader;
+			info.shaders.ps = pixelShader;
+
+			info.raster.frontFace = RHI::FrontFaceMode::Clockwise;
+
+			info.layout = pipLayout;
+
+			info.pass = pass;
+
+			pipeline  = context->CreatePipeline(info);
+		}
 	}
 
 	void Destroy()
 	{
 		// Render
 		{
+			context->DestroyPipeline(pipeline);
 			context->DestroyPipelineLayout(pipLayout);
 
 			context->DestroyShader(vertexShader);

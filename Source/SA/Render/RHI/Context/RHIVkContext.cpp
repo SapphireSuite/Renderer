@@ -6,6 +6,7 @@
 #include <Pass/RHIVkFrameBuffer.hpp>
 #include <Shader/RHIVkShader.hpp>
 #include <Pipeline/RHIVkPipelineLayout.hpp>
+#include <Pipeline/RHIVkPipeline.hpp>
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
@@ -29,6 +30,11 @@ namespace SA::RND::RHI
 	PipelineLayout* VkContext::InstantiatePipelineLayoutClass()
 	{
 		return new VkPipelineLayout();
+	}
+
+	Pipeline* VkContext::InstantiatePipelineClass()
+	{
+		return new VkPipeline();
 	}
 }
 

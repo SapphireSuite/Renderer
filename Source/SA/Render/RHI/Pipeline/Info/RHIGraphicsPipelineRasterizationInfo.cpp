@@ -1,12 +1,12 @@
 // Copyright (c) 2023 Sapphire's Suite. All Rights Reserved.
 
-#include <Pipeline/Info/RHIGPipelineRasterizationInfo.hpp>
+#include <Pipeline/Info/RHIGraphicsPipelineRasterizationInfo.hpp>
 
 namespace SA::RND::RHI
 {
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
-	VkPipelineRasterizationStateCreateInfo GPipelineRasterizationInfo::API_Vulkan() const
+	VkPipelineRasterizationStateCreateInfo GraphicsPipelineRasterizationInfo::API_Vulkan() const
 	{
 		VkPipelineRasterizationStateCreateInfo vkInfo{};
 		vkInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
@@ -30,7 +30,7 @@ namespace SA::RND::RHI
 
 #if SA_RENDER_LOWLEVEL_DX12_IMPL
 
-	D3D12_RASTERIZER_DESC GPipelineRasterizationInfo::API_DirectX12() const
+	D3D12_RASTERIZER_DESC GraphicsPipelineRasterizationInfo::API_DirectX12() const
 	{
 		D3D12_RASTERIZER_DESC d12Desc{};
 		d12Desc.FillMode = D3D12_FILL_MODE_SOLID;

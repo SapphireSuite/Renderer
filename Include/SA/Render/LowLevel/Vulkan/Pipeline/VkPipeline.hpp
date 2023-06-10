@@ -5,7 +5,7 @@
 #ifndef SAPPHIRE_RENDER_VK_PIPELINE_GUARD
 #define SAPPHIRE_RENDER_VK_PIPELINE_GUARD
 
-#include <SA/Render/LowLevel/Vulkan/VulkanAPI.hpp>
+#include "Info/VkGraphicsPipelineInfo.hpp"
 
 namespace SA::RND::VK
 {
@@ -16,6 +16,7 @@ namespace SA::RND::VK
 		VkPipeline mHandle = VK_NULL_HANDLE;
 
 	public:
+		void Create(const Device& _device, const GraphicsPipelineInfo& _info);
 		void Create(const Device& _device, const VkGraphicsPipelineCreateInfo& _vkInfo);
 		void Destroy(const Device& _device);
 

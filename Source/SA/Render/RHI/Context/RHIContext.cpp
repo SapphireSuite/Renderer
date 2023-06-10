@@ -19,10 +19,11 @@ namespace SA::RND::RHI
 	
 	void Context::Destroy()
 	{
-		DestroyAllPasses();
-		DestroyAllFrameBuffers();
-		DestroyAllShaders();
+		DestroyAllPipelines();
 		DestroyAllPipelineLayouts();
+		DestroyAllShaders();
+		DestroyAllFrameBuffers();
+		DestroyAllPasses();
 
 		mDevice = nullptr;
 
@@ -217,6 +218,56 @@ namespace SA::RND::RHI
 		}
 
 		mPipelineLayouts.clear();
+	}
+
+//}
+
+
+//{ Pipeline
+
+	void Context::DeletePipelineClass(Pipeline* _pipeline)
+	{
+		SA_ASSERT((Nullptr, _pipeline), SA.Render.RHI);
+
+		delete _pipeline;
+	}
+
+	Pipeline* Context::CreatePipeline(const GraphicsPipelineInfo& _info)
+	{
+		SA_ASSERT((Nullptr, _info.pass), SA.Render>RHI, L"Graphics Pipeline creation requires a valid Pass.");
+		SA_ASSERT((Nullptr, _info.layout), SA.Render>RHI, L"Graphics Pipeline creation requires a valid PipelineLayout.");
+
+		Pipeline* const pipeline = mPipelines.emplace_front(InstantiatePipelineClass());
+
+		SA_ASSERT((Nullptr, pipeline), SA.Render.RHI, (L"Pipeline instantiate class failed!"));
+
+		pipeline->Create(mDevice, _info);
+
+		return pipeline;
+	}
+
+	void Context::DestroyPipeline(Pipeline* _pipeline)
+	{
+		SA_ASSERT((Nullptr, _pipeline), SA.Render.RHI);
+
+		if (std::erase(mPipelines, _pipeline))
+		{
+			_pipeline->Destroy(mDevice);
+			DeletePipelineClass(_pipeline);
+		}
+		else
+			SA_LOG((L"Try destroy Pipeline [%1] that does not belong to this context!", _pipeline), Error, SA.Render.RHI);
+	}
+
+	void Context::DestroyAllPipelines()
+	{
+		for (auto pipeline : mPipelines)
+		{
+			pipeline->Destroy(mDevice);
+			DeletePipelineClass(pipeline);
+		}
+
+		mPipelines.clear();
 	}
 
 //}

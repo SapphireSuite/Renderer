@@ -5,14 +5,13 @@
 #ifndef SAPPHIRE_RENDER_RHI_SHADER_DESCRIPTOR_GUARD
 #define SAPPHIRE_RENDER_RHI_SHADER_DESCRIPTOR_GUARD
 
+#include "RHIShaderStage.hpp"
 #include "ShaderBindingSetDescriptor.hpp"
 #include "ShaderInputDescriptor.hpp"
 
-#include <SA/Render/RHI/Shader/Descriptor/RHIShaderStage.hpp>
-
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
-	#include <SA/Render/LowLevel/Vulkan/Pipeline/Info/VkPipelineVertexInputStateInfo.hpp>
+	#include <SA/Render/LowLevel/Vulkan/Pipeline/Info/VkVertexInputStateInfo.hpp>
 
 #endif
 
@@ -31,7 +30,7 @@ namespace SA::RND::RHI
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
-		VK::PipelineVertexInputStateInfo MakeVkPipelineVertexInputStateInfo() const;
+		VK::VertexInputStateInfo MakeVkVertexInputStateInfo() const;
 
 #endif
 	};

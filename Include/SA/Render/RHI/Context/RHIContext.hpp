@@ -12,6 +12,7 @@
 #include <SA/Render/RHI/Surface/RHISwapchain.hpp>
 #include <SA/Render/RHI/Shader/RHIShader.hpp>
 #include <SA/Render/RHI/Pipeline/RHIPipelineLayout.hpp>
+#include <SA/Render/RHI/Pipeline/RHIPipeline.hpp>
 
 namespace SA::RND::RHI
 {
@@ -88,6 +89,22 @@ namespace SA::RND::RHI
 		PipelineLayout* CreatePipelineLayout();
 		void DestroyPipelineLayout(PipelineLayout* _pipLayout);
 		void DestroyAllPipelineLayouts();
+
+//}
+
+//{ Pipeline
+
+	private:
+		std::forward_list<Pipeline*> mPipelines;
+
+	protected:
+		virtual Pipeline* InstantiatePipelineClass() = 0;
+		virtual void DeletePipelineClass(Pipeline* _pipeline);
+
+	public:
+		Pipeline* CreatePipeline(const GraphicsPipelineInfo& _info);
+		void DestroyPipeline(Pipeline* _pipeline);
+		void DestroyAllPipelines();
 
 //}
 
