@@ -98,6 +98,7 @@ public:
 	RawMesh triangle;
 	RHI::Shader* vertexShader = nullptr;
 	RHI::Shader* pixelShader = nullptr;
+	RHI::PipelineLayout* pipLayout = nullptr;
 
 	struct CreateInfo
 	{
@@ -286,12 +287,19 @@ public:
 				pixelShader = context->CreateShader(psShaderRes);
 			}
 		}
+	
+		// PipelineLayout
+		{
+			pipLayout = context->CreatePipelineLayout();
+		}
 	}
 
 	void Destroy()
 	{
 		// Render
 		{
+			context->DestroyPipelineLayout(pipLayout);
+
 			context->DestroyShader(vertexShader);
 			context->DestroyShader(pixelShader);
 

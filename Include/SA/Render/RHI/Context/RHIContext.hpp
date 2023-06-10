@@ -11,6 +11,7 @@
 #include <SA/Render/RHI/Pass/RHIFrameBuffer.hpp>
 #include <SA/Render/RHI/Surface/RHISwapchain.hpp>
 #include <SA/Render/RHI/Shader/RHIShader.hpp>
+#include <SA/Render/RHI/Pipeline/RHIPipelineLayout.hpp>
 
 namespace SA::RND::RHI
 {
@@ -71,6 +72,22 @@ namespace SA::RND::RHI
 		Shader* CreateShader(const ShaderCompileResult& _comp);
 		void DestroyShader(Shader* _shader);
 		void DestroyAllShaders();
+
+//}
+
+//{ PipelineLayout
+
+	private:
+		std::forward_list<PipelineLayout*> mPipelineLayouts;
+
+	protected:
+		virtual PipelineLayout* InstantiatePipelineLayoutClass() = 0;
+		virtual void DeletePipelineLayoutClass(PipelineLayout* _pipLayout);
+
+	public:
+		PipelineLayout* CreatePipelineLayout();
+		void DestroyPipelineLayout(PipelineLayout* _pipLayout);
+		void DestroyAllPipelineLayouts();
 
 //}
 

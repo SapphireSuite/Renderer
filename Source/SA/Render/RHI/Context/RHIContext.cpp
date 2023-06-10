@@ -22,6 +22,7 @@ namespace SA::RND::RHI
 		DestroyAllPasses();
 		DestroyAllFrameBuffers();
 		DestroyAllShaders();
+		DestroyAllPipelineLayouts();
 
 		mDevice = nullptr;
 
@@ -171,5 +172,52 @@ namespace SA::RND::RHI
 		mShaders.clear();
 	}
 
-	//}
+//}
+
+
+//{ PipelineLayout
+
+	void Context::DeletePipelineLayoutClass(PipelineLayout* _pipLayout)
+	{
+		SA_ASSERT((Nullptr, _pipLayout), SA.Render.RHI);
+
+		delete _pipLayout;
+	}
+
+	PipelineLayout* Context::CreatePipelineLayout()
+	{
+		PipelineLayout* const pipLayout = mPipelineLayouts.emplace_front(InstantiatePipelineLayoutClass());
+
+		SA_ASSERT((Nullptr, pipLayout), SA.Render.RHI, (L"PipelineLayout instantiate class failed!"));
+
+		pipLayout->Create(mDevice);
+
+		return pipLayout;
+	}
+
+	void Context::DestroyPipelineLayout(PipelineLayout* _pipLayout)
+	{
+		SA_ASSERT((Nullptr, _pipLayout), SA.Render.RHI);
+
+		if (std::erase(mPipelineLayouts, _pipLayout))
+		{
+			_pipLayout->Destroy(mDevice);
+			DeletePipelineLayoutClass(_pipLayout);
+		}
+		else
+			SA_LOG((L"Try destroy PipelineLayout [%1] that does not belong to this context!", _pipLayout), Error, SA.Render.RHI);
+	}
+
+	void Context::DestroyAllPipelineLayouts()
+	{
+		for (auto pipLayout : mPipelineLayouts)
+		{
+			pipLayout->Destroy(mDevice);
+			DeletePipelineLayoutClass(pipLayout);
+		}
+
+		mPipelineLayouts.clear();
+	}
+
+//}
 }

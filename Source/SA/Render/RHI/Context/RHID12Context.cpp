@@ -5,6 +5,7 @@
 #include <Pass/RHID12Pass.hpp>
 #include <Pass/RHID12FrameBuffer.hpp>
 #include <Shader/RHID12Shader.hpp>
+#include <Pipeline/RHID12PipelineLayout.hpp>
 
 #if SA_RENDER_LOWLEVEL_DX12_IMPL
 
@@ -23,6 +24,11 @@ namespace SA::RND::RHI
 	Shader* D12Context::InstantiateShaderClass()
 	{
 		return new D12Shader();
+	}
+
+	PipelineLayout* D12Context::InstantiatePipelineLayoutClass()
+	{
+		return new D12PipelineLayout();
 	}
 }
 
