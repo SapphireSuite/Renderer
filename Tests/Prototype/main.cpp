@@ -374,8 +374,8 @@ int main()
 
 
 	// Render
+	if (true)
 	{
-
 		std::list<std::thread> renderThreads;
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
@@ -391,6 +391,14 @@ int main()
 			if (renderThread.joinable())
 				renderThread.join();
 		}
+	}
+	else if (true)
+	{
+		Renderer::RenderThread(Renderer::CreateInfo{ new RHI::VkRenderInterface, "Vulkan" });
+	}
+	else if (true)
+	{
+		Renderer::RenderThread(Renderer::CreateInfo{ new RHI::D12RenderInterface, "DirectX12", 960, 0 });
 	}
 
 

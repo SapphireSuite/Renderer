@@ -19,6 +19,14 @@ namespace SA::RND
 
 #endif
 
+#if SA_RENDER_LOWLEVEL_DX12_IMPL
+
+	namespace DX12
+	{
+		struct GraphicsPipelineInfo;
+	}
+#endif
+
 	namespace RHI
 	{
 		class Pass;
@@ -36,6 +44,10 @@ namespace SA::RND
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 			VK::GraphicsPipelineInfo API_Vulkan() const;
+#endif
+
+#if SA_RENDER_LOWLEVEL_DX12_IMPL
+			DX12::GraphicsPipelineInfo API_DirectX12() const;
 #endif
 		};
 	}

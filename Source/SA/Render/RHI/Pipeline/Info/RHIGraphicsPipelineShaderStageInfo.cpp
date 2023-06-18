@@ -10,6 +10,12 @@
 
 #endif
 
+#if SA_RENDER_LOWLEVEL_DX12_IMPL
+
+#include <SA/Render/LowLevel/DX12/Shader/D12Shader.hpp>
+
+#endif
+
 namespace SA::RND::RHI
 {
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
@@ -50,6 +56,41 @@ namespace SA::RND::RHI
 			vkInfos.emplace_back(Intl::API_MakeVkPipelineShaderStageInfo(ps));
 
 		return vkInfos;
+	}
+
+#endif
+
+
+#if SA_RENDER_LOWLEVEL_DX12_IMPL
+
+	namespace Intl
+	{
+		D3D12_SHADER_BYTECODE API_MakeDX12ShaderByteCode(Shader* _shader)
+		{
+			auto& dxShader = _shader->API_DirectX12();
+
+			return D3D12_SHADER_BYTECODE
+			{
+				.pShaderBytecode = dxShader.handle->GetBufferPointer(),
+				.BytecodeLength = dxShader.handle->GetBufferSize(),
+			};
+		}
+	}
+
+	DX12::GraphicsPipelineShaderStages GraphicsPipelineShaderStageInfo::API_MakeDX12PipelineShaderStages() const
+	{
+		DX12::GraphicsPipelineShaderStages dxShaderStages;
+
+		if (vs)
+			dxShaderStages.vs = Intl::API_MakeDX12ShaderByteCode(vs);
+
+		if (gs)
+			dxShaderStages.gs = Intl::API_MakeDX12ShaderByteCode(gs);
+
+		if (ps)
+			dxShaderStages.ps = Intl::API_MakeDX12ShaderByteCode(ps);
+
+		return dxShaderStages;
 	}
 
 #endif

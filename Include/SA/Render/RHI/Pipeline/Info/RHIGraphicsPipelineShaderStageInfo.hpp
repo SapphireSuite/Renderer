@@ -14,6 +14,12 @@
 
 #endif
 
+#if SA_RENDER_LOWLEVEL_DX12_IMPL
+
+#include <SA/Render/LowLevel/DX12/Pipeline/Info/D12GraphicsPipelineInfo.hpp>
+
+#endif
+
 namespace SA::RND
 {
 	namespace RHI
@@ -34,6 +40,12 @@ namespace SA::RND
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
 			std::vector<VkPipelineShaderStageCreateInfo> API_MakeVkPipelineShaderStagesInfo() const;
+#endif
+
+#if SA_RENDER_LOWLEVEL_DX12_IMPL
+
+			DX12::GraphicsPipelineShaderStages API_MakeDX12PipelineShaderStages() const;
+
 #endif
 		};
 	}

@@ -13,7 +13,7 @@
 
 namespace SA::RND::RHI
 {
-	class VkPipelineLayout : public PipelineLayout
+	class D12PipelineLayout : public PipelineLayout
 	{
 		DX12::RootSignature mHandle;
 

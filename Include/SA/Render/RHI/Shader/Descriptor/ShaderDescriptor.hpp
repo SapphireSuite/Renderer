@@ -15,6 +15,12 @@
 
 #endif
 
+#if SA_RENDER_LOWLEVEL_DX12_IMPL
+
+#include <SA/Render/LowLevel/DX12/DX12API.hpp>
+
+#endif
+
 namespace SA::RND::RHI
 {
 	struct ShaderDescriptor
@@ -31,6 +37,12 @@ namespace SA::RND::RHI
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
 		VK::VertexInputStateInfo MakeVkVertexInputStateInfo() const;
+
+#endif
+
+#if SA_RENDER_LOWLEVEL_DX12_IMPL
+
+		std::vector<D3D12_INPUT_ELEMENT_DESC> MakeDX12VertexInputElementDescs() const;
 
 #endif
 	};
