@@ -2,9 +2,6 @@
 
 # Visual Studio cache.
 .vs/
-.vscode/*
-!.vscode/launch.json
-!.vscode/settings.json
 
 
 # Vim cache.
@@ -28,6 +25,8 @@ Maths/
 [Bb]uild/
 [Bb]uilds/
 [Ii]nstall/
+
+[Bb]in/
 
 [Tt]emp/
 [Tt]emps/
