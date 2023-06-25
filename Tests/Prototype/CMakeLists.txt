@@ -20,6 +20,13 @@ add_executable(SA_RenderProto "main.cpp")
 ### Add library dependencies.
 target_link_libraries(SA_RenderProto PRIVATE SA_Render glfw SA_DirectXShaderCompiler)
 
+### Copy Resources command
+add_custom_command(TARGET SA_RenderProto POST_BUILD
+	COMMAND ${CMAKE_COMMAND} -E copy_directory
+	${CMAKE_SOURCE_DIR}/Resources
+	$<TARGET_FILE_DIR:SA_RenderProto>/Resources
+)
+
 
 
 # Tests

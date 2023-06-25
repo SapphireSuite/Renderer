@@ -20,6 +20,13 @@ add_executable(SA_RenderProto_VK "main.cpp")
 ### Add library dependencies.
 target_link_libraries(SA_RenderProto_VK PRIVATE SA_Render glfw)
 
+### Copy Resources command
+add_custom_command(TARGET SA_RenderProto_VK POST_BUILD
+	COMMAND ${CMAKE_COMMAND} -E copy_directory
+	${CMAKE_SOURCE_DIR}/Resources
+	$<TARGET_FILE_DIR:SA_RenderProto_VK>/Resources
+)
+
 
 
 # Tests
