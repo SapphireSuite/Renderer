@@ -1,6 +1,6 @@
-[submodule "CMake"]
-	path = CMake
-	url = https://github.com/SapphireSuite/CMake.git
 [submodule "ThirdParty/SPIRV-Reflect"]
 	path = ThirdParty/SPIRV-Reflect
 	url = https://github.com/KhronosGroup/SPIRV-Reflect.git
+[submodule "ThirdParty/SA/CMake"]
+	path = ThirdParty/SA/CMake
+	url = https://github.com/SapphireSuite/CMake.git
