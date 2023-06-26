@@ -136,11 +136,11 @@ namespace SA::RND
 		CComPtr<ID3D12ShaderReflection> shaderReflection;
 		SA_DXC_API(mUtils->CreateReflection(&reflectionBuffer, IID_PPV_ARGS(&shaderReflection)));
 
-		D3D12_SHADER_DESC inDesc{};
-		shaderReflection->GetDesc(&inDesc);
+		D3D12_SHADER_DESC inShaderDesc{};
+		shaderReflection->GetDesc(&inShaderDesc);
 
 		// Inputs.
-		for (uint32_t i = 0; i < inDesc.InputParameters; ++i)
+		for (uint32_t i = 0; i < inShaderDesc.InputParameters; ++i)
 		{
 			D3D12_SIGNATURE_PARAMETER_DESC inInput;
 			shaderReflection->GetInputParameterDesc(i, &inInput);
@@ -156,7 +156,7 @@ namespace SA::RND
 
 		// Bindings
 		{
-			for (uint32_t i = 0; i < inDesc.BoundResources; ++i)
+			for (uint32_t i = 0; i < inShaderDesc.BoundResources; ++i)
 			{
 				D3D12_SHADER_INPUT_BIND_DESC inDesc;
 				shaderReflection->GetResourceBindingDesc(i, &inDesc);
