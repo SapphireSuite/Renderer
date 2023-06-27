@@ -89,7 +89,7 @@ namespace SA::RND::DX12
 					desc.SampleDesc.Count = subpass.sampling;
 
 					D3D12_RESOURCE_STATES state = D3D12_RESOURCE_STATE_COMMON;
-					D3D12_CLEAR_VALUE clearValue{attach.format};
+					D3D12_CLEAR_VALUE clearValue{ attach.format, {} };
 
 					if(attach.type == AttachmentType::Color)
 					{

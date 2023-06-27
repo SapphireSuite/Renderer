@@ -14,7 +14,7 @@
 
 #if SA_RENDER_LOWLEVEL_DX12_IMPL
 
-#include <SA/Render/LowLevel/DX12/PIpeline/Info/D12GraphicsPipelineInfo.hpp>
+#include <SA/Render/LowLevel/DX12/Pipeline/Info/D12GraphicsPipelineInfo.hpp>
 
 #endif
 

@@ -55,6 +55,8 @@ namespace SA::RND
 			class BackBufferHandle
 			{
 			public:
+				virtual ~BackBufferHandle() = default;
+
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
 				virtual VkImage API_Vulkan() const;
