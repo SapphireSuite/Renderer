@@ -21,12 +21,14 @@ namespace SA::RND::DX12
 
 #if SA_DX12_VALIDATION_LAYERS
 
+		if(true)
+		{
 			ID3D12InfoQueue1* infoQueue = nullptr;
 
 			if (mLogicalDevice->QueryInterface(IID_PPV_ARGS(&infoQueue)) == S_OK)
 			{
 				infoQueue->RegisterMessageCallback(ValidationLayers::DebugCallback,
-					D3D12_MESSAGE_CALLBACK_IGNORE_FILTERS, nullptr, nullptr);
+					D3D12_MESSAGE_CALLBACK_IGNORE_FILTERS, nullptr, &mVLayerCallbackCookie);
 
 				infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, true);
 				infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, true);
@@ -36,6 +38,7 @@ namespace SA::RND::DX12
 			}
 			else
 				SA_LOG(L"Device query info queue to enable validation layers failed.", Error, SA.Render.DX12);
+		}
 
 #endif // SA_DX12_VALIDATION_LAYERS
 
@@ -50,6 +53,21 @@ namespace SA::RND::DX12
 
 		if(mLogicalDevice)
 		{
+#if SA_DX12_VALIDATION_LAYERS
+
+			if (mVLayerCallbackCookie)
+			{
+				ID3D12InfoQueue1* infoQueue = nullptr;
+
+				if (mLogicalDevice->QueryInterface(IID_PPV_ARGS(&infoQueue)) == S_OK)
+				{
+					infoQueue->UnregisterMessageCallback(mVLayerCallbackCookie);
+					mVLayerCallbackCookie = 0;
+				}
+			}
+
+#endif // SA_DX12_VALIDATION_LAYERS
+
 			SA_LOG_RAII(L"Logical device destroyed", Info, SA.Render.DX12, (L"Handle [%1]", mLogicalDevice.Get()));
 			
 			mLogicalDevice.Reset();
