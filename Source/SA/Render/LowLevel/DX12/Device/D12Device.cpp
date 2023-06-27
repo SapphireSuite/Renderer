@@ -23,7 +23,7 @@ namespace SA::RND::DX12
 
 		if(true)
 		{
-			ID3D12InfoQueue1* infoQueue = nullptr;
+			MComPtr<ID3D12InfoQueue1> infoQueue = nullptr;
 
 			if (mLogicalDevice->QueryInterface(IID_PPV_ARGS(&infoQueue)) == S_OK)
 			{
@@ -33,8 +33,6 @@ namespace SA::RND::DX12
 				infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, true);
 				infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, true);
 				infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, true);
-
-				infoQueue->Release();
 			}
 			else
 				SA_LOG(L"Device query info queue to enable validation layers failed.", Error, SA.Render.DX12);
@@ -43,12 +41,14 @@ namespace SA::RND::DX12
 #endif // SA_DX12_VALIDATION_LAYERS
 
 		queueMgr.Create(_info);
+		CreateSynchronisation();
 
 		SA_LOG(L"Logical device created.", Info, SA.Render.DX12, (L"Handle [%1]", mLogicalDevice.Get()));
 	}
 	
 	void Device::Destroy()
 	{
+		DestroySynchronisation();
 		queueMgr.Destroy();
 
 		if(mLogicalDevice)
@@ -57,7 +57,7 @@ namespace SA::RND::DX12
 
 			if (mVLayerCallbackCookie)
 			{
-				ID3D12InfoQueue1* infoQueue = nullptr;
+				MComPtr<ID3D12InfoQueue1> infoQueue = nullptr;
 
 				if (mLogicalDevice->QueryInterface(IID_PPV_ARGS(&infoQueue)) == S_OK)
 				{
