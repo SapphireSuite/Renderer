@@ -2,8 +2,8 @@
 
 #pragma once
 
-#ifndef SAPPHIRE_RENDER_DX12_COMMAND_POOL_GUARD
-#define SAPPHIRE_RENDER_DX12_COMMAND_POOL_GUARD
+#ifndef SAPPHIRE_RENDER_DX12_COMMAND_ALLOCATOR_GUARD
+#define SAPPHIRE_RENDER_DX12_COMMAND_ALLOCATOR_GUARD
 
 #include <SA/Render/LowLevel/DX12/DX12API.hpp>
 
@@ -13,7 +13,7 @@ namespace SA::RND::DX12
 {
 	class Device;
 
-	class CommandPool
+	class CommandAllocator
 	{
 		MComPtr<ID3D12CommandAllocator> mHandle;
 
@@ -22,8 +22,11 @@ namespace SA::RND::DX12
 		void Destroy();
 
 		CommandList Allocate(const Device& _device, D3D12_COMMAND_LIST_TYPE _type);
+		std::vector<CommandList> AllocateMultiple(const Device& _device, uint32_t _num, D3D12_COMMAND_LIST_TYPE _type);
+		
 		void Free(CommandList& _cmd);
+		void FreeMultiple(std::vector<CommandList>& _cmds);
 	};
 }
 
-#endif // SAPPHIRE_RENDER_DX12_COMMAND_POOL_GUARD
+#endif // SAPPHIRE_RENDER_DX12_COMMAND_ALLOCATOR_GUARD

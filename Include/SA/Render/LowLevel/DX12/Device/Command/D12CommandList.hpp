@@ -11,7 +11,7 @@ namespace SA::RND::DX12
 {
 	class CommandList
 	{
-		friend class CommandPool;
+		friend class CommandAllocator;
 
 		MComPtr<ID3D12CommandList> mHande;
 	public:
