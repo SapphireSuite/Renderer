@@ -124,6 +124,84 @@ namespace SA::RND
 	}
 
 #if SA_RENDER_LOWLEVEL_DX12_IMPL
+	
+	namespace DX12
+	{
+		uint32_t ComputeComponentNum(BYTE _mask)
+		{
+			uint32_t componentNum = 0;
+
+			for (int i = 0; i < 4; ++i)
+			{
+				if (_mask & 0x1)
+					++componentNum;
+
+				_mask >>= 1;
+			}
+
+			return componentNum;
+		}
+
+		RHI::Format ComputeFormat(D3D_REGISTER_COMPONENT_TYPE _cType, uint32_t _cNum)
+		{
+			switch (_cType)
+			{
+			case D3D_REGISTER_COMPONENT_FLOAT32:
+			{
+				const RHI::Format formats[]{
+					RHI::Format::Unknown,
+					RHI::Format::R32_SFLOAT,
+					RHI::Format::R32G32_SFLOAT,
+					RHI::Format::R32G32B32_SFLOAT,
+					RHI::Format::R32G32B32A32_SFLOAT
+				};
+
+				return formats[_cNum];
+			}
+			case D3D_REGISTER_COMPONENT_UINT32:
+			{
+				const RHI::Format formats[]{
+					RHI::Format::Unknown,
+					RHI::Format::R32_UINT,
+					RHI::Format::R32G32_UINT,
+					RHI::Format::R32G32B32_UINT,
+					RHI::Format::R32G32B32A32_UINT
+				};
+
+				return formats[_cNum];
+			}
+			case D3D_REGISTER_COMPONENT_SINT32:
+			{
+				const RHI::Format formats[]{
+					RHI::Format::Unknown,
+					RHI::Format::R32_SINT,
+					RHI::Format::R32G32_SINT,
+					RHI::Format::R32G32B32_SINT,
+					RHI::Format::R32G32B32A32_SINT
+				};
+
+				return formats[_cNum];
+			}
+			default:
+				return RHI::Format::Unknown;
+			}
+		}
+
+		uint32_t ComputeComponentSize(D3D_REGISTER_COMPONENT_TYPE _cType, uint32_t _cNum)
+		{
+			switch (_cType)
+			{
+				case D3D_REGISTER_COMPONENT_FLOAT32:
+					return sizeof(float) * _cNum;
+				case D3D_REGISTER_COMPONENT_UINT32:
+				case D3D_REGISTER_COMPONENT_SINT32:
+					return sizeof(uint32_t) * _cNum;
+				default:
+					return 0;
+			}
+		}
+	}
+
 	bool ShaderCompiler::ReflectDX(CComPtr<IDxcBlob> _reflectionBlob, RHI::ShaderDescriptor& _desc)
 	{
 		const DxcBuffer reflectionBuffer
@@ -148,9 +226,12 @@ namespace SA::RND
 			auto& outInput = _desc.inputs.emplace_back();
 
 			outInput.semantic = inInput.SemanticName;
-			outInput.location = inInput.Register;
-			//outInput.format = ;
-			//outInput.size = ;
+			outInput.reg = inInput.Register;
+
+			const uint32_t componentNum = DX12::ComputeComponentNum(inInput.Mask);
+
+			outInput.format = DX12::ComputeFormat(inInput.ComponentType, componentNum);
+			outInput.size = DX12::ComputeComponentSize(inInput.ComponentType, componentNum);
 		}
 
 

@@ -15,9 +15,9 @@ namespace SA::RND::DX12
 
 	struct GraphicsPipelineShaderStages
 	{
-		D3D12_SHADER_BYTECODE vs;
-		D3D12_SHADER_BYTECODE ps;
-		D3D12_SHADER_BYTECODE gs;
+		D3D12_SHADER_BYTECODE vs{};
+		D3D12_SHADER_BYTECODE ps{};
+		D3D12_SHADER_BYTECODE gs{};
 	};
 
 	struct GraphicsPipelineInfo

@@ -16,7 +16,18 @@ namespace SA::RND::RHI
 	{
 		std::string semantic;
 
-		uint32_t location = 0u;
+		union
+		{
+#if SA_RENDER_LOWLEVEL_DX12_IMPL
+			/// HLSL
+			uint32_t reg;
+#endif
+
+#if SA_RENDER_LOWLEVEL_VULKAN_IMPL || SA_RENDER_LOWLEVEL_OPENGL_IMPL
+			/// SPIRV
+			uint32_t location = 0u;
+#endif
+		};
 
 		uint32_t size = 0u;
 

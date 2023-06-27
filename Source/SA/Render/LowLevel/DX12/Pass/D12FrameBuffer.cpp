@@ -51,8 +51,8 @@ namespace SA::RND::DX12
 		const uint32_t rtvDescriptorSize = _device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 		const uint32_t dsvDescriptorSize = _device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
 
-		D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle(mRenderTargetViewHeap->GetCPUDescriptorHandleForHeapStart());
-		D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle(mDepthStencilViewHeap->GetCPUDescriptorHandleForHeapStart());
+		D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle(mRenderTargetViewHeap ? mRenderTargetViewHeap->GetCPUDescriptorHandleForHeapStart() : D3D12_CPU_DESCRIPTOR_HANDLE());
+		D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle(mDepthStencilViewHeap ? mDepthStencilViewHeap->GetCPUDescriptorHandleForHeapStart() : D3D12_CPU_DESCRIPTOR_HANDLE());
 
 		D3D12_HEAP_PROPERTIES heapProps = {};
 		heapProps.Type = D3D12_HEAP_TYPE_DEFAULT;
