@@ -13,6 +13,7 @@
 #include <SA/Render/RHI/Shader/RHIShader.hpp>
 #include <SA/Render/RHI/Pipeline/RHIPipelineLayout.hpp>
 #include <SA/Render/RHI/Pipeline/RHIPipeline.hpp>
+#include <SA/Render/RHI/Device/Command/RHICommandPool.hpp>
 
 namespace SA::RND::RHI
 {
@@ -107,6 +108,24 @@ namespace SA::RND::RHI
 		void DestroyAllPipelines();
 
 //}
+
+
+//{ CommandPool
+
+	private:
+		std::forward_list<CommandPool*> mCommandPools;
+
+	protected:
+		virtual CommandPool* InstantiateCommandPoolClass() = 0;
+		virtual void DeleteCommandPoolClass(CommandPool* _cmdPool);
+
+	public:
+		CommandPool* CreateCommandPool();
+		void DestroyCommandPool(CommandPool* _cmdPool);
+		void DestroyAllCommandPools();
+
+//}
+
 
 	};
 }

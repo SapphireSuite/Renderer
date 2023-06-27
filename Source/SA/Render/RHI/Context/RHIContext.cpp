@@ -19,6 +19,7 @@ namespace SA::RND::RHI
 	
 	void Context::Destroy()
 	{
+		DestroyAllCommandPools();
 		DestroyAllPipelines();
 		DestroyAllPipelineLayouts();
 		DestroyAllShaders();
@@ -268,6 +269,52 @@ namespace SA::RND::RHI
 		}
 
 		mPipelines.clear();
+	}
+
+//}
+
+//{ CommandPool
+
+	void Context::DeleteCommandPoolClass(CommandPool* _cmdPool)
+	{
+		SA_ASSERT((Nullptr, _cmdPool), SA.Render.RHI);
+
+		delete _cmdPool;
+	}
+
+	CommandPool* Context::CreateCommandPool()
+	{
+		CommandPool* const cmdPool = mCommandPools.emplace_front(InstantiateCommandPoolClass());
+
+		SA_ASSERT((Nullptr, cmdPool), SA.Render.RHI, (L"CommandPool instantiate class failed!"));
+
+		cmdPool->Create(mDevice);
+
+		return cmdPool;
+	}
+
+	void Context::DestroyCommandPool(CommandPool* _cmdPool)
+	{
+		SA_ASSERT((Nullptr, _cmdPool), SA.Render.RHI);
+
+		if (std::erase(mCommandPools, _cmdPool))
+		{
+			_cmdPool->Destroy(mDevice);
+			DeleteCommandPoolClass(_cmdPool);
+		}
+		else
+			SA_LOG((L"Try destroy CommandPool [%1] that does not belong to this context!", _cmdPool), Error, SA.Render.RHI);
+	}
+
+	void Context::DestroyAllCommandPools()
+	{
+		for (auto cmdPool : mCommandPools)
+		{
+			cmdPool->Destroy(mDevice);
+			DeleteCommandPoolClass(cmdPool);
+		}
+
+		mCommandPools.clear();
 	}
 
 //}

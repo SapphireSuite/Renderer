@@ -19,6 +19,7 @@ namespace SA::RND::RHI
 		Shader* InstantiateShaderClass() override final;
 		PipelineLayout* InstantiatePipelineLayoutClass() override final;
 		Pipeline* InstantiatePipelineClass() override final;
+		CommandPool* InstantiateCommandPoolClass() override final;
 	};
 }
 

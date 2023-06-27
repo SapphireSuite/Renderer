@@ -100,6 +100,7 @@ public:
 	RHI::Shader* pixelShader = nullptr;
 	RHI::PipelineLayout* pipLayout = nullptr;
 	RHI::Pipeline* pipeline = nullptr;
+	RHI::CommandPool* cmdPool = nullptr;
 
 	struct CreateInfo
 	{
@@ -306,7 +307,12 @@ public:
 
 			info.pass = pass;
 
-			pipeline  = context->CreatePipeline(info);
+			pipeline = context->CreatePipeline(info);
+		}
+
+		// CommandPool
+		{
+			cmdPool = context->CreateCommandPool();
 		}
 	}
 
@@ -314,6 +320,7 @@ public:
 	{
 		// Render
 		{
+			context->DestroyCommandPool(cmdPool);
 			context->DestroyPipeline(pipeline);
 			context->DestroyPipelineLayout(pipLayout);
 
