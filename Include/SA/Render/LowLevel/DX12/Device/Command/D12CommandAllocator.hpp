@@ -21,8 +21,8 @@ namespace SA::RND::DX12
 		void Create(const Device& _device, D3D12_COMMAND_LIST_TYPE _type = D3D12_COMMAND_LIST_TYPE_DIRECT);
 		void Destroy();
 
-		CommandList Allocate(const Device& _device, D3D12_COMMAND_LIST_TYPE _type);
-		std::vector<CommandList> AllocateMultiple(const Device& _device, uint32_t _num, D3D12_COMMAND_LIST_TYPE _type);
+		CommandList Allocate(const Device& _device, D3D12_COMMAND_LIST_TYPE _type = D3D12_COMMAND_LIST_TYPE_DIRECT);
+		std::vector<CommandList> AllocateMultiple(const Device& _device, uint32_t _num, D3D12_COMMAND_LIST_TYPE _type = D3D12_COMMAND_LIST_TYPE_DIRECT);
 		
 		void Free(CommandList& _cmd);
 		void FreeMultiple(std::vector<CommandList>& _cmds);

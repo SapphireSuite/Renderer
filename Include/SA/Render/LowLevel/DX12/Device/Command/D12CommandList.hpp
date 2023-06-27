@@ -13,7 +13,7 @@ namespace SA::RND::DX12
 	{
 		friend class CommandAllocator;
 
-		MComPtr<ID3D12CommandList> mHande;
+		MComPtr<ID3D12GraphicsCommandList> mHande;
 	public:
 	};
 }

@@ -6,6 +6,11 @@
 
 namespace SA::RND::RHI
 {
+	DX12::CommandList& D12CommandBuffer::API_DirectX12()
+	{
+		return mHandle;
+	}
+
 	const DX12::CommandList& D12CommandBuffer::API_DirectX12() const
 	{
 		return mHandle;

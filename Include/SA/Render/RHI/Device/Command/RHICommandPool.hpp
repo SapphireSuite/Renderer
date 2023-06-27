@@ -5,6 +5,11 @@
 #ifndef SAPPHIRE_RENDER_RHI_COMMAND_POOL_GUARD
 #define SAPPHIRE_RENDER_RHI_COMMAND_POOL_GUARD
 
+#include <list>
+#include <vector>
+
+#include "RHICommandBuffer.hpp"
+
 namespace SA::RND
 {
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
@@ -32,13 +37,26 @@ namespace SA::RND
 		class CommandPool
 		{
 		protected:
-			const Device* mDevice = nullptr;
+			/// Allocated command buffers.
+			std::list<CommandBuffer*> mCommandBuffers;
 
 		public:
 			virtual ~CommandPool() = default;
 
-			virtual void Create(const Device* _device);
-			virtual void Destroy(const Device* _device);
+			virtual void Create(const Device* _device) = 0;
+			virtual void Destroy(const Device* _device) = 0;
+
+
+		//{ Allocation
+		
+			virtual CommandBuffer* Allocate() = 0;
+			virtual std::vector<CommandBuffer*> Allocate(uint32_t _num) = 0;
+
+			virtual void Free(CommandBuffer* _cmd) = 0;
+			virtual void Free(std::vector<CommandBuffer*>& _cmds) = 0;
+
+		//}
+
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 

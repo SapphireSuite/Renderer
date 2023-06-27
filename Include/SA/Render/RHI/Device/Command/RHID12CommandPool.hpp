@@ -17,9 +17,21 @@ namespace SA::RND::RHI
 	{
 		DX12::CommandAllocator mHandle;
 
+		const DX12::Device* mD12Device = nullptr;
+
 	public:
 		void Create(const Device* _device) override final;
 		void Destroy(const Device* _device) override final;
+
+	//{ Allocation
+		
+		CommandBuffer* Allocate() override final;
+		std::vector<CommandBuffer*> Allocate(uint32_t _num) override final;
+
+		void Free(CommandBuffer* _cmd) override final;
+		void Free(std::vector<CommandBuffer*>& _cmds) override final;
+
+	//}
 
 		const DX12::CommandAllocator& API_DirectX12() const override final;
 	};

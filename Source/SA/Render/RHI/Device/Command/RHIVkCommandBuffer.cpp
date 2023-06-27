@@ -6,6 +6,11 @@
 
 namespace SA::RND::RHI
 {
+	VK::CommandBuffer& VkCommandBuffer::API_Vulkan()
+	{
+		return mHandle;
+	}
+
 	const VK::CommandBuffer& VkCommandBuffer::API_Vulkan() const
 	{
 		return mHandle;

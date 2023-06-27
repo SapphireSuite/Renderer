@@ -27,6 +27,8 @@ namespace SA::RND::DX12
 
 		SA_DX12_API(_device->CreateCommandList(0, _type, mHandle.Get(), nullptr, IID_PPV_ARGS(&cmd.mHande)));
 
+		cmd.mHande->Close();
+
 		return cmd;
 	}
 
@@ -35,7 +37,10 @@ namespace SA::RND::DX12
 		std::vector<CommandList> result{ _num };
 
 		for (auto& cmd : result)
+		{
 			SA_DX12_API(_device->CreateCommandList(0, _type, mHandle.Get(), nullptr, IID_PPV_ARGS(&cmd.mHande)));
+			cmd.mHande->Close();
+		}
 
 		return result;
 	}

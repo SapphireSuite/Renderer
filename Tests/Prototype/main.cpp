@@ -101,6 +101,7 @@ public:
 	RHI::PipelineLayout* pipLayout = nullptr;
 	RHI::Pipeline* pipeline = nullptr;
 	RHI::CommandPool* cmdPool = nullptr;
+	std::vector<RHI::CommandBuffer*> cmdBuffers;
 
 	struct CreateInfo
 	{
@@ -313,6 +314,8 @@ public:
 		// CommandPool
 		{
 			cmdPool = context->CreateCommandPool();
+
+			cmdBuffers = cmdPool->Allocate(swapchain->GetImageNum());
 		}
 	}
 
@@ -320,6 +323,7 @@ public:
 	{
 		// Render
 		{
+			cmdPool->Free(cmdBuffers);
 			context->DestroyCommandPool(cmdPool);
 			context->DestroyPipeline(pipeline);
 			context->DestroyPipelineLayout(pipLayout);

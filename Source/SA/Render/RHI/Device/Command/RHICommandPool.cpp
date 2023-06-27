@@ -6,16 +6,6 @@
 
 namespace SA::RND::RHI
 {
-	void CommandPool::Create(const Device* _device)
-	{
-		mDevice = _device;
-	}
-	
-	void CommandPool::Destroy(const Device* _device)
-	{
-		SA_ASSERT((Equals, mDevice, _device), SA.Render.RHI, L"Device ptr should match to ensure correct destroy.");
-	}
-
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
 	const VK::CommandPool& CommandPool::API_Vulkan() const

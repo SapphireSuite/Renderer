@@ -22,6 +22,7 @@ namespace SA::RND::RHI
 		DX12::CommandList mHandle;
 
 	public:
+		DX12::CommandList& API_DirectX12() override final;
 		const DX12::CommandList& API_DirectX12() const override final;
 	};
 }

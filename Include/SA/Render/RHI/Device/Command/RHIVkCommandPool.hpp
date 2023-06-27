@@ -17,9 +17,22 @@ namespace SA::RND::RHI
 	{
 		VK::CommandPool mHandle;
 
+		const VK::Device* mVkDevice = nullptr;
+
 	public:
 		void Create(const Device* _device) override final;
 		void Destroy(const Device* _device) override final;
+
+	//{ Allocation
+		
+		// TODO: Add Command PRIMARY/SECONDARY parameter.
+		CommandBuffer* Allocate() override final;
+		std::vector<CommandBuffer*> Allocate(uint32_t _num) override final;
+
+		void Free(CommandBuffer* _cmd) override final;
+		void Free(std::vector<CommandBuffer*>& _cmds) override final;
+
+	//}
 
 		const VK::CommandPool& API_Vulkan() const override final;
 	};
