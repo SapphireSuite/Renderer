@@ -358,6 +358,13 @@ public:
 		while (!glfwWindowShouldClose(window))
 		{
 			glfwPollEvents();
+
+			const uint32_t frameIndex = swapchain->Begin();
+
+			RHI::CommandBuffer* const cmd = cmdBuffers[frameIndex];
+			RHI::FrameBuffer* const fbuff = frameBuffers[frameIndex];
+
+			swapchain->End({ cmd });
 		}
 	}
 

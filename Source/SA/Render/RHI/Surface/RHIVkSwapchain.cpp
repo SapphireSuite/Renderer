@@ -7,6 +7,8 @@
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
+#include <SA/Render/LowLevel/Vulkan/Device/Command/VkCommandBuffer.hpp>
+
 namespace SA::RND::RHI
 {
 	void VkSwapchain::Create(const RenderInterface* _renderIntf,
@@ -15,13 +17,20 @@ namespace SA::RND::RHI
 		const SwapchainSettings& _settings)
 	{
 		(void)_renderIntf;
-		mHandle.Create(_device->API_Vulkan(), _winSurface->API_Vulkan(), _settings.API_Vulkan());
+
+		mDevice = &_device->API_Vulkan();
+		
+		mHandle.Create(*mDevice, _winSurface->API_Vulkan(), _settings.API_Vulkan());
 	}
 
 	void VkSwapchain::Destroy(const RenderInterface* _renderIntf, const Device* _device)
 	{
 		(void)_renderIntf;
-		mHandle.Destroy(_device->API_Vulkan());
+
+		SA_ASSERT((Equals, mDevice, &_device->API_Vulkan()), SA.Render.RHI, L"Device ptr should match to ensure correct destroy.");
+
+		mHandle.Destroy(*mDevice);
+		mDevice = nullptr;
 	}
 
 	Format VkSwapchain::GetFormat() const
@@ -38,6 +47,28 @@ namespace SA::RND::RHI
 	{
 		return mHandle.GetExtents();
 	}
+
+
+	uint32_t VkSwapchain::Begin()
+	{
+		SA_ASSERT((Nullptr, mDevice), SA.Render.RHI);
+
+		return mHandle.Begin(*mDevice);
+	}
+	
+	void VkSwapchain::End(std::vector<CommandBuffer*> _cmds)
+	{
+		SA_ASSERT((Nullptr, mDevice), SA.Render.RHI);
+
+		std::vector<VK::CommandBuffer> vkCmds;
+		vkCmds.reserve(_cmds.size());
+
+		for (auto cmd : _cmds)
+			vkCmds.emplace_back(cmd->API_Vulkan());
+
+		mHandle.End(*mDevice, vkCmds);
+	}
+
 
 //{ BackBuffer
 
