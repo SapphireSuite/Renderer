@@ -15,6 +15,8 @@ namespace SA::RND::DX12
 
 		MComPtr<ID3D12GraphicsCommandList> mHande;
 	public:
+
+		inline ID3D12GraphicsCommandList* Get() const { return mHande.Get(); }
 	};
 }
 

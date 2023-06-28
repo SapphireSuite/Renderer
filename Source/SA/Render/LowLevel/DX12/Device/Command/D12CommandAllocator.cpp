@@ -15,9 +15,9 @@ namespace SA::RND::DX12
 
 	void CommandAllocator::Destroy()
 	{
-		mHandle.Reset();
+		SA_LOG_RAII(L"Command Allocator destroyed.", Info, SA.Render.DX12, ("Handle [%1]", mHandle.Get()));
 
-		SA_LOG(L"Command Allocator destroyed.", Info, SA.Render.DX12, ("Handle [%1]", mHandle.Get()));
+		mHandle.Reset();
 	}
 
 
