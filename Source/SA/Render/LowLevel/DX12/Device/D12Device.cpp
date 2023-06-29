@@ -105,7 +105,7 @@ namespace SA::RND::DX12
 	void Device::WaitIdle()
 	{
 		// Schedule a Signal command in the queue.
-		// _cmd->Signal(mFence.Get(), mFenceValue); // TODO: ADD.
+		queueMgr.graphics[0]->Signal(mFence.Get(), mFenceValue); // TODO: Clean.
 
 		// Wait until the fence has been processed.
 		mFence->SetEventOnCompletion(mFenceValue, mFenceEvent);

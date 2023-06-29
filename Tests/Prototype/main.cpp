@@ -323,6 +323,8 @@ public:
 	{
 		// Render
 		{
+			device->WaitIdle();
+
 			cmdPool->Free(cmdBuffers);
 			context->DestroyCommandPool(cmdPool);
 			context->DestroyPipeline(pipeline);

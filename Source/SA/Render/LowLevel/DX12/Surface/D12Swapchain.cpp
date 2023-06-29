@@ -50,9 +50,7 @@ namespace SA::RND::DX12
 		// Queue to force flush.
 		ID3D12CommandQueue* queue = nullptr;
 
-		if(_device.queueMgr.present.GetQueueNum() > 0)
-			queue = _device.queueMgr.present[0];
-		else if(_device.queueMgr.graphics.GetQueueNum() > 0)
+		if(_device.queueMgr.graphics.GetQueueNum() > 0)
 			queue = _device.queueMgr.graphics[0];
 		//
 
@@ -63,8 +61,11 @@ namespace SA::RND::DX12
 		// Frame
 		mFrames.resize(frameNum);
 
-		for(uint32_t i = 0; i < frameNum; ++i)
+		for (uint32_t i = 0; i < frameNum; ++i)
+		{
 			mHandle->GetBuffer(i, IID_PPV_ARGS(&mFrames[i].image));
+			SetDebugName(mFrames[i].image.Get(), SA::StringFormat(L"Swapchain Image %1", i));
+		}
 		//
 
 		SA_LOG(L"Swapchain created!", Info, SA.Render.DX12, (L"Handle [%1]", mHandle.Get()));
@@ -178,6 +179,7 @@ namespace SA::RND::DX12
 			);
 		}
 
+		// Present already handle Present queue.
 		SA_DX12_API(mHandle->Present(1, 0));
 
 		// Schedule a Signal command in the queue.
