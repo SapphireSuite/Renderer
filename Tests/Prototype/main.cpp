@@ -366,6 +366,12 @@ public:
 			RHI::CommandBuffer* const cmd = cmdBuffers[frameIndex];
 			RHI::FrameBuffer* const fbuff = frameBuffers[frameIndex];
 
+			cmd->Begin();
+
+
+
+			cmd->End();
+
 			swapchain->End({ cmd });
 		}
 	}

@@ -22,6 +22,9 @@ namespace SA::RND::RHI
 		DX12::CommandBuffer mHandle;
 
 	public:
+		void Begin() override final;
+		void End() override final;
+
 		DX12::CommandBuffer& API_DirectX12() override final;
 		const DX12::CommandBuffer& API_DirectX12() const override final;
 	};

@@ -6,6 +6,17 @@
 
 namespace SA::RND::RHI
 {
+	void D12CommandBuffer::Begin()
+	{
+		mHandle.Begin();
+	}
+
+	void D12CommandBuffer::End()
+	{
+		mHandle.End();
+	}
+
+
 	DX12::CommandBuffer& D12CommandBuffer::API_DirectX12()
 	{
 		return mHandle;

@@ -22,6 +22,9 @@ namespace SA::RND::RHI
 		VK::CommandBuffer mHandle;
 
 	public:
+		void Begin() override final;
+		void End() override final;
+
 		VK::CommandBuffer& API_Vulkan() override final;
 		const VK::CommandBuffer& API_Vulkan() const override final;
 	};

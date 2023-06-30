@@ -6,6 +6,17 @@
 
 namespace SA::RND::RHI
 {
+	void VkCommandBuffer::Begin()
+	{
+		mHandle.Begin();
+	}
+
+	void VkCommandBuffer::End()
+	{
+		mHandle.End();
+	}
+
+
 	VK::CommandBuffer& VkCommandBuffer::API_Vulkan()
 	{
 		return mHandle;

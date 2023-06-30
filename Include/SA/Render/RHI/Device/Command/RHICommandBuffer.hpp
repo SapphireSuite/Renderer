@@ -32,6 +32,9 @@ namespace SA::RND
 		public:
 			virtual ~CommandBuffer() = default;
 
+			virtual void Begin() = 0;
+			virtual void End() = 0;
+
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
 			virtual VK::CommandBuffer& API_Vulkan();
