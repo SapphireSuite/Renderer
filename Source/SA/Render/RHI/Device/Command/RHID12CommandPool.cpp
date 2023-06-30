@@ -51,7 +51,7 @@ namespace SA::RND::RHI
 	{
 		std::vector<CommandBuffer*> result{ _num };
 
-		std::vector<DX12::CommandList> d12Cmds = mHandle.AllocateMultiple(*mD12Device, _num);
+		std::vector<DX12::CommandBuffer> d12Cmds = mHandle.AllocateMultiple(*mD12Device, _num);
 
 		for (uint32_t i = 0; i < _num; ++i)
 		{
@@ -80,7 +80,7 @@ namespace SA::RND::RHI
 	
 	void D12CommandPool::Free(std::vector<CommandBuffer*>& _cmds)
 	{
-		std::vector<DX12::CommandList> d12Cmds;
+		std::vector<DX12::CommandBuffer> d12Cmds;
 		d12Cmds.reserve(_cmds.size());
 
 		for (size_t i = 0; i < _cmds.size(); ++i)
@@ -100,7 +100,7 @@ namespace SA::RND::RHI
 //}
 
 
-	const DX12::CommandAllocator& D12CommandPool::API_DirectX12() const
+	const DX12::CommandPool& D12CommandPool::API_DirectX12() const
 	{
 		return mHandle;
 	}

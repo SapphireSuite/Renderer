@@ -25,7 +25,7 @@ namespace SA::RND
 
 	namespace DX12
 	{
-		class CommandAllocator;
+		class CommandPool;
 	}
 
 #endif
@@ -66,7 +66,7 @@ namespace SA::RND
 
 #if SA_RENDER_LOWLEVEL_DX12_IMPL
 
-			virtual const DX12::CommandAllocator& API_DirectX12() const;
+			virtual const DX12::CommandPool& API_DirectX12() const;
 
 #endif
 		};

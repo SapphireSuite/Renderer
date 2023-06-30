@@ -9,13 +9,13 @@
 
 #if SA_RENDER_LOWLEVEL_DX12_IMPL
 
-#include <SA/Render/LowLevel/DX12/Device/Command/D12CommandAllocator.hpp>
+#include <SA/Render/LowLevel/DX12/Device/Command/D12CommandPool.hpp>
 
 namespace SA::RND::RHI
 {
 	class D12CommandPool : public CommandPool
 	{
-		DX12::CommandAllocator mHandle;
+		DX12::CommandPool mHandle;
 
 		const DX12::Device* mD12Device = nullptr;
 
@@ -33,7 +33,7 @@ namespace SA::RND::RHI
 
 	//}
 
-		const DX12::CommandAllocator& API_DirectX12() const override final;
+		const DX12::CommandPool& API_DirectX12() const override final;
 	};
 }
 

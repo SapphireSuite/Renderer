@@ -17,7 +17,7 @@ namespace SA::RND::RHI
 
 #if SA_RENDER_LOWLEVEL_DX12_IMPL
 
-	const DX12::CommandAllocator& CommandPool::API_DirectX12() const
+	const DX12::CommandPool& CommandPool::API_DirectX12() const
 	{
 		SA_THROW((QueryBadAPIObject, DX12), SA.Render.RHI.DX12);
 	}

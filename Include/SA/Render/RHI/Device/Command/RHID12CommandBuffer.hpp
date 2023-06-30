@@ -9,7 +9,7 @@
 
 #if SA_RENDER_LOWLEVEL_DX12_IMPL
 
-#include <SA/Render/LowLevel/DX12/Device/Command/D12CommandList.hpp>
+#include <SA/Render/LowLevel/DX12/Device/Command/D12CommandBuffer.hpp>
 
 namespace SA::RND::RHI
 {
@@ -19,11 +19,11 @@ namespace SA::RND::RHI
 	{
 		friend D12CommandPool;
 
-		DX12::CommandList mHandle;
+		DX12::CommandBuffer mHandle;
 
 	public:
-		DX12::CommandList& API_DirectX12() override final;
-		const DX12::CommandList& API_DirectX12() const override final;
+		DX12::CommandBuffer& API_DirectX12() override final;
+		const DX12::CommandBuffer& API_DirectX12() const override final;
 	};
 }
 

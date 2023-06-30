@@ -25,37 +25,26 @@ namespace SA::RND::DX12
 	{
 		CommandList cmd;
 
-		SA_DX12_API(_device->CreateCommandList(0, _type, mHandle.Get(), nullptr, IID_PPV_ARGS(&cmd.mHande)));
+		SA_DX12_API(_device->CreateCommandList(0, _type, mHandle.Get(), nullptr, IID_PPV_ARGS(&cmd.mHandle)));
 
-		cmd.mHande->Close();
+		cmd.mHandle->Close();
 
 		return cmd;
 	}
 
-	std::vector<CommandList> CommandAllocator::AllocateMultiple(const Device& _device, uint32_t _num, D3D12_COMMAND_LIST_TYPE _type)
+	void CommandAllocator::Free(CommandList& _cmdList)
 	{
-		std::vector<CommandList> result{ _num };
-
-		for (auto& cmd : result)
-		{
-			SA_DX12_API(_device->CreateCommandList(0, _type, mHandle.Get(), nullptr, IID_PPV_ARGS(&cmd.mHande)));
-			cmd.mHande->Close();
-		}
-
-		return result;
+		_cmdList.mHandle.Reset();
 	}
 
 
-	void CommandAllocator::Free(CommandList& _cmd)
+	ID3D12CommandAllocator* CommandAllocator::Get() const
 	{
-		_cmd.mHande.Reset();
+		return mHandle.Get();
 	}
 
-	void CommandAllocator::FreeMultiple(std::vector<CommandList>& _cmds)
+	ID3D12CommandAllocator* CommandAllocator::operator->() const
 	{
-		for (auto& cmd : _cmds)
-			cmd.mHande.Reset();
-
-		_cmds.clear();
+		return mHandle.Get();
 	}
 }

@@ -13,10 +13,11 @@ namespace SA::RND::DX12
 	{
 		friend class CommandAllocator;
 
-		MComPtr<ID3D12GraphicsCommandList> mHande;
+		MComPtr<ID3D12GraphicsCommandList> mHandle;
+	
 	public:
-
-		inline ID3D12GraphicsCommandList* Get() const { return mHande.Get(); }
+		ID3D12GraphicsCommandList* Get() const;
+		ID3D12GraphicsCommandList* operator->() const;
 	};
 }
 

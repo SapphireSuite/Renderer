@@ -20,7 +20,7 @@ namespace SA::RND
 
 	namespace DX12
 	{
-		class CommandList;
+		class CommandBuffer;
 	}
 
 #endif
@@ -41,8 +41,8 @@ namespace SA::RND
 
 #if SA_RENDER_LOWLEVEL_DX12_IMPL
 
-			virtual DX12::CommandList& API_DirectX12();
-			virtual const DX12::CommandList& API_DirectX12() const;
+			virtual DX12::CommandBuffer& API_DirectX12();
+			virtual const DX12::CommandBuffer& API_DirectX12() const;
 
 #endif
 		};

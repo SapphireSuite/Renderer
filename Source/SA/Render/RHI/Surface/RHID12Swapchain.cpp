@@ -8,7 +8,7 @@
 
 #if SA_RENDER_LOWLEVEL_DX12_IMPL
 
-#include <SA/Render/LowLevel/DX12/Device/Command/D12CommandList.hpp>
+#include <SA/Render/LowLevel/DX12/Device/Command/D12CommandBuffer.hpp>
 
 namespace SA::RND::RHI
 {
@@ -62,7 +62,7 @@ namespace SA::RND::RHI
 		d12Cmds.reserve(_cmds.size());
 
 		for (auto cmd : _cmds)
-			d12Cmds.emplace_back(cmd->API_DirectX12());
+			d12Cmds.emplace_back(cmd->API_DirectX12().GetCommandList());
 
 		mHandle.End(*mDevice, d12Cmds);
 	}
