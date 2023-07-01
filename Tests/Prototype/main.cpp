@@ -368,7 +368,11 @@ public:
 
 			cmd->Begin();
 
+			pass->Begin(cmd, fbuff);
 
+
+
+			pass->End(cmd);
 
 			cmd->End();
 

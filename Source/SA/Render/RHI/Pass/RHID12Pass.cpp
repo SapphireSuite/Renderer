@@ -17,6 +17,21 @@ namespace SA::RND::RHI
 	{
 		(void)_device;
 	}
+
+	void D12Pass::Begin(const CommandBuffer* _cmd, const FrameBuffer* _fBuff)
+	{
+		// TODO: Impl
+	}
+
+	void D12Pass::NextSubpass(const CommandBuffer* _cmd)
+	{
+		// TODO: Impl
+	}
+
+	void D12Pass::End(const CommandBuffer* _cmd)
+	{
+		// TODO: Impl
+	}
 }
 
 #endif // SA_RENDER_LOWLEVEL_DX12_IMPL

@@ -21,6 +21,10 @@ namespace SA::RND::RHI
 		void Create(const Device* _device, PassInfo _info) override final;
 		void Destroy(const Device* _device) override final;
 
+		void Begin(const CommandBuffer* _cmd, const FrameBuffer* _fBuff) override final;
+		void NextSubpass(const CommandBuffer* _cmd) override final;
+		void End(const CommandBuffer* _cmd) override final;
+
 		const VK::RenderPass& API_Vulkan() const override final;
 	};
 }

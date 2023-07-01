@@ -218,6 +218,7 @@ namespace SA::RND::VK
 
 	void RenderPass::Begin(const CommandBuffer& _cmd, const FrameBuffer& _fBuff)
 	{
+		const Vec2ui& extents = _fBuff.GetExtents();
 		const std::vector<VkClearValue>& clearValues = _fBuff.GetClearValues();
 
 		VkRenderPassBeginInfo info{
@@ -225,7 +226,7 @@ namespace SA::RND::VK
 			.pNext = nullptr,
 			.renderPass = mHandle,
 			.framebuffer = _fBuff,
-			.renderArea = VkRect2D{{0,0}, {1200, 900}}, // TODO: FIX
+			.renderArea = VkRect2D{{0,0}, {extents.x, extents.y}}, // TODO: CLEAN
 			.clearValueCount = static_cast<uint32_t>(clearValues.size()),
 			.pClearValues = clearValues.data(),
 		};
