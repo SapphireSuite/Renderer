@@ -7,6 +7,7 @@
 
 #include <list>
 #include <vector>
+#include <cstdint>
 
 #include "RHICommandBuffer.hpp"
 

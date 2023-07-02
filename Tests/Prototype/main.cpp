@@ -418,14 +418,18 @@ int main()
 				renderThread.join();
 		}
 	}
+#if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 	else if (true)
 	{
 		Renderer::RenderThread(Renderer::CreateInfo{ new RHI::VkRenderInterface, "Vulkan" });
 	}
+#endif
+#if SA_RENDER_LOWLEVEL_DX12_IMPL
 	else if (true)
 	{
 		Renderer::RenderThread(Renderer::CreateInfo{ new RHI::D12RenderInterface, "DirectX12", 960, 0 });
 	}
+#endif
 
 
 	// GLFW
