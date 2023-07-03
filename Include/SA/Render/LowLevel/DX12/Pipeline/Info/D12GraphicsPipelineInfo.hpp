@@ -30,7 +30,7 @@ namespace SA::RND::DX12
 
 		std::vector<D3D12_INPUT_ELEMENT_DESC> vertexInputElements;
 
-		DXGI_FORMAT rtvFormats[8] = { DXGI_FORMAT_R8G8B8A8_UNORM_SRGB };
+		DXGI_FORMAT rtvFormats[8] = { DXGI_FORMAT_R8G8B8A8_UNORM };
 		DXGI_FORMAT dsvFormat = DXGI_FORMAT_D16_UNORM;
 
 		uint32_t sampling = 1;

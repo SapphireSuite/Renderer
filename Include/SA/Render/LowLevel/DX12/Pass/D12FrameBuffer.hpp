@@ -43,7 +43,7 @@ namespace SA::RND::DX12
 		/// Per-subpass render target view heap handle.
 		std::vector<SubpassViewHeap> mSubpassViewHeaps;
 
-		uint32_t CountRTOffset(uint32_t _subpassIndex) const;
+		uint32_t CountImageBufferOffset(uint32_t _subpassIndex) const;
 
 	public:
 		void Create(const Device& _device, const PassInfo& _info, MComPtr<ID3D12Resource> _presentImage = nullptr);

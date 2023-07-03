@@ -57,6 +57,13 @@ namespace SA::RND::DX12
 		};
 		//
 
+		uint32_t RTNum = 0;
+		for (; RTNum < 8; ++RTNum)
+		{
+			if (_info.rtvFormats[RTNum] == DXGI_FORMAT_UNKNOWN)
+				break;
+		}
+
 
 		D3D12_GRAPHICS_PIPELINE_STATE_DESC dxDesc
 		{
@@ -83,7 +90,7 @@ namespace SA::RND::DX12
 
 			.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE,
 
-			.NumRenderTargets = 1,
+			.NumRenderTargets = RTNum,
 			.RTVFormats
 			{
 				_info.rtvFormats[0],

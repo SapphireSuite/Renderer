@@ -19,7 +19,7 @@ namespace SA::RND::DX12
 				{
 					if(attach.type == AttachmentType::Color)
 						++renderTargetNum;
-					else if(attach.type == AttachmentType::Depth)
+					else if (attach.type == AttachmentType::Depth)
 						++depthStencilNum;
 				}
 			}
@@ -61,7 +61,7 @@ namespace SA::RND::DX12
 		{
 			SubpassViewHeap& subpassHeap = mSubpassViewHeaps.emplace_back();
 			subpassHeap.colorViewHeap = rtvHandle;
-			subpassHeap.depthViewHeap = dsvHandle;
+			subpassHeap.depthViewHeap = subpass.HasDepthAttachment() ? dsvHandle : D3D12_CPU_DESCRIPTOR_HANDLE();
 
 			for(auto& attachInfo : subpass.attachments)
 			{
@@ -164,25 +164,30 @@ namespace SA::RND::DX12
 		return mDSVDescriptorIncrementSize;
 	}
 
-	uint32_t FrameBuffer::CountRTOffset(uint32_t _subpassIndex) const
+	uint32_t FrameBuffer::CountImageBufferOffset(uint32_t _subpassIndex) const
 	{
-		uint32_t colorRTOffset = 0u;
+		uint32_t imageOffset = 0u;
 
 		for (uint32_t i = 0; i < _subpassIndex; ++i)
-			colorRTOffset += mSubpassViewHeaps[i].colorRTNum;
+		{
+			imageOffset += mSubpassViewHeaps[i].colorRTNum;
 
-		return colorRTOffset;
+			if (mSubpassViewHeaps[i].depthViewHeap.ptr)
+				++imageOffset;
+		}
+
+		return imageOffset;
 	}
 
 	FrameBuffer::Attachment* FrameBuffer::GetSubpassAttachments(uint32_t _subpassIndex)
 	{
 		SA_ASSERT((OutOfArrayRange, _subpassIndex, mSubpassViewHeaps), SA.Render.DX12);
 
-		const uint32_t colorRTOffset = CountRTOffset(_subpassIndex);
+		const uint32_t imageOffset = CountImageBufferOffset(_subpassIndex);
 
-		SA_ASSERT((OutOfArrayRange, colorRTOffset, mAttachments), SA.Render.DX12);
+		SA_ASSERT((OutOfArrayRange, imageOffset, mAttachments), SA.Render.DX12);
 
-		return mAttachments.data() + colorRTOffset;
+		return mAttachments.data() + imageOffset;
 	}
 
 	const FrameBuffer::SubpassViewHeap& FrameBuffer::GetSubpassViewHeap(uint32_t _subpassIndex) const

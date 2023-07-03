@@ -5,10 +5,9 @@
 #ifndef SAPPHIRE_RENDER_SUBPASS_INFO_BASE_GUARD
 #define SAPPHIRE_RENDER_SUBPASS_INFO_BASE_GUARD
 
-#include <string>
 #include <vector>
 
-#include <SA/Maths/Space/Vector2.hpp>
+#include "AttachmentInfoBase.hpp"
 
 namespace SA::RND
 {
@@ -18,6 +17,19 @@ namespace SA::RND
 		std::string name;
 
 		std::vector<AttachT> attachments;
+
+
+		bool HasDepthAttachment() const
+		{
+			for (auto& attach : attachments)
+			{
+				if (attach.type == AttachmentType::Depth)
+					return true;
+			}
+
+			return false;
+		}
+
 
 		AttachT& AddAttachment(std::string _name)
 		{
@@ -54,6 +66,7 @@ namespace SA::RND
 
 			return attachments[0];
 		}
+
 
 		void SetAllAttachmentExtents(const Vec2ui& _extents)
 		{
