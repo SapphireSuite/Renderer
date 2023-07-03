@@ -22,6 +22,11 @@ namespace SA::RND::RHI
 	}
 
 	
+	DX12::FrameBuffer& D12FrameBuffer::API_DirectX12()
+	{
+		return mHandle;
+	}
+
 	const DX12::FrameBuffer& D12FrameBuffer::API_DirectX12() const
 	{
 		return mHandle;

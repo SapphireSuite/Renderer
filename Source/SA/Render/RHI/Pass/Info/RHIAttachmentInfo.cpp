@@ -31,6 +31,7 @@ namespace SA::RND::RHI
 		static_cast<AttachmentInfoBase&>(d12Info) = *this;
 
 		d12Info.format = DX12::API_GetFormat(format);
+		d12Info.bClearOnLoad = loadMode == AttachmentLoadMode::Clear;
 
 		return d12Info;
 	}

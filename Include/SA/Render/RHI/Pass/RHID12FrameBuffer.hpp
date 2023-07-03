@@ -22,6 +22,7 @@ namespace SA::RND::RHI
 			std::shared_ptr<Swapchain::BackBufferHandle> _img) override final;
 		void Destroy(const Device* _device) override final;
 
+		DX12::FrameBuffer& API_DirectX12() override final;
 		const DX12::FrameBuffer& API_DirectX12() const override final;
 	};
 }

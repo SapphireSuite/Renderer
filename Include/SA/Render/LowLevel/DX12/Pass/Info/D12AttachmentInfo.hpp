@@ -14,6 +14,9 @@ namespace SA::RND::DX12
 	struct AttachmentInfo : public AttachmentInfoBase
 	{
 		DXGI_FORMAT format = DXGI_FORMAT_R8G8B8A8_UNORM;
+
+		/// Whether to clear on attachment loading.
+		bool bClearOnLoad = true;
 	};
 }
 

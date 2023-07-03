@@ -21,7 +21,7 @@ namespace SA::RND::RHI
 	}
 
 	
-	void VkPass::Begin(const CommandBuffer* _cmd, const FrameBuffer* _fBuff)
+	void VkPass::Begin(const CommandBuffer* _cmd, FrameBuffer* _fBuff)
 	{
 		mHandle.Begin(_cmd->API_Vulkan(), _fBuff->API_Vulkan());
 	}
