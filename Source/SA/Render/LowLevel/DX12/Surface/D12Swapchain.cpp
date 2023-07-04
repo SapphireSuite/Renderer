@@ -7,6 +7,8 @@
 #include <Device/Command/D12CommandList.hpp>
 #include <Surface/D12WindowSurface.hpp>
 
+#include "../Misc/D12Format.hpp"
+
 namespace SA::RND::DX12
 {
 //{ DXSwapchain
@@ -42,7 +44,7 @@ namespace SA::RND::DX12
 		desc.BufferCount = frameNum;
 		desc.Width = mExtents.x;
 		desc.Height = mExtents.y;
-		desc.Format = _settings.format;
+		desc.Format = Intl::SRGBToUNORMFormat(_settings.format);
 		desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 		desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 		desc.SampleDesc.Count = 1;

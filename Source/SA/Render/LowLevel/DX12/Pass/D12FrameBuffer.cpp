@@ -4,6 +4,8 @@
 
 #include <Device/D12Device.hpp>
 
+#include "../Misc/D12Format.hpp"
+
 namespace SA::RND::DX12
 {
 	void FrameBuffer::Create(const Device& _device, const PassInfo& _info, MComPtr<ID3D12Resource> _presentImage)
@@ -68,23 +70,19 @@ namespace SA::RND::DX12
 				auto& attach = mAttachments.emplace_back();
 				attach.clearValue.Format = attachInfo.format;
 
+				D3D12_RENDER_TARGET_VIEW_DESC viewDesc
+				{
+					.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D,
+
+					.Texture2D
+					{
+						.MipSlice = 0,
+						.PlaneSlice = 0,
+					}
+				};
+
 				// Resource
-				if(attachInfo.usage == AttachmentUsage::Present)
 				{
-					SA_ASSERT((Nullptr, _presentImage.Get()), SA.Render.DX12,
-						L"Input present image handle must be valid with AttachmentUsage::Present");
-
-					attach.imageBuffer = _presentImage;
-
-					attach.clearValue.Color[0] = attachInfo.clearColor.r;
-					attach.clearValue.Color[1] = attachInfo.clearColor.g;
-					attach.clearValue.Color[2] = attachInfo.clearColor.b;
-					attach.clearValue.Color[3] = attachInfo.clearColor.a;
-				}
-				else
-				{
-					// Create resource.
-
 					D3D12_RESOURCE_DESC desc{};
 					desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 					desc.Width = attachInfo.extents.x;
@@ -94,10 +92,10 @@ namespace SA::RND::DX12
 					desc.Format = attachInfo.format;
 					desc.SampleDesc.Count = subpass.sampling;
 
-					if(attachInfo.type == AttachmentType::Color)
+					if (attachInfo.type == AttachmentType::Color)
 					{
 						attach.state = D3D12_RESOURCE_STATE_RENDER_TARGET;
-						
+
 						desc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 
 						attach.clearValue.Color[0] = attachInfo.clearColor.r;
@@ -105,7 +103,7 @@ namespace SA::RND::DX12
 						attach.clearValue.Color[2] = attachInfo.clearColor.b;
 						attach.clearValue.Color[3] = attachInfo.clearColor.a;
 					}
-					else if(attachInfo.type == AttachmentType::Depth)
+					else if (attachInfo.type == AttachmentType::Depth)
 					{
 						attach.state = D3D12_RESOURCE_STATE_DEPTH_WRITE;
 
@@ -115,20 +113,36 @@ namespace SA::RND::DX12
 						attach.clearValue.DepthStencil.Stencil = static_cast<uint8_t>(attachInfo.clearColor.g);
 					}
 
-					SA_DX12_API(_device->CreateCommittedResource(&heapProps,
-						D3D12_HEAP_FLAG_NONE,
-						&desc,
-						attach.state,
-						&attach.clearValue,
-						IID_PPV_ARGS(&attach.imageBuffer)
-					));
-				}
 
+					if (attachInfo.usage == AttachmentUsage::Present)
+					{
+						SA_ASSERT((Nullptr, _presentImage.Get()), SA.Render.DX12,
+							L"Input present image handle must be valid with AttachmentUsage::Present");
+
+						attach.imageBuffer = _presentImage;
+						attach.state = D3D12_RESOURCE_STATE_PRESENT;
+						viewDesc.Format = Intl::UNORMToSRGBFormat(_presentImage->GetDesc().Format);
+					}
+					else
+					{
+						// Create resource.
+
+						SA_DX12_API(_device->CreateCommittedResource(&heapProps,
+							D3D12_HEAP_FLAG_NONE,
+							&desc,
+							attach.state,
+							&attach.clearValue,
+							IID_PPV_ARGS(&attach.imageBuffer)
+						));
+
+						viewDesc.Format = attach.imageBuffer->GetDesc().Format;
+					}
+				}
 
 				// View.
 				if(attachInfo.type == AttachmentType::Color)
 				{
-					_device->CreateRenderTargetView(attach.imageBuffer.Get(), nullptr, rtvHandle);
+					_device->CreateRenderTargetView(attach.imageBuffer.Get(), &viewDesc, rtvHandle);
 					rtvHandle.ptr += mRTVDescriptorIncrementSize;
 					++subpassHeap.colorRTNum;
 				}
