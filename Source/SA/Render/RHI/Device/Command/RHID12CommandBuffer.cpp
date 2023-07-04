@@ -17,6 +17,12 @@ namespace SA::RND::RHI
 	}
 
 
+	void D12CommandBuffer::Draw(uint32_t _vertexNum, uint32_t _instanceNum, uint32_t _firstVertex, uint32_t _firstInstance)
+	{
+		mHandle.Draw(_vertexNum, _instanceNum, _firstVertex, _firstInstance);
+	}
+
+
 	DX12::CommandBuffer& D12CommandBuffer::API_DirectX12()
 	{
 		return mHandle;

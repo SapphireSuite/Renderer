@@ -22,6 +22,8 @@ namespace SA::RND::DX12
 		void Begin();
 		void End();
 
+		void Draw(uint32_t _vertexNum, uint32_t _instanceNum, uint32_t _firstVertex, uint32_t _firstInstance);
+
 		const CommandList& GetCommandList() const;
 	};
 }

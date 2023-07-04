@@ -264,7 +264,7 @@ public:
 			{
 				ShaderCompileInfo vsInfo
 				{
-					.path = L"Resources/Shaders/Forward/Unlit.hlsl",
+					.path = L"Resources/Shaders/Forward/HelloTriangle.hlsl",
 					.entrypoint = "mainVS",
 					.target = "vs_6_5",
 				};
@@ -279,7 +279,7 @@ public:
 			{
 				ShaderCompileInfo psInfo
 				{
-					.path = L"Resources/Shaders/Forward/Unlit.hlsl",
+					.path = L"Resources/Shaders/Forward/HelloTriangle.hlsl",
 					.entrypoint = "mainPS",
 					.target = "ps_6_5",
 				};
@@ -371,6 +371,9 @@ public:
 			pass->Begin(cmd, fbuff);
 
 			pipeline->Bind(cmd);
+
+
+			cmd->Draw(3, 1, 0, 0);
 
 
 			pass->End(cmd);

@@ -25,6 +25,8 @@ namespace SA::RND::RHI
 		void Begin() override final;
 		void End() override final;
 
+		void Draw(uint32_t _vertexNum, uint32_t _instanceNum, uint32_t _firstVertex, uint32_t _firstInstance) override final;
+
 		VK::CommandBuffer& API_Vulkan() override final;
 		const VK::CommandBuffer& API_Vulkan() const override final;
 	};

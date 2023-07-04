@@ -25,6 +25,12 @@ namespace SA::RND::VK
 	}
 
 
+	void CommandBuffer::Draw(uint32_t _vertexNum, uint32_t _instanceNum, uint32_t _firstVertex, uint32_t _firstInstance)
+	{
+		SA_VK_API(vkCmdDraw(mHandle, _vertexNum, _instanceNum, _firstVertex, _firstInstance));
+	}
+
+
 	CommandBuffer::operator VkCommandBuffer() const
 	{
 		return mHandle;

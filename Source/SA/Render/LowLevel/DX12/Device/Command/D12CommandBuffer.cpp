@@ -33,6 +33,12 @@ namespace SA::RND::DX12
 	}
 
 
+	void CommandBuffer::Draw(uint32_t _vertexNum, uint32_t _instanceNum, uint32_t _firstVertex, uint32_t _firstInstance)
+	{
+		SA_DX12_API(mCmdList->DrawInstanced(_vertexNum, _instanceNum, _firstVertex, _firstInstance));
+	}
+
+
 	const CommandList& CommandBuffer::GetCommandList() const
 	{
 		return mCmdList;

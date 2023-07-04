@@ -5,6 +5,8 @@
 #ifndef SAPPHIRE_RENDER_RHI_COMMAND_BUFFER_GUARD
 #define SAPPHIRE_RENDER_RHI_COMMAND_BUFFER_GUARD
 
+#include <cstdint>
+
 namespace SA::RND
 {
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
@@ -34,6 +36,8 @@ namespace SA::RND
 
 			virtual void Begin() = 0;
 			virtual void End() = 0;
+
+			virtual void Draw(uint32_t _vertexNum, uint32_t _instanceNum, uint32_t _firstVertex, uint32_t _firstInstance) = 0;
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 

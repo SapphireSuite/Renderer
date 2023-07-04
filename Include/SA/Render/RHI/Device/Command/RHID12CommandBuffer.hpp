@@ -25,6 +25,8 @@ namespace SA::RND::RHI
 		void Begin() override final;
 		void End() override final;
 
+		void Draw(uint32_t _vertexNum, uint32_t _instanceNum, uint32_t _firstVertex, uint32_t _firstInstance) override final;
+
 		DX12::CommandBuffer& API_DirectX12() override final;
 		const DX12::CommandBuffer& API_DirectX12() const override final;
 	};
