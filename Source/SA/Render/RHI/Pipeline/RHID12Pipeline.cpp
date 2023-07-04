@@ -5,6 +5,7 @@
 #if SA_RENDER_LOWLEVEL_DX12_IMPL
 
 #include <Device/RHIDevice.hpp>
+#include <Device/Command/RHID12CommandBuffer.hpp>
 
 namespace SA::RND::RHI
 {
@@ -18,6 +19,11 @@ namespace SA::RND::RHI
 		(void)_device;
 
 		mHandle.Destroy();
+	}
+
+	void D12Pipeline::Bind(const CommandBuffer* _cmd)
+	{
+		mHandle.Bind(_cmd->API_DirectX12().GetCommandList());
 	}
 
 

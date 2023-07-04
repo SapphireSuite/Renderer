@@ -31,6 +31,7 @@ namespace SA::RND
 	{
 		class Device;
 		class Pass;
+		class CommandBuffer;
 
 		class Pipeline
 		{
@@ -39,6 +40,8 @@ namespace SA::RND
 
 			virtual void Create(const Device* _device, const GraphicsPipelineInfo& _info) = 0;
 			virtual void Destroy(const Device* _device) = 0;
+
+			virtual void Bind(const CommandBuffer* _cmd) = 0;
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 

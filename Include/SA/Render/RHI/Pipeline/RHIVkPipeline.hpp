@@ -21,6 +21,8 @@ namespace SA::RND::RHI
 		void Create(const Device* _device, const GraphicsPipelineInfo& _info) override final;
 		void Destroy(const Device* _device) override final;
 
+		void Bind(const CommandBuffer* _cmd) override final;
+
 		const VK::Pipeline& API_Vulkan() const override final;
 	};
 }

@@ -3,7 +3,10 @@
 #include <Pipeline/VkPipeline.hpp>
 
 #include <Device/VkDevice.hpp>
+#include <Device/Command/VkCommandBuffer.hpp>
+
 #include <Pass/VkRenderPass.hpp>
+
 #include <Pipeline/VkPipelineLayout.hpp>
 
 namespace SA::RND::VK
@@ -113,6 +116,8 @@ namespace SA::RND::VK
 		SA_VK_API(vkCreateGraphicsPipelines(_device, VK_NULL_HANDLE, 1, &_vkInfo, nullptr, &mHandle),
 			L"Failed to create graphics pipeline");
 
+		mBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+
 		SA_LOG(L"Pipeline created.", Info, SA.Render.Vulkan, (L"Handle [%1]", mHandle));
 	}
 	
@@ -123,6 +128,12 @@ namespace SA::RND::VK
 		SA_LOG(L"Pipeline destroyed.", Info, SA.Render.Vulkan, (L"Handle [%1]", mHandle));
 		
 		mHandle = VK_NULL_HANDLE;
+	}
+
+
+	void Pipeline::Bind(const CommandBuffer& _cmd)
+	{
+		SA_VK_API(vkCmdBindPipeline(_cmd, mBindPoint, mHandle));
 	}
 
 

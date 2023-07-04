@@ -10,15 +10,20 @@
 namespace SA::RND::VK
 {
 	class Device;
+	class CommandBuffer;
 
 	class Pipeline
 	{
 		VkPipeline mHandle = VK_NULL_HANDLE;
 
+		VkPipelineBindPoint mBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+
 	public:
 		void Create(const Device& _device, const GraphicsPipelineInfo& _info);
 		void Create(const Device& _device, const VkGraphicsPipelineCreateInfo& _vkInfo);
 		void Destroy(const Device& _device);
+
+		void Bind(const CommandBuffer& _cmd);
 
 		operator VkPipeline() const noexcept;
 	};

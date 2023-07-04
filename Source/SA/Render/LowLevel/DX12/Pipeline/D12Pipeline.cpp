@@ -3,6 +3,7 @@
 #include <Pipeline/D12Pipeline.hpp>
 
 #include <Device/D12Device.hpp>
+#include <Device/Command/D12CommandList.hpp>
 
 #include <Pipeline/D12RootSignature.hpp>
 
@@ -65,9 +66,11 @@ namespace SA::RND::DX12
 		}
 
 
+		mRootSignatureRef = _info.rootSign->operator->();
+
 		D3D12_GRAPHICS_PIPELINE_STATE_DESC dxDesc
 		{
-			.pRootSignature = _info.rootSign->operator->().Get(),
+			.pRootSignature = mRootSignatureRef.Get(),
 
 			.VS = _info.shaderStages.vs,
 			.PS = _info.shaderStages.ps,
@@ -128,6 +131,8 @@ namespace SA::RND::DX12
 	{
 		SA_DX12_API(_device->CreateGraphicsPipelineState(&_desc, IID_PPV_ARGS(mHandle.GetAddressOf())));
 		
+		mType = PipelineType::Graphics;
+
 		SA_LOG(L"Pipeline created.", Info, SA.Render.DX12, (L"Handle [%1]", mHandle.Get()));
 	}
 	
@@ -138,10 +143,20 @@ namespace SA::RND::DX12
 			SA_LOG_RAII(L"Pipeline destroyed.", Info, SA.Render.DX12, (L"Handle [%1]", mHandle.Get()));
 
 			mHandle.Reset();
+			mRootSignatureRef.Reset();
 		}
 	}
 
-	
+	void Pipeline::Bind(const CommandList& _cmdList)
+	{
+		if (mType == PipelineType::Graphics)
+			_cmdList->SetGraphicsRootSignature(mRootSignatureRef.Get());
+		else if(mType == PipelineType::Compute)
+			_cmdList->SetComputeRootSignature(mRootSignatureRef.Get());
+
+		_cmdList->SetPipelineState(mHandle.Get());
+	}
+
 	DXPipelineT Pipeline::operator->() const
 	{
 		return mHandle;

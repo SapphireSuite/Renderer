@@ -163,7 +163,7 @@ public:
 			RHI::PassInfo passInfo;
 			{
 				constexpr bool bDepth = true;
-				constexpr bool bMSAA = true;
+				constexpr bool bMSAA = false;
 
 				// Forward
 				if (true)
@@ -370,6 +370,7 @@ public:
 
 			pass->Begin(cmd, fbuff);
 
+			pipeline->Bind(cmd);
 
 
 			pass->End(cmd);

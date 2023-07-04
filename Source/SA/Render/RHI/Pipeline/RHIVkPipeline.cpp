@@ -6,6 +6,8 @@
 
 #include <Device/RHIDevice.hpp>
 
+#include <Device/Command/RHICommandBuffer.hpp>
+
 namespace SA::RND::RHI
 {
 	void VkPipeline::Create(const Device* _device, const GraphicsPipelineInfo& _info)
@@ -18,6 +20,10 @@ namespace SA::RND::RHI
 		mHandle.Destroy(_device->API_Vulkan());
 	}
 
+	void VkPipeline::Bind(const CommandBuffer* _cmd)
+	{
+		mHandle.Bind(_cmd->API_Vulkan());
+	}
 	
 	const VK::Pipeline& VkPipeline::API_Vulkan() const
 	{
