@@ -13,7 +13,6 @@ namespace SA::RND::VK
 {
 	void Pipeline::Create(const Device& _device, const GraphicsPipelineInfo& _info)
 	{
-		// TODO: Clean.
 		VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo{
 			.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
 			.pNext = nullptr,
@@ -22,30 +21,17 @@ namespace SA::RND::VK
 			.primitiveRestartEnable = VK_FALSE
 		};
 
-		VkViewport viewport{
-			.x = 0.0f,
-			.y = 900.0f,
-			.width = 1200.0f,
-			.height = -900.0f,
-			.minDepth = 0.0f,
-			.maxDepth = 1.0f,
-		};
-
-		VkRect2D scissor{
-			.offset = VkOffset2D{ 0, 0 },
-			.extent = VkExtent2D{ 1200, 900 },
-		};
-
 		VkPipelineViewportStateCreateInfo viewportStateInfo{
 			.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
 			.pNext = nullptr,
 			.flags = 0u,
-			.viewportCount = 1u,
-			.pViewports = &viewport,
-			.scissorCount = 1u,
-			.pScissors = &scissor,
+			.viewportCount = static_cast<uint32_t>(_info.views.viewports.size()),
+			.pViewports = _info.views.viewports.data(),
+			.scissorCount = static_cast<uint32_t>(_info.views.scissors.size()),
+			.pScissors = _info.views.scissors.data(),
 		};
 
+		// TODO: Clean.
 		VkPipelineDepthStencilStateCreateInfo depthStencilInfo{
 			.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
 			.pNext = nullptr,

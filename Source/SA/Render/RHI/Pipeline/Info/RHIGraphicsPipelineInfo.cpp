@@ -29,7 +29,7 @@ namespace SA::RND::RHI
 		vkInfo.shaderStages = shaders.API_MakeVkPipelineShaderStagesInfo();
 		vkInfo.vertexInputState = shaders.vs->GetDescriptor().MakeVkVertexInputStateInfo();
 		vkInfo.raster = raster.API_Vulkan();
-
+		vkInfo.views = views.API_Vulkan();
 
 		auto& passInfo = pass->GetInfo();
 
@@ -68,6 +68,8 @@ namespace SA::RND::RHI
 		dxDesc.shaderStages = shaders.API_MakeDX12PipelineShaderStages();
 
 		dxDesc.raster = raster.API_DirectX12();
+
+		dxDesc.views = views.API_DirectX12();
 
 		dxDesc.vertexInputElements = shaders.vs->GetDescriptor().MakeDX12VertexInputElementDescs();
 

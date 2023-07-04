@@ -9,13 +9,13 @@
 
 #if SA_RENDER_LOWLEVEL_DX12_IMPL
 
-#include <SA/Render/LowLevel/DX12/Pipeline/D12Pipeline.hpp>
+#include <SA/Render/LowLevel/DX12/Pipeline/D12GraphicsPipeline.hpp>
 
 namespace SA::RND::RHI
 {
 	class D12Pipeline : public Pipeline
 	{
-		DX12::Pipeline mHandle;
+		DX12::Pipeline* mHandle = nullptr;
 
 	public:
 		void Create(const Device* _device, const GraphicsPipelineInfo& _info) override final;

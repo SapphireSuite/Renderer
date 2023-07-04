@@ -6,6 +6,7 @@
 #define SAPPHIRE_RENDER_VK_GRAPHICS_PIPELINE_INFO_GUARD
 
 #include "VkVertexInputStateInfo.hpp"
+#include "VkGraphicsPipelineViewInfo.hpp"
 
 namespace SA::RND::VK
 {
@@ -19,6 +20,8 @@ namespace SA::RND::VK
 
 		VkPipelineRasterizationStateCreateInfo raster;
 		VkPipelineMultisampleStateCreateInfo multisampling;
+
+		GraphicsPipelineViewInfo views;
 
 		const PipelineLayout* layout = nullptr;
 

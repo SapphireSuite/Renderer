@@ -15,29 +15,19 @@ namespace SA::RND::DX12
 
 	using DXPipelineT = MComPtr<ID3D12PipelineState>;
 
-	enum class PipelineType
-	{
-		Unknown = 0,
-
-		Graphics,
-
-		Compute,
-	};
-
 	class Pipeline
 	{
+	protected:
 		DXPipelineT mHandle = nullptr;
 	
 		DXRootSignatureT mRootSignatureRef;
 
-		PipelineType mType = PipelineType::Unknown;
-
 	public:
-		void Create(const Device& _device, const GraphicsPipelineInfo& _info);
-		void Create(const Device& _device, const D3D12_GRAPHICS_PIPELINE_STATE_DESC& _desc);
+		virtual ~Pipeline() = default;
+
 		void Destroy();
 
-		void Bind(const CommandList& _cmdList);
+		virtual void Bind(const CommandList& _cmdList) = 0;
 
 		DXPipelineT operator->() const;
 	};

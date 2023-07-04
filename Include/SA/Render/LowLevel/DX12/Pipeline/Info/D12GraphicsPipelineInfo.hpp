@@ -5,9 +5,7 @@
 #ifndef SAPPHIRE_RENDER_D12_GRAPHICS_PIPELINE_GUARD
 #define SAPPHIRE_RENDER_D12_GRAPHICS_PIPELINE_GUARD
 
-#include <vector>
-
-#include <SA/Render/LowLevel/DX12/DX12API.hpp>
+#include "D12GraphicsPipelineViewInfo.hpp"
 
 namespace SA::RND::DX12
 {
@@ -29,6 +27,8 @@ namespace SA::RND::DX12
 		D3D12_RASTERIZER_DESC raster;
 
 		std::vector<D3D12_INPUT_ELEMENT_DESC> vertexInputElements;
+
+		GraphicsPipelineViewInfo views;
 
 		DXGI_FORMAT rtvFormats[8] = { DXGI_FORMAT_R8G8B8A8_UNORM };
 		DXGI_FORMAT dsvFormat = DXGI_FORMAT_D16_UNORM;

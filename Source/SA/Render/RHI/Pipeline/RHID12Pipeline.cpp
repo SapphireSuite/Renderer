@@ -11,25 +11,30 @@ namespace SA::RND::RHI
 {
 	void D12Pipeline::Create(const Device* _device, const GraphicsPipelineInfo& _info)
 	{
-		mHandle.Create(_device->API_DirectX12(), _info.API_DirectX12());
+		auto gPipeline = new DX12::GraphicsPipeline();
+
+		gPipeline->Create(_device->API_DirectX12(), _info.API_DirectX12());
+
+		mHandle = gPipeline;
 	}
 
 	void D12Pipeline::Destroy(const Device* _device)
 	{
 		(void)_device;
 
-		mHandle.Destroy();
+		mHandle->Destroy();
+		delete mHandle;
 	}
 
 	void D12Pipeline::Bind(const CommandBuffer* _cmd)
 	{
-		mHandle.Bind(_cmd->API_DirectX12().GetCommandList());
+		mHandle->Bind(_cmd->API_DirectX12().GetCommandList());
 	}
 
 
 	const DX12::Pipeline& D12Pipeline::API_DirectX12() const
 	{
-		return mHandle;
+		return *mHandle;
 	}
 }
 

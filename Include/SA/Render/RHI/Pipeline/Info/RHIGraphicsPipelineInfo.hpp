@@ -7,6 +7,7 @@
 
 #include "RHIGraphicsPipelineRasterizationInfo.hpp"
 #include "RHIGraphicsPipelineShaderStageInfo.hpp"
+#include "RHIGraphicsPipelineViewInfo.hpp"
 
 namespace SA::RND
 {
@@ -25,6 +26,7 @@ namespace SA::RND
 	{
 		struct GraphicsPipelineInfo;
 	}
+
 #endif
 
 	namespace RHI
@@ -36,6 +38,8 @@ namespace SA::RND
 		{
 			GraphicsPipelineShaderStageInfo shaders;
 			GraphicsPipelineRasterizationInfo raster;
+
+			GraphicsPipelineViewInfo views;
 
 			const PipelineLayout* layout = nullptr;
 

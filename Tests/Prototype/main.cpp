@@ -304,6 +304,8 @@ public:
 
 			info.raster.frontFace = RHI::FrontFaceMode::Clockwise;
 
+			info.views.AddFullViewport(swapchain->GetExtents());
+
 			info.layout = pipLayout;
 
 			info.pass = pass;
