@@ -24,7 +24,7 @@ namespace SA::RND::DX12
 
 		GraphicsPipelineShaderStages shaderStages;
 
-		D3D12_RASTERIZER_DESC raster;
+		D3D12_RASTERIZER_DESC raster{};
 
 		std::vector<D3D12_INPUT_ELEMENT_DESC> vertexInputElements;
 

@@ -26,7 +26,7 @@ namespace SA::RND::RHI
 		CullingMode cullingMode = CullingMode::Back;
 
 		/// Rasterization front face mode.
-		FrontFaceMode frontFace = FrontFaceMode::CounterClockwise;
+		FrontFaceMode frontFace = FrontFaceMode::Clockwise;
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 

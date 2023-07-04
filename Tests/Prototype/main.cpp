@@ -302,8 +302,6 @@ public:
 			info.shaders.vs = vertexShader;
 			info.shaders.ps = pixelShader;
 
-			info.raster.frontFace = RHI::FrontFaceMode::Clockwise;
-
 			info.views.AddFullViewport(swapchain->GetExtents());
 
 			info.layout = pipLayout;
