@@ -7,6 +7,7 @@
 
 #include "RHIGraphicsPipelineRasterizationInfo.hpp"
 #include "RHIGraphicsPipelineShaderStageInfo.hpp"
+#include "RHIGraphicsPipelineDepthStencilInfo.hpp"
 #include "RHIGraphicsPipelineViewInfo.hpp"
 
 namespace SA::RND
@@ -38,6 +39,8 @@ namespace SA::RND
 		{
 			GraphicsPipelineShaderStageInfo shaders;
 			GraphicsPipelineRasterizationInfo raster;
+
+			GraphicsPipelineDepthStencilInfo depthStencil;
 
 			GraphicsPipelineViewInfo views;
 

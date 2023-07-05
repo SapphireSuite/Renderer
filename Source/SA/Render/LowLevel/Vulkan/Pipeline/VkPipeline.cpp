@@ -32,21 +32,6 @@ namespace SA::RND::VK
 		};
 
 		// TODO: Clean.
-		VkPipelineDepthStencilStateCreateInfo depthStencilInfo{
-			.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
-			.pNext = nullptr,
-			.flags = 0u,
-			.depthTestEnable = VK_TRUE,
-			.depthWriteEnable = VK_TRUE,
-			.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL,
-			.depthBoundsTestEnable = VK_FALSE,
-			.stencilTestEnable = VK_FALSE,
-			.front = {},
-			.back = {},
-			.minDepthBounds = 0.0f,
-			.maxDepthBounds = 1.0f,
-		};
-
 		VkPipelineColorBlendAttachmentState colorBlendAttachment{
 			.blendEnable = VK_TRUE,
 			.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA,
@@ -84,7 +69,7 @@ namespace SA::RND::VK
 			.pViewportState = &viewportStateInfo,
 			.pRasterizationState = &_info.raster,
 			.pMultisampleState = &_info.multisampling,
-			.pDepthStencilState = &depthStencilInfo,
+			.pDepthStencilState = &_info.depthStencil,
 			.pColorBlendState = &colorBlendingInfo,
 			.pDynamicState = nullptr,
 			.layout = *_info.layout,

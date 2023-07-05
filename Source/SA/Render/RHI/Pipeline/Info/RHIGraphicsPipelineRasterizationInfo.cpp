@@ -12,7 +12,7 @@ namespace SA::RND::RHI
 		vkInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
 		vkInfo.pNext = nullptr;
 		vkInfo.flags = 0u;
-		vkInfo.depthClampEnable = bDepthTest ? VK_TRUE : VK_FALSE;
+		vkInfo.depthClampEnable = VK_TRUE;
 		vkInfo.rasterizerDiscardEnable = VK_FALSE;
 		vkInfo.polygonMode = VK::API_GetPolygonMode(polygon);
 		vkInfo.cullMode = VK::API_GetCullingMode(cullingMode);
@@ -39,7 +39,7 @@ namespace SA::RND::RHI
 		d12Desc.DepthBias = D3D12_DEFAULT_DEPTH_BIAS;
 		d12Desc.DepthBiasClamp = D3D12_DEFAULT_DEPTH_BIAS_CLAMP;
 		d12Desc.SlopeScaledDepthBias = D3D12_DEFAULT_SLOPE_SCALED_DEPTH_BIAS;
-		d12Desc.DepthClipEnable = bDepthTest;
+		d12Desc.DepthClipEnable = true;
 		d12Desc.MultisampleEnable = false;
 		d12Desc.AntialiasedLineEnable = false;
 		d12Desc.ForcedSampleCount = 0;

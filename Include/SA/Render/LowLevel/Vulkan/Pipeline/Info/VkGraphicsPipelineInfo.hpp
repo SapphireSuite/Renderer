@@ -21,6 +21,7 @@ namespace SA::RND::VK
 		VkPipelineRasterizationStateCreateInfo raster;
 		VkPipelineMultisampleStateCreateInfo multisampling;
 
+		VkPipelineDepthStencilStateCreateInfo depthStencil;
 		GraphicsPipelineViewInfo views;
 
 		const PipelineLayout* layout = nullptr;

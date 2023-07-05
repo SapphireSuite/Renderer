@@ -45,17 +45,6 @@ namespace SA::RND::DX12
 				rtBlend
 			}
 		};
-
-		D3D12_DEPTH_STENCIL_DESC depthStencilState{
-			.DepthEnable = true,
-			.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL,
-			.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL,
-			.StencilEnable = false,
-			.StencilReadMask = 0,
-			.StencilWriteMask = 0,
-			.FrontFace = {},
-			.BackFace = {},
-		};
 		//
 
 		uint32_t RTNum = 0;
@@ -83,7 +72,7 @@ namespace SA::RND::DX12
 			.SampleMask = UINT_MAX,
 
 			.RasterizerState = _info.raster,
-			.DepthStencilState = depthStencilState,
+			.DepthStencilState = _info.depthStencil,
 
 			.InputLayout
 			{
