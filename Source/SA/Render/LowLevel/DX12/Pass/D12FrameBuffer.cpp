@@ -120,8 +120,27 @@ namespace SA::RND::DX12
 						SA_ASSERT((Nullptr, _presentImage.Get()), SA.Render.DX12,
 							L"Input present image handle must be valid with AttachmentUsage::Present");
 
-						attach.imageBuffer = _presentImage;
-						attach.state = D3D12_RESOURCE_STATE_PRESENT;
+						//attach.state = D3D12_RESOURCE_STATE_PRESENT;
+	
+						if (desc.SampleDesc.Count > 1)
+						{
+							viewDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DMS;
+							SA_DX12_API(_device->CreateCommittedResource(&heapProps,
+								D3D12_HEAP_FLAG_NONE,
+								&desc,
+								attach.state,
+								&attach.clearValue,
+								IID_PPV_ARGS(&attach.imageBuffer)
+							));
+
+							attach.resolveImageBuffer = _presentImage;
+						}
+						else
+						{
+							attach.state = D3D12_RESOURCE_STATE_PRESENT;
+							attach.imageBuffer = _presentImage;
+						}
+						
 						viewDesc.Format = Intl::UNORMToSRGBFormat(_presentImage->GetDesc().Format);
 					}
 					else
@@ -135,6 +154,22 @@ namespace SA::RND::DX12
 							&attach.clearValue,
 							IID_PPV_ARGS(&attach.imageBuffer)
 						));
+
+						// Resolve resource.
+						if (desc.SampleDesc.Count > 1 && 
+							attachInfo.type == AttachmentType::Color) // DX12 does not support MSAA Depth resolve.
+						{
+							viewDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DMS;
+							desc.SampleDesc.Count = 1;
+
+							SA_DX12_API(_device->CreateCommittedResource(&heapProps,
+								D3D12_HEAP_FLAG_NONE,
+								&desc,
+								attach.state,
+								&attach.clearValue,
+								IID_PPV_ARGS(&attach.resolveImageBuffer)
+							));
+						}
 
 						viewDesc.Format = attach.imageBuffer->GetDesc().Format;
 					}

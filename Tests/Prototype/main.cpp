@@ -163,7 +163,7 @@ public:
 			RHI::PassInfo passInfo;
 			{
 				constexpr bool bDepth = true;
-				constexpr bool bMSAA = false;
+				constexpr bool bMSAA = true;
 
 				// Forward
 				if (true)
