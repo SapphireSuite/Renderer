@@ -42,13 +42,13 @@ namespace SA::RND::DX12
 				SA_ASSERT((OutOfArrayRange, prevSubpassIndex, mPassInfo.subpasses));
 				auto& prevSubpassInfo = mPassInfo.subpasses[prevSubpassIndex];
 
-				FrameBuffer::Attachment* const prevFBuffAttachs = mCurrFrameBuffer->GetSubpassAttachments(prevSubpassIndex);
+				auto& prevSubpassFrame = mCurrFrameBuffer->GetSubpassFrame(prevSubpassIndex);
+				std::vector<FrameBuffer::Attachment>& prevFBuffAttachs = prevSubpassFrame.attachments;
 
 				// Apply transition to prev subpass.
-				for (uint32_t i = 0; i < prevSubpassInfo.attachments.size(); ++i)
+				for (uint32_t fBuffAttachIndex = 0; auto & attachInfo : prevSubpassInfo.attachments)
 				{
-					auto& attachInfo = prevSubpassInfo.attachments[i];
-					auto& fBuffAttach = prevFBuffAttachs[i];
+					auto& fBuffAttach = attachInfo.type == AttachmentType::Depth ? prevSubpassFrame.depthAttachment : prevFBuffAttachs[fBuffAttachIndex++];
 
 					D3D12_RESOURCE_BARRIER barrier;
 					barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
@@ -118,16 +118,14 @@ namespace SA::RND::DX12
 			SA_ASSERT((OutOfArrayRange, mCurrSubpassIndex, mPassInfo.subpasses));
 			auto& currSubpassInfo = mPassInfo.subpasses[mCurrSubpassIndex];
 
-			auto& currViewHeap = mCurrFrameBuffer->GetSubpassViewHeap(mCurrSubpassIndex);
-
-			FrameBuffer::Attachment* const currFBuffAttachs = mCurrFrameBuffer->GetSubpassAttachments(mCurrSubpassIndex);
+			auto& currSubpassFrame = mCurrFrameBuffer->GetSubpassFrame(mCurrSubpassIndex);
+			std::vector<FrameBuffer::Attachment>& currFBuffAttachs = currSubpassFrame.attachments;
 
 			// Transition
 			{
-				for (uint32_t i = 0; i < currSubpassInfo.attachments.size(); ++i)
+				for(uint32_t fBuffAttachIndex = 0; auto& attachInfo : currSubpassInfo.attachments)
 				{
-					auto& attachInfo = currSubpassInfo.attachments[i];
-					auto& fBuffAttach = currFBuffAttachs[i];
+					auto& fBuffAttach = attachInfo.type == AttachmentType::Depth ? currSubpassFrame.depthAttachment : currFBuffAttachs[fBuffAttachIndex++];
 
 					D3D12_RESOURCE_BARRIER barrier;
 					barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
@@ -170,13 +168,11 @@ namespace SA::RND::DX12
 
 			// Clear
 			{
-				D3D12_CPU_DESCRIPTOR_HANDLE colorDescHandle = currViewHeap.colorViewHeap;
-				D3D12_CPU_DESCRIPTOR_HANDLE depthDescHandle = currViewHeap.depthViewHeap;
+				D3D12_CPU_DESCRIPTOR_HANDLE colorDescHandle = currSubpassFrame.colorViewHeap;
+				D3D12_CPU_DESCRIPTOR_HANDLE depthDescHandle = currSubpassFrame.depthViewHeap;
 
-				for (uint32_t i = 0; i < currSubpassInfo.attachments.size(); ++i)
+				for (uint32_t fBuffAttachIndex = 0; auto & attachInfo : currSubpassInfo.attachments)
 				{
-					auto& attachInfo = currSubpassInfo.attachments[i];
-
 					if (!attachInfo.bClearOnLoad)
 						continue;
 
@@ -184,13 +180,13 @@ namespace SA::RND::DX12
 					{
 						case AttachmentType::Color:
 						{
-							_cmd->ClearRenderTargetView(colorDescHandle, currFBuffAttachs[i].clearValue.Color, 0, nullptr);
+							_cmd->ClearRenderTargetView(colorDescHandle, currFBuffAttachs[fBuffAttachIndex++].clearValue.Color, 0, nullptr);
 							colorDescHandle.ptr += mCurrFrameBuffer->GetRTVDescriptorIncrementSize();
 							break;
 						}
 						case AttachmentType::Depth:
 						{
-							auto DSClearValue = currFBuffAttachs[i].clearValue.DepthStencil;
+							auto DSClearValue = currSubpassFrame.depthAttachment.clearValue.DepthStencil;
 							_cmd->ClearDepthStencilView(depthDescHandle, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, DSClearValue.Depth, DSClearValue.Stencil, 0, nullptr);
 							depthDescHandle.ptr += mCurrFrameBuffer->GetDSVDescriptorIncrementSize();
 							break;
@@ -207,10 +203,10 @@ namespace SA::RND::DX12
 			// Binding
 			{
 				_cmd->OMSetRenderTargets(
-					currViewHeap.colorRTNum,
-					&currViewHeap.colorViewHeap,
+					static_cast<uint32_t>(currSubpassFrame.attachments.size()),
+					&currSubpassFrame.colorViewHeap,
 					true,
-					currViewHeap.depthViewHeap.ptr ? &currViewHeap.depthViewHeap : nullptr
+					currSubpassFrame.depthViewHeap.ptr ? &currSubpassFrame.depthViewHeap : nullptr
 				);
 			}
 		}

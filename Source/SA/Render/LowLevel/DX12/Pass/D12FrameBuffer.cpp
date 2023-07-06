@@ -10,6 +10,8 @@ namespace SA::RND::DX12
 {
 	void FrameBuffer::Create(const Device& _device, const PassInfo& _info, MComPtr<ID3D12Resource> _presentImage)
 	{
+		mSubpassFrames.reserve(_info.subpasses.size());
+
 		// Render Target view heap
 		{
 			uint32_t renderTargetNum = 0u;
@@ -45,8 +47,6 @@ namespace SA::RND::DX12
 
 				SA_DX12_API(_device->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(&mDepthStencilViewHeap)));
 			}
-
-			mAttachments.reserve(renderTargetNum + depthStencilNum);
 		}
 
 
@@ -61,13 +61,14 @@ namespace SA::RND::DX12
 
 		for(auto& subpass : _info.subpasses)
 		{
-			SubpassViewHeap& subpassHeap = mSubpassViewHeaps.emplace_back();
-			subpassHeap.colorViewHeap = rtvHandle;
-			subpassHeap.depthViewHeap = subpass.HasDepthAttachment() ? dsvHandle : D3D12_CPU_DESCRIPTOR_HANDLE();
+			auto& subpassFrame = mSubpassFrames.emplace_back();
+			subpassFrame.colorViewHeap = rtvHandle;
+			subpassFrame.depthViewHeap = subpass.HasDepthAttachment() ? dsvHandle : D3D12_CPU_DESCRIPTOR_HANDLE();
+			subpassFrame.attachments.reserve(subpass.attachments.size());
 
 			for(auto& attachInfo : subpass.attachments)
 			{
-				auto& attach = mAttachments.emplace_back();
+				Attachment attach;
 				attach.clearValue.Format = attachInfo.format;
 
 				D3D12_RENDER_TARGET_VIEW_DESC viewDesc
@@ -144,12 +145,15 @@ namespace SA::RND::DX12
 				{
 					_device->CreateRenderTargetView(attach.imageBuffer.Get(), &viewDesc, rtvHandle);
 					rtvHandle.ptr += mRTVDescriptorIncrementSize;
-					++subpassHeap.colorRTNum;
+
+					subpassFrame.attachments.emplace_back(attach);
 				}
 				else if(attachInfo.type == AttachmentType::Depth)
 				{
 					_device->CreateDepthStencilView(attach.imageBuffer.Get(), nullptr, dsvHandle);
 					dsvHandle.ptr += mDSVDescriptorIncrementSize;
+
+					subpassFrame.depthAttachment = std::move(attach);
 				}
 			}
 		}
@@ -159,8 +163,7 @@ namespace SA::RND::DX12
 
 	void FrameBuffer::Destroy()
 	{
-		mSubpassViewHeaps.clear();
-		mAttachments.clear();
+		mSubpassFrames.clear();
 
 		mRenderTargetViewHeap.Reset();
 		mDepthStencilViewHeap.Reset();
@@ -178,36 +181,16 @@ namespace SA::RND::DX12
 		return mDSVDescriptorIncrementSize;
 	}
 
-	uint32_t FrameBuffer::CountImageBufferOffset(uint32_t _subpassIndex) const
+
+	FrameBuffer::SubpassFrame& FrameBuffer::GetSubpassFrame(uint32_t _subpassIndex)
 	{
-		uint32_t imageOffset = 0u;
+		SA_ASSERT((OutOfArrayRange, _subpassIndex, mSubpassFrames), SA.Render.DX12);
 
-		for (uint32_t i = 0; i < _subpassIndex; ++i)
-		{
-			imageOffset += mSubpassViewHeaps[i].colorRTNum;
-
-			if (mSubpassViewHeaps[i].depthViewHeap.ptr)
-				++imageOffset;
-		}
-
-		return imageOffset;
+		return mSubpassFrames[_subpassIndex];
 	}
 
-	FrameBuffer::Attachment* FrameBuffer::GetSubpassAttachments(uint32_t _subpassIndex)
+	std::vector<FrameBuffer::Attachment>& FrameBuffer::GetSubpassAttachments(uint32_t _subpassIndex)
 	{
-		SA_ASSERT((OutOfArrayRange, _subpassIndex, mSubpassViewHeaps), SA.Render.DX12);
-
-		const uint32_t imageOffset = CountImageBufferOffset(_subpassIndex);
-
-		SA_ASSERT((OutOfArrayRange, imageOffset, mAttachments), SA.Render.DX12);
-
-		return mAttachments.data() + imageOffset;
-	}
-
-	const FrameBuffer::SubpassViewHeap& FrameBuffer::GetSubpassViewHeap(uint32_t _subpassIndex) const
-	{
-		SA_ASSERT((OutOfArrayRange, _subpassIndex, mSubpassViewHeaps), SA.Render.DX12);
-
-		return mSubpassViewHeaps[_subpassIndex];
+		return GetSubpassFrame(_subpassIndex).attachments;
 	}
 }

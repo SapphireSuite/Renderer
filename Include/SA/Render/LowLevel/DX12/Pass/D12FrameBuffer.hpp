@@ -23,27 +23,22 @@ namespace SA::RND::DX12
 		struct Attachment
 		{
 			MComPtr<ID3D12Resource> imageBuffer;
+			MComPtr<ID3D12Resource> resolveImageBuffer;
 			D3D12_CLEAR_VALUE clearValue{};
 			D3D12_RESOURCE_STATES state = D3D12_RESOURCE_STATE_COMMON;
 		};
-		
-		struct SubpassViewHeap
+
+		struct SubpassFrame
 		{
-			/// Number of render target in subapss.
-			uint32_t colorRTNum = 0u;
+			std::vector<Attachment> attachments;
+			Attachment depthAttachment;
 
 			D3D12_CPU_DESCRIPTOR_HANDLE colorViewHeap{ 0 };
-
 			D3D12_CPU_DESCRIPTOR_HANDLE depthViewHeap{ 0 };
 		};
 
 	private:
-		std::vector<Attachment> mAttachments;
-
-		/// Per-subpass render target view heap handle.
-		std::vector<SubpassViewHeap> mSubpassViewHeaps;
-
-		uint32_t CountImageBufferOffset(uint32_t _subpassIndex) const;
+		std::vector<SubpassFrame> mSubpassFrames;
 
 	public:
 		void Create(const Device& _device, const PassInfo& _info, MComPtr<ID3D12Resource> _presentImage = nullptr);
@@ -52,8 +47,8 @@ namespace SA::RND::DX12
 		uint32_t GetRTVDescriptorIncrementSize() const;
 		uint32_t GetDSVDescriptorIncrementSize() const;
 
-		Attachment* GetSubpassAttachments(uint32_t _subpassIndex);
-		const SubpassViewHeap& GetSubpassViewHeap(uint32_t _subpassIndex) const;
+		SubpassFrame& GetSubpassFrame(uint32_t _subpassIndex);
+		std::vector<Attachment>& GetSubpassAttachments(uint32_t _subpassIndex);
 	};
 }
 
