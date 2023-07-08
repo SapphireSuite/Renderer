@@ -5,24 +5,21 @@
 #ifndef SAPPHIRE_RENDER_DX12_COMMAND_POOL_GUARD
 #define SAPPHIRE_RENDER_DX12_COMMAND_POOL_GUARD
 
-#include <SA/Render/LowLevel/DX12/DX12API.hpp>
-
-#include "D12CommandList.hpp"
+#include "D12CommandBuffer.hpp"
 
 namespace SA::RND::DX12
 {
-	class Device;
-
 	class CommandPool
 	{
-		MComPtr<ID3D12CommandAllocator> mHandle;
-
 	public:
-		void Create(const Device& _device, D3D12_COMMAND_LIST_TYPE _type = D3D12_COMMAND_LIST_TYPE_DIRECT);
+		void Create(const Device& _device);
 		void Destroy();
 
-		CommandList Allocate(const Device& _device, D3D12_COMMAND_LIST_TYPE _type);
-		void Free(CommandList& _cmd);
+		CommandBuffer Allocate(const Device& _device, D3D12_COMMAND_LIST_TYPE _type = D3D12_COMMAND_LIST_TYPE_DIRECT);
+		std::vector<CommandBuffer> AllocateMultiple(const Device& _device, uint32_t _num, D3D12_COMMAND_LIST_TYPE _type = D3D12_COMMAND_LIST_TYPE_DIRECT);
+	
+		void Free(CommandBuffer& _cmd);
+		void FreeMultiple(std::vector<CommandBuffer>& _cmds);
 	};
 }
 

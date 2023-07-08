@@ -8,6 +8,8 @@
 
 #if SA_RENDER_LOWLEVEL_DX12_IMPL
 
+#include <SA/Render/LowLevel/DX12/Device/Command/D12CommandBuffer.hpp>
+
 namespace SA::RND::RHI
 {
 	void D12Swapchain::Create(const RenderInterface* _renderIntf,
@@ -15,14 +17,20 @@ namespace SA::RND::RHI
 		const WindowSurface* _winSurface,
 		const SwapchainSettings& _settings)
 	{
-		mHandle.Create(_renderIntf->API_DirectX12(), _device->API_DirectX12(), _winSurface->API_DirectX12(), _settings.API_DirectX12());
+		mDevice = &_device->API_DirectX12();
+
+		mHandle.Create(_renderIntf->API_DirectX12(), *mDevice, _winSurface->API_DirectX12(), _settings.API_DirectX12());
 	}
 
 	void D12Swapchain::Destroy(const RenderInterface* _renderIntf, const Device* _device)
 	{
 		(void)_renderIntf;
 		(void)_device;
+
+		SA_ASSERT((Equals, mDevice, &_device->API_DirectX12()), SA.Render.RHI, L"Device ptr should match to ensure correct destroy.");
+
 		mHandle.Destroy();
+		mDevice = nullptr;
 	}
 
 	Format D12Swapchain::GetFormat() const
@@ -39,6 +47,26 @@ namespace SA::RND::RHI
 	{
 		return mHandle.GetExtents();
 	}
+
+
+	uint32_t D12Swapchain::Begin()
+	{
+		return mHandle.Begin();
+	}
+	
+	void D12Swapchain::End(std::vector<CommandBuffer*> _cmds)
+	{
+		SA_ASSERT((Nullptr, mDevice), SA.Render.RHI);
+
+		std::vector<DX12::CommandList> d12Cmds;
+		d12Cmds.reserve(_cmds.size());
+
+		for (auto cmd : _cmds)
+			d12Cmds.emplace_back(cmd->API_DirectX12().GetCommandList());
+
+		mHandle.End(*mDevice, d12Cmds);
+	}
+
 
 //{ BackBuffer
 

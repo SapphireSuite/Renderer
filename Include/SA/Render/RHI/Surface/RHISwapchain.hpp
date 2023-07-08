@@ -35,6 +35,8 @@ namespace SA::RND
 		class Device;
 		class WindowSurface;
 
+		class CommandBuffer;
+
 		class Swapchain
 		{
 		public:
@@ -50,11 +52,16 @@ namespace SA::RND
 			virtual uint32_t GetImageNum() const = 0;
 			virtual const Vec2ui& GetExtents() const = 0;
 
+			virtual uint32_t Begin() = 0;
+			virtual void End(std::vector<CommandBuffer*> _cmds) = 0;
+
 //{ BackBuffer
 	
 			class BackBufferHandle
 			{
 			public:
+				virtual ~BackBufferHandle() = default;
+
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
 				virtual VkImage API_Vulkan() const;

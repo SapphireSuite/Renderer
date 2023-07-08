@@ -12,12 +12,28 @@ namespace SA::RND::RHI
 	{
 		Pass::Create(_device, std::move(_info));
 
-		mHandle.Create(_device->API_Vulkan(), mInfo.API_Vulkan());
+		mHandle.Create(_device->API_Vulkan(), mPassInfo.API_Vulkan());
 	}
 	
 	void VkPass::Destroy(const Device* _device)
 	{
 		mHandle.Destroy(_device->API_Vulkan());
+	}
+
+	
+	void VkPass::Begin(const CommandBuffer* _cmd, FrameBuffer* _fBuff)
+	{
+		mHandle.Begin(_cmd->API_Vulkan(), _fBuff->API_Vulkan());
+	}
+	
+	void VkPass::NextSubpass(const CommandBuffer* _cmd)
+	{
+		mHandle.NextSubpass(_cmd->API_Vulkan());
+	}
+	
+	void VkPass::End(const CommandBuffer* _cmd)
+	{
+		mHandle.End(_cmd->API_Vulkan());
 	}
 
 

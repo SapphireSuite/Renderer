@@ -13,7 +13,7 @@ namespace SA::RND::VK
 		shaderModuleCreateInfo.pNext = nullptr;
 		shaderModuleCreateInfo.flags = 0u;
 		shaderModuleCreateInfo.codeSize = _raw.data.size() * sizeof(decltype(_raw.data)::value_type);
-		shaderModuleCreateInfo.pCode = _raw.data.data();
+		shaderModuleCreateInfo.pCode = reinterpret_cast<const uint32_t*>(_raw.data.data());
 
 		SA_VK_API(vkCreateShaderModule(_device, &shaderModuleCreateInfo, nullptr, &mHandle));
 		

@@ -13,7 +13,7 @@ namespace SA::RND::DX12
 {
 	struct SwapchainSettings : public SwapchainSettingsBase
 	{
-		DXGI_FORMAT format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		DXGI_FORMAT format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
 
 		SwapchainSettings() noexcept;
 	};

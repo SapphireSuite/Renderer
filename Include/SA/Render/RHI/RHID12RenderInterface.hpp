@@ -39,12 +39,22 @@ namespace SA::RND::RHI
 
 //}
 
+
 //{ Swapchain
 
 	protected:
 		Swapchain* InstantiateSwapchainClass() const override final;
 
 //}
+
+
+//{ ShaderCompiler
+
+	public:
+		ShaderCompileResult CompileShader(const ShaderCompileInfo& _info) override final;
+
+//}
+
 
 	public:
 		const DX12::Factory& API_DirectX12() const override final;

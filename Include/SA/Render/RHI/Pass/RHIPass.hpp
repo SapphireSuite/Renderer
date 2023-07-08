@@ -21,11 +21,13 @@ namespace SA::RND
 	namespace RHI
 	{
 		class Device;
+		class CommandBuffer;
+		class FrameBuffer;
 
 		class Pass
 		{
 		protected:
-			PassInfo mInfo;
+			PassInfo mPassInfo;
 
 		public:
 			virtual ~Pass() = default;
@@ -34,6 +36,10 @@ namespace SA::RND
 
 			virtual void Create(const Device* _device, PassInfo _info);
 			virtual void Destroy(const Device* _device) = 0;
+
+			virtual void Begin(const CommandBuffer* _cmd, FrameBuffer* _fBuff) = 0;
+			virtual void NextSubpass(const CommandBuffer* _cmd) = 0;
+			virtual void End(const CommandBuffer* _cmd) = 0;
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 

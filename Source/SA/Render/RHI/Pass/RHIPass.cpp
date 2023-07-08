@@ -8,14 +8,14 @@ namespace SA::RND::RHI
 {
 	const PassInfo& Pass::GetInfo() const
 	{
-		return mInfo;
+		return mPassInfo;
 	}
 
 	void Pass::Create(const Device* _device, PassInfo _info)
 	{
 		(void)_device;
 		
-		mInfo = std::move(_info);
+		mPassInfo = std::move(_info);
 	}
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL

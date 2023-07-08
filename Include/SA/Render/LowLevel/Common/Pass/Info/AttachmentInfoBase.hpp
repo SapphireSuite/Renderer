@@ -20,7 +20,7 @@ namespace SA::RND
 	{
 		std::string name;
 
-		Color clearColor = Color{ 0.0f, 0.0f, 0.05f, 0.0f };
+		Color clearColor = Color{ 0.0f, 0.0f, 0.015f, 0.0f };
 
 		AttachmentType type = AttachmentType::Color;
 

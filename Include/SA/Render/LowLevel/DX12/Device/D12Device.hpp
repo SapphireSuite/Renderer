@@ -32,6 +32,11 @@ namespace SA::RND::DX12
 
 //}
 
+#if SA_DX12_VALIDATION_LAYERS
+
+		DWORD mVLayerCallbackCookie = 0;
+#endif
+
 	public:
 		QueueMgr queueMgr;
 

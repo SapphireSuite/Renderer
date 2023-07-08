@@ -3,7 +3,7 @@
 cmake_minimum_required(VERSION 3.16)
 
 # Sapphire Suite's CMake tools.
-add_subdirectory(CMake)
+add_subdirectory(ThirdParty/SA/CMake)
 
 
 
@@ -159,11 +159,52 @@ if(SA_RENDER_RHI_OPT)
 
 	### Link dependencies.
 	target_link_libraries(SA_Render_RHI
-		PUBLIC SA_Render_LowLevel
+		PUBLIC SA_Render_LowLevel SA_Render_ShaderCompiler
 	)
 
 	### Link to main lib.
 	target_link_libraries(SA_Render INTERFACE SA_Render_RHI)
+
+endif()
+
+
+## ShaderCompiler
+option(SA_RENDER_SHADER_COMPILER_OPT "Should compile shader compiler" ON)
+
+if(SA_RENDER_SHADER_COMPILER_OPT)
+
+	add_library(SA_Render_ShaderCompiler STATIC)
+	SA_ConfigureTarget(SA_Render_ShaderCompiler)
+	SA_TargetSources(SA_Render_ShaderCompiler
+		PUBLIC_SRC_DIR "Include/SA/Render/ShaderCompiler"
+		PUBLIC_INCL_DIR "OFF"
+		PRIVATE_SRC_DIR "Source/SA/Render/ShaderCompiler"
+	)
+
+	### Link dependencies.
+	target_link_libraries(SA_Render_ShaderCompiler
+		PUBLIC SA_Logger SA_DirectXShaderCompiler SA_Render_RHI
+	)
+
+	if(SA_RENDER_VULKAN_OPT OR SA_RENDER_OPENGL_OPT)
+		target_link_libraries(SA_Render_ShaderCompiler PRIVATE spirv-reflect-static)
+	endif()
+
+	### Link to main lib.
+	target_link_libraries(SA_Render INTERFACE SA_Render_ShaderCompiler)
+
+	### Add source folder for shader include directory.
+	target_compile_definitions(SA_Render_ShaderCompiler PRIVATE SA_CMAKE_SOURCE_DIR=L"${CMAKE_SOURCE_DIR}")
+
+	### Fix dxil.dll lookup on windows.
+	if(WIN32)
+		add_custom_command(
+			TARGET SA_Render_ShaderCompiler POST_BUILD
+			COMMAND ${CMAKE_COMMAND} -E copy
+			${CMAKE_SOURCE_DIR}/ThirdParty/DirectXShaderCompiler/bin/windows/dxil.dll
+			$<TARGET_FILE_DIR:SA_Render_ShaderCompiler>/../
+		)
+	endif()
 
 endif()
 

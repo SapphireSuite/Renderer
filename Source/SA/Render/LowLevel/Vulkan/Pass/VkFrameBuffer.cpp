@@ -12,7 +12,7 @@ namespace SA::RND::VK
 			const PassInfo& _info,
 			VkImage _presentImage)
 	{
-		Vec2ui fameBufferExtents{INT_MAX, INT_MAX};
+		mExtents = Vec2ui{INT_MAX, INT_MAX};
 
 		for(auto& subpass : _info.subpasses)
 		{
@@ -25,8 +25,8 @@ namespace SA::RND::VK
 				imgInfo.format = attach.format;
 				imgInfo.extents = attach.extents;
 
-				fameBufferExtents.x = std::min(fameBufferExtents.x, attach.extents.x);
-				fameBufferExtents.y = std::min(fameBufferExtents.y, attach.extents.y);
+				mExtents.x = std::min(mExtents.x, attach.extents.x);
+				mExtents.y = std::min(mExtents.y, attach.extents.y);
 
 				if(attach.type == AttachmentType::Color)
 				{
@@ -55,7 +55,7 @@ namespace SA::RND::VK
 					imgInfo.aspectFlags |= VK_IMAGE_ASPECT_DEPTH_BIT;
 
 					if(attach.loadMode == VK_ATTACHMENT_LOAD_OP_CLEAR)
-						mClearValues.push_back(VkClearValue{ { attach.clearColor.r, attach.clearColor.g } });
+						mClearValues.push_back(VkClearValue{ { { attach.clearColor.r, attach.clearColor.g } } });
 				}
 
 
@@ -94,8 +94,8 @@ namespace SA::RND::VK
 		createInfo.renderPass = _pass;
 		createInfo.attachmentCount = static_cast<uint32_t>(views.size());
 		createInfo.pAttachments = views.data();
-		createInfo.width = fameBufferExtents.x;
-		createInfo.height = fameBufferExtents.y;
+		createInfo.width = mExtents.x;
+		createInfo.height = mExtents.y;
 		createInfo.layers = 1;
 
 
@@ -119,6 +119,16 @@ namespace SA::RND::VK
 		mHandle = VK_NULL_HANDLE;
 	}
 
+
+	const Vec2ui& FrameBuffer::GetExtents() const
+	{
+		return mExtents;
+	}
+
+	const std::vector<VkClearValue>& FrameBuffer::GetClearValues() const
+	{
+		return mClearValues;
+	}
 
 	FrameBuffer::operator VkFramebuffer() const noexcept
 	{

@@ -14,6 +14,7 @@ namespace SA::RND::DX12
 	class Factory;
 	class Device;
 	class WindowSurface;
+	class CommandList;
 
 	using DXSwapchainT = Microsoft::WRL::ComPtr<IDXGISwapChain3>;
 
@@ -69,8 +70,9 @@ namespace SA::RND::DX12
 
 		DXGI_FORMAT GetFormat() const noexcept;
 
-		uint32_t Begin(const Device& _device);
-		void End();
+		uint32_t Begin();
+		void End(const Device& _device, const std::vector<CommandList>& _cmds);
+		void End(ID3D12CommandQueue* _graphicsQueue/*, ID3D12CommandQueue* presentQueue*/, const std::vector<CommandList>& _cmds);
 	};
 }
 

@@ -5,6 +5,8 @@
 #ifndef SAPPHIRE_RENDER_RHI_PIPELINE_GUARD
 #define SAPPHIRE_RENDER_RHI_PIPELINE_GUARD
 
+#include "Info/RHIGraphicsPipelineInfo.hpp"
+
 namespace SA::RND
 {
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
@@ -29,22 +31,27 @@ namespace SA::RND
 	{
 		class Device;
 		class Pass;
+		class CommandBuffer;
 
 		class Pipeline
 		{
 		public:
-			virtual void Create(const Device* _device, const Pass* _pass) = 0;
+			virtual ~Pipeline() = default;
+
+			virtual void Create(const Device* _device, const GraphicsPipelineInfo& _info) = 0;
 			virtual void Destroy(const Device* _device) = 0;
+
+			virtual void Bind(const CommandBuffer* _cmd) = 0;
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
-			const VK::Pipeline& API_Vulkan() const;
+			virtual const VK::Pipeline& API_Vulkan() const;
 
 #endif
 
 #if SA_RENDER_LOWLEVEL_DX12_IMPL
 
-			const DX12::Pipeline& API_DirectX12() const;
+			virtual const DX12::Pipeline& API_DirectX12() const;
 
 #endif
 		};

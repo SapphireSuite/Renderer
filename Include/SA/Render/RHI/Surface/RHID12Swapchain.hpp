@@ -17,6 +17,8 @@ namespace SA::RND::RHI
 	{
 		DX12::Swapchain mHandle;
 
+		const DX12::Device* mDevice = nullptr;
+
 	public:
 		void Create(const RenderInterface* _renderIntf,
 			const Device* _device,
@@ -27,6 +29,9 @@ namespace SA::RND::RHI
 		Format GetFormat() const override final;
 		uint32_t GetImageNum() const override final;
 		const Vec2ui& GetExtents() const override final;
+
+		uint32_t Begin() override final;
+		void End(std::vector<CommandBuffer*> _cmds) override final;
 
 //{ BackBuffer
 	

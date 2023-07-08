@@ -4,11 +4,28 @@
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
+#include <Device/RHIDevice.hpp>
+
+#include <SA/Render/ShaderCompiler/ShaderCompileResult.hpp>
+
 namespace SA::RND::RHI
 {
-	const VK::Shader* VkShader::API_Vulkan() const
+	void VkShader::Create(const Device* _device, const ShaderCompileResult& _compil)
 	{
-		return &mHandle;
+		Shader::Create(_device, _compil);
+
+		mHandle.Create(_device->API_Vulkan(), _compil.rawSPIRV);
+	}
+
+	void VkShader::Destroy(const Device* _device)
+	{
+		mHandle.Destroy(_device->API_Vulkan());
+	}
+
+
+	const VK::Shader& VkShader::API_Vulkan() const
+	{
+		return mHandle;
 	}
 }
 

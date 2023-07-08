@@ -4,10 +4,14 @@
 
 #include <Device/D12Device.hpp>
 
+#include "../Misc/D12Format.hpp"
+
 namespace SA::RND::DX12
 {
 	void FrameBuffer::Create(const Device& _device, const PassInfo& _info, MComPtr<ID3D12Resource> _presentImage)
 	{
+		mSubpassFrames.reserve(_info.subpasses.size());
+
 		// Render Target view heap
 		{
 			uint32_t renderTargetNum = 0u;
@@ -19,7 +23,7 @@ namespace SA::RND::DX12
 				{
 					if(attach.type == AttachmentType::Color)
 						++renderTargetNum;
-					else if(attach.type == AttachmentType::Depth)
+					else if (attach.type == AttachmentType::Depth)
 						++depthStencilNum;
 				}
 			}
@@ -43,94 +47,148 @@ namespace SA::RND::DX12
 
 				SA_DX12_API(_device->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(&mDepthStencilViewHeap)));
 			}
-
-			mImageBuffers.reserve(renderTargetNum + depthStencilNum);
 		}
 
 
-		const uint32_t rtvDescriptorSize = _device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-		const uint32_t dsvDescriptorSize = _device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+		mRTVDescriptorIncrementSize = _device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+		mDSVDescriptorIncrementSize = _device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
 
-		D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle(mRenderTargetViewHeap->GetCPUDescriptorHandleForHeapStart());
-		D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle(mDepthStencilViewHeap->GetCPUDescriptorHandleForHeapStart());
+		D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle(mRenderTargetViewHeap ? mRenderTargetViewHeap->GetCPUDescriptorHandleForHeapStart() : D3D12_CPU_DESCRIPTOR_HANDLE());
+		D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle(mDepthStencilViewHeap ? mDepthStencilViewHeap->GetCPUDescriptorHandleForHeapStart() : D3D12_CPU_DESCRIPTOR_HANDLE());
 
 		D3D12_HEAP_PROPERTIES heapProps = {};
 		heapProps.Type = D3D12_HEAP_TYPE_DEFAULT;
 
 		for(auto& subpass : _info.subpasses)
 		{
-			SubpassViewHeap& subpassHeap = mSubpassViewHeaps.emplace_back();
-			subpassHeap.colorViewHeap = rtvHandle;
-			subpassHeap.depthViewHeap = dsvHandle;
+			auto& subpassFrame = mSubpassFrames.emplace_back();
+			subpassFrame.colorViewHeap = rtvHandle;
+			subpassFrame.depthViewHeap = subpass.HasDepthAttachment() ? dsvHandle : D3D12_CPU_DESCRIPTOR_HANDLE();
+			subpassFrame.attachments.reserve(subpass.attachments.size());
 
-			for(auto& attach : subpass.attachments)
+			for(auto& attachInfo : subpass.attachments)
 			{
-				MComPtr<ID3D12Resource>& imgBuffer = mImageBuffers.emplace_back();
+				Attachment attach;
+				attach.clearValue.Format = attachInfo.format;
+
+				D3D12_RENDER_TARGET_VIEW_DESC viewDesc
+				{
+					.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D,
+
+					.Texture2D
+					{
+						.MipSlice = 0,
+						.PlaneSlice = 0,
+					}
+				};
 
 				// Resource
-				if(attach.usage == AttachmentUsage::Present)
 				{
-					SA_ASSERT((Nullptr, _presentImage.Get()), SA.Render.DX12,
-						L"Input present image handle must be valid with AttachmentUsage::Present");
-
-					imgBuffer = _presentImage;
-				}
-				else
-				{
-					// Create resource.
-
 					D3D12_RESOURCE_DESC desc{};
 					desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-					desc.Width = attach.extents.x;
-					desc.Height = attach.extents.y;
+					desc.Width = attachInfo.extents.x;
+					desc.Height = attachInfo.extents.y;
 					desc.DepthOrArraySize = 1;
 					desc.MipLevels = 1;
-					desc.Format = attach.format;
+					desc.Format = attachInfo.format;
 					desc.SampleDesc.Count = subpass.sampling;
 
-					D3D12_RESOURCE_STATES state = D3D12_RESOURCE_STATE_COMMON;
-					D3D12_CLEAR_VALUE clearValue{attach.format};
-
-					if(attach.type == AttachmentType::Color)
+					if (attachInfo.type == AttachmentType::Color)
 					{
-						state = D3D12_RESOURCE_STATE_RENDER_TARGET;
+						attach.state = D3D12_RESOURCE_STATE_RENDER_TARGET;
+
 						desc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 
-						clearValue.Color[0] = attach.clearColor.r;
-						clearValue.Color[1] = attach.clearColor.g;
-						clearValue.Color[2] = attach.clearColor.b;
-						clearValue.Color[3] = attach.clearColor.a;
+						attach.clearValue.Color[0] = attachInfo.clearColor.r;
+						attach.clearValue.Color[1] = attachInfo.clearColor.g;
+						attach.clearValue.Color[2] = attachInfo.clearColor.b;
+						attach.clearValue.Color[3] = attachInfo.clearColor.a;
 					}
-					else if(attach.type == AttachmentType::Depth)
+					else if (attachInfo.type == AttachmentType::Depth)
 					{
-						state = D3D12_RESOURCE_STATE_DEPTH_WRITE;
+						attach.state = D3D12_RESOURCE_STATE_DEPTH_WRITE;
+
 						desc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
 
-						clearValue.DepthStencil.Depth = attach.clearColor.r;
-						clearValue.DepthStencil.Stencil = attach.clearColor.g;
+						attach.clearValue.DepthStencil.Depth = attachInfo.clearColor.r;
+						attach.clearValue.DepthStencil.Stencil = static_cast<uint8_t>(attachInfo.clearColor.g);
 					}
 
-					SA_DX12_API(_device->CreateCommittedResource(&heapProps,
-						D3D12_HEAP_FLAG_NONE,
-						&desc,
-						state,
-						&clearValue,
-						IID_PPV_ARGS(&imgBuffer)
-					));
-				}
 
+					if (attachInfo.usage == AttachmentUsage::Present)
+					{
+						SA_ASSERT((Nullptr, _presentImage.Get()), SA.Render.DX12,
+							L"Input present image handle must be valid with AttachmentUsage::Present");
+
+						//attach.state = D3D12_RESOURCE_STATE_PRESENT;
+	
+						if (desc.SampleDesc.Count > 1)
+						{
+							viewDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DMS;
+							SA_DX12_API(_device->CreateCommittedResource(&heapProps,
+								D3D12_HEAP_FLAG_NONE,
+								&desc,
+								attach.state,
+								&attach.clearValue,
+								IID_PPV_ARGS(&attach.imageBuffer)
+							));
+
+							attach.resolveImageBuffer = _presentImage;
+						}
+						else
+						{
+							attach.state = D3D12_RESOURCE_STATE_PRESENT;
+							attach.imageBuffer = _presentImage;
+						}
+						
+						viewDesc.Format = Intl::UNORMToSRGBFormat(_presentImage->GetDesc().Format);
+					}
+					else
+					{
+						// Create resource.
+
+						SA_DX12_API(_device->CreateCommittedResource(&heapProps,
+							D3D12_HEAP_FLAG_NONE,
+							&desc,
+							attach.state,
+							&attach.clearValue,
+							IID_PPV_ARGS(&attach.imageBuffer)
+						));
+
+						// Resolve resource.
+						if (desc.SampleDesc.Count > 1 && 
+							attachInfo.type == AttachmentType::Color) // DX12 does not support MSAA Depth resolve.
+						{
+							viewDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DMS;
+							desc.SampleDesc.Count = 1;
+
+							SA_DX12_API(_device->CreateCommittedResource(&heapProps,
+								D3D12_HEAP_FLAG_NONE,
+								&desc,
+								attach.state,
+								&attach.clearValue,
+								IID_PPV_ARGS(&attach.resolveImageBuffer)
+							));
+						}
+
+						viewDesc.Format = attach.imageBuffer->GetDesc().Format;
+					}
+				}
 
 				// View.
-				if(attach.type == AttachmentType::Color)
+				if(attachInfo.type == AttachmentType::Color)
 				{
-					_device->CreateRenderTargetView(imgBuffer.Get(), nullptr, rtvHandle);
-					rtvHandle.ptr += rtvDescriptorSize;
-					++subpassHeap.colorRTNum;
+					_device->CreateRenderTargetView(attach.imageBuffer.Get(), &viewDesc, rtvHandle);
+					rtvHandle.ptr += mRTVDescriptorIncrementSize;
+
+					subpassFrame.attachments.emplace_back(attach);
 				}
-				else if(attach.type == AttachmentType::Depth)
+				else if(attachInfo.type == AttachmentType::Depth)
 				{
-					_device->CreateDepthStencilView(imgBuffer.Get(), nullptr, dsvHandle);
-					dsvHandle.ptr += dsvDescriptorSize;
+					_device->CreateDepthStencilView(attach.imageBuffer.Get(), nullptr, dsvHandle);
+					dsvHandle.ptr += mDSVDescriptorIncrementSize;
+
+					subpassFrame.depthAttachment = std::move(attach);
 				}
 			}
 		}
@@ -140,8 +198,7 @@ namespace SA::RND::DX12
 
 	void FrameBuffer::Destroy()
 	{
-		mSubpassViewHeaps.clear();
-		mImageBuffers.clear();
+		mSubpassFrames.clear();
 
 		mRenderTargetViewHeap.Reset();
 		mDepthStencilViewHeap.Reset();
@@ -149,15 +206,26 @@ namespace SA::RND::DX12
 		SA_LOG("FrameBuffer destroyed.", Info, SA.Render.DX12, (L"Handle [%1]", this))
 	}
 
-
-	void FrameBuffer::BindNextSubpass()
+	uint32_t FrameBuffer::GetRTVDescriptorIncrementSize() const
 	{
-		++mCurrSubpassIndex;
+		return mRTVDescriptorIncrementSize;
+	}
 
-		SA_ASSERT((OutOfArrayRange, mCurrSubpassIndex, mSubpassViewHeaps), SA.Render.DX12, L"No more subpass to bind!");
+	uint32_t FrameBuffer::GetDSVDescriptorIncrementSize() const
+	{
+		return mDSVDescriptorIncrementSize;
+	}
 
-		SubpassViewHeap& viewHeap = mSubpassViewHeaps[mCurrSubpassIndex];
 
-		// _cmd->OMSetRenderTargets(viewHeap.num, &viewHeap.colorViewHeap, true, &viewHeap.depthViewHeap);
+	FrameBuffer::SubpassFrame& FrameBuffer::GetSubpassFrame(uint32_t _subpassIndex)
+	{
+		SA_ASSERT((OutOfArrayRange, _subpassIndex, mSubpassFrames), SA.Render.DX12);
+
+		return mSubpassFrames[_subpassIndex];
+	}
+
+	std::vector<FrameBuffer::Attachment>& FrameBuffer::GetSubpassAttachments(uint32_t _subpassIndex)
+	{
+		return GetSubpassFrame(_subpassIndex).attachments;
 	}
 }

@@ -11,10 +11,13 @@ namespace SA::RND::DX12
 {
 	class CommandList
 	{
-		friend class CommandPool;
+		friend class CommandAllocator;
 
-		MComPtr<ID3D12CommandList> mHande;
+		MComPtr<ID3D12GraphicsCommandList> mHandle;
+	
 	public:
+		ID3D12GraphicsCommandList* Get() const;
+		ID3D12GraphicsCommandList* operator->() const;
 	};
 }
 

@@ -6,6 +6,7 @@
 #include <SA/Collections/Debug>
 #include <SA/Collections/Maths>
 
+#include <SA/Render/LowLevel/Common/Mesh/RawMesh.hpp>
 #include <SA/Render/RHI/RHIVkRenderInterface.hpp>
 #include <SA/Render/RHI/RHID12RenderInterface.hpp>
 #include <SA/Render/RHI/Compatibility/IRenderWindow.hpp>
@@ -94,6 +95,14 @@ public:
 	RHI::Context* context = nullptr;
 	RHI::Pass* pass = nullptr;
 	std::vector<RHI::FrameBuffer*> frameBuffers;
+	RawMesh triangle;
+	RHI::Shader* vertexShader = nullptr;
+	RHI::Shader* pixelShader = nullptr;
+	RHI::PipelineLayout* pipLayout = nullptr;
+	RHI::Pipeline* pipeline = nullptr;
+	RHI::RenderViews* views = nullptr;
+	RHI::CommandPool* cmdPool = nullptr;
+	std::vector<RHI::CommandBuffer*> cmdBuffers;
 
 	struct CreateInfo
 	{
@@ -158,7 +167,7 @@ public:
 				constexpr bool bMSAA = true;
 
 				// Forward
-				if (false)
+				if (true)
 				{
 					auto& mainSubpass = passInfo.AddSubpass("Main");
 
@@ -245,8 +254,76 @@ public:
 
 		// Mesh
 		{
-			std::vector<SA::Vec3f> positions {{0.0f, 0.5f, 0.0f}, {0.5f, -0.5f, 0.0}, {-0.5f, -0.5f, 0.0}};
-			std::vector<Color> colors {Color::red, Color::green, Color::blue};
+			triangle.vertices.AddVertexComponent<VertexPosition>({{0.0f, 0.5f, 0.0f}, {0.5f, -0.5f, 0.0}, {-0.5f, -0.5f, 0.0}});
+			triangle.vertices.AddVertexComponent<VertexColor>({Color::red, Color::green, Color::blue});
+			triangle.indices.U16({0, 1, 2});
+		}
+
+		// Shaders
+		{
+			// Vertex
+			{
+				ShaderCompileInfo vsInfo
+				{
+					.path = L"Resources/Shaders/Forward/HelloTriangle.hlsl",
+					.entrypoint = "mainVS",
+					.target = "vs_6_5",
+				};
+
+				triangle.vertices.AppendDefines(vsInfo.defines);
+
+				ShaderCompileResult vsShaderRes = intf->CompileShader(vsInfo);
+				vertexShader = context->CreateShader(vsShaderRes);
+			}
+
+			// Pixel
+			{
+				ShaderCompileInfo psInfo
+				{
+					.path = L"Resources/Shaders/Forward/HelloTriangle.hlsl",
+					.entrypoint = "mainPS",
+					.target = "ps_6_5",
+				};
+
+				triangle.vertices.AppendDefines(psInfo.defines);
+
+				ShaderCompileResult psShaderRes = intf->CompileShader(psInfo);
+				pixelShader = context->CreateShader(psShaderRes);
+			}
+		}
+	
+		// RenderViews
+		{
+			views = context->CreateRenderViews();
+
+			views->AddFullView(swapchain->GetExtents());
+		}
+
+		// PipelineLayout
+		{
+			pipLayout = context->CreatePipelineLayout();
+		}
+
+		// Pipeline
+		{
+			RHI::GraphicsPipelineInfo info;
+			info.shaders.vs = vertexShader;
+			info.shaders.ps = pixelShader;
+
+			info.layout = pipLayout;
+
+			info.pass = pass;
+
+			info.views = views;
+
+			pipeline = context->CreatePipeline(info);
+		}
+
+		// CommandPool
+		{
+			cmdPool = context->CreateCommandPool();
+
+			cmdBuffers = cmdPool->Allocate(swapchain->GetImageNum());
 		}
 	}
 
@@ -254,6 +331,16 @@ public:
 	{
 		// Render
 		{
+			device->WaitIdle();
+
+			cmdPool->Free(cmdBuffers);
+			context->DestroyCommandPool(cmdPool);
+			context->DestroyPipeline(pipeline);
+			context->DestroyPipelineLayout(pipLayout);
+
+			context->DestroyShader(vertexShader);
+			context->DestroyShader(pixelShader);
+
 			for(auto& frameBuffer : frameBuffers)
 				context->DestroyFrameBuffer(frameBuffer);
 
@@ -281,6 +368,28 @@ public:
 		while (!glfwWindowShouldClose(window))
 		{
 			glfwPollEvents();
+
+			const uint32_t frameIndex = swapchain->Begin();
+
+			RHI::CommandBuffer* const cmd = cmdBuffers[frameIndex];
+			RHI::FrameBuffer* const fbuff = frameBuffers[frameIndex];
+
+			cmd->Begin();
+
+			pass->Begin(cmd, fbuff);
+
+			views->Bind(cmd);
+			pipeline->Bind(cmd);
+
+
+			cmd->Draw(3, 1, 0, 0);
+
+
+			pass->End(cmd);
+
+			cmd->End();
+
+			swapchain->End({ cmd });
 		}
 	}
 
@@ -308,8 +417,8 @@ int main()
 
 
 	// Render
+	if (true)
 	{
-
 		std::list<std::thread> renderThreads;
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
@@ -326,6 +435,18 @@ int main()
 				renderThread.join();
 		}
 	}
+#if SA_RENDER_LOWLEVEL_VULKAN_IMPL
+	else if (true)
+	{
+		Renderer::RenderThread(Renderer::CreateInfo{ new RHI::VkRenderInterface, "Vulkan" });
+	}
+#endif
+#if SA_RENDER_LOWLEVEL_DX12_IMPL
+	else if (true)
+	{
+		Renderer::RenderThread(Renderer::CreateInfo{ new RHI::D12RenderInterface, "DirectX12", 960, 0 });
+	}
+#endif
 
 
 	// GLFW

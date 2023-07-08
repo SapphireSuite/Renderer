@@ -4,7 +4,10 @@
 
 #include <D12Factory.hpp>
 #include <Device/D12Device.hpp>
+#include <Device/Command/D12CommandList.hpp>
 #include <Surface/D12WindowSurface.hpp>
+
+#include "../Misc/D12Format.hpp"
 
 namespace SA::RND::DX12
 {
@@ -41,7 +44,7 @@ namespace SA::RND::DX12
 		desc.BufferCount = frameNum;
 		desc.Width = mExtents.x;
 		desc.Height = mExtents.y;
-		desc.Format = _settings.format;
+		desc.Format = Intl::SRGBToUNORMFormat(_settings.format);
 		desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 		desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 		desc.SampleDesc.Count = 1;
@@ -49,9 +52,7 @@ namespace SA::RND::DX12
 		// Queue to force flush.
 		ID3D12CommandQueue* queue = nullptr;
 
-		if(_device.queueMgr.present.GetQueueNum() > 0)
-			queue = _device.queueMgr.present[0];
-		else if(_device.queueMgr.graphics.GetQueueNum() > 0)
+		if(_device.queueMgr.graphics.GetQueueNum() > 0)
 			queue = _device.queueMgr.graphics[0];
 		//
 
@@ -62,8 +63,11 @@ namespace SA::RND::DX12
 		// Frame
 		mFrames.resize(frameNum);
 
-		for(uint32_t i = 0; i < frameNum; ++i)
+		for (uint32_t i = 0; i < frameNum; ++i)
+		{
 			mHandle->GetBuffer(i, IID_PPV_ARGS(&mFrames[i].image));
+			SetDebugName(mFrames[i].image.Get(), SA::StringFormat(L"Swapchain Image %1", i));
+		}
 		//
 
 		SA_LOG(L"Swapchain created!", Info, SA.Render.DX12, (L"Handle [%1]", mHandle.Get()));
@@ -85,7 +89,6 @@ namespace SA::RND::DX12
 	void Swapchain::CreateSynchronisation(const Device& _device)
 	{
 		SA_DX12_API(_device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&mFence)));
-		mFrames[0].fenceValue = 1;
 
 		mFenceEvent = CreateEvent(nullptr, false, false, nullptr);
 		SA_ASSERT((Nullptr, mFenceEvent), SA.Render.DX12, (L"Failed to create FenceEvent: %1", HRESULT_FROM_WIN32(GetLastError())));
@@ -135,23 +138,11 @@ namespace SA::RND::DX12
 	}
 
 
-	uint32_t Swapchain::Begin(const Device& _device)
+	uint32_t Swapchain::Begin()
 	{
-		// TODO: Implement
-		(void)_device;
+		const UINT64 prevFenceValue = mFrames[mFrameIndex].fenceValue;
 
-		return mFrameIndex;
-	}
-
-	void Swapchain::End()
-	{
-		// TODO: Implement
-
-		// Schedule a Signal command in the queue.
-		const UINT64 currFenceValue = mFrames[mFrameIndex].fenceValue;
-		// SA_DX12_API(m_commandQueue->Signal(mFence.Get(), currFenceValue)); // TODO: ADD.
-
-    	mFrameIndex = mHandle->GetCurrentBackBufferIndex();
+		mFrameIndex = mHandle->GetCurrentBackBufferIndex();
 
 		// If the next frame is not ready to be rendered yet, wait until it is ready.
 		if (mFence->GetCompletedValue() < mFrames[mFrameIndex].fenceValue)
@@ -161,6 +152,41 @@ namespace SA::RND::DX12
 		}
 
 		// Set the fence value for the next frame.
-		mFrames[mFrameIndex].fenceValue = currFenceValue + 1;
+		mFrames[mFrameIndex].fenceValue = prevFenceValue + 1;
+
+		return mFrameIndex;
+	}
+
+	void Swapchain::End(const Device& _device, const std::vector<CommandList>& _cmds)
+	{
+		ID3D12CommandQueue* graphics = _device.queueMgr.graphics[0];
+		//ID3D12CommandQueue* present = _device.queueMgr.present.GetQueueNum() > 0 ? _device.queueMgr.present[0] : graphics;
+
+		End(graphics/*, present*/, _cmds);
+	}
+
+	void Swapchain::End(ID3D12CommandQueue* _graphicsQueue/*, ID3D12CommandQueue* presentQueue*/, const std::vector<CommandList>& _cmds)
+	{
+		// Execute commands
+		{
+			std::vector<ID3D12CommandList*> d12Cmds;
+			d12Cmds.reserve(_cmds.size());
+
+			for (auto& cmd : _cmds)
+				d12Cmds.emplace_back(cmd.Get());
+
+			_graphicsQueue->ExecuteCommandLists(
+				static_cast<uint32_t>(d12Cmds.size()),
+				d12Cmds.data()
+			);
+		}
+
+		// Present already handle Present queue.
+		SA_DX12_API(mHandle->Present(1, 0));
+
+		// Schedule a Signal command in the queue.
+		const UINT64 currFenceValue = mFrames[mFrameIndex].fenceValue;
+		SA_DX12_API(_graphicsQueue->Signal(mFence.Get(), currFenceValue));
+		//SA_DX12_API(presentQueue->Signal(mFence.Get(), currFenceValue));
 	}
 }

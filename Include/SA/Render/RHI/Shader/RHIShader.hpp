@@ -5,22 +5,56 @@
 #ifndef SAPPHIRE_RENDER_RHI_SHADER_GUARD
 #define SAPPHIRE_RENDER_RHI_SHADER_GUARD
 
-#if SA_RENDER_LOWLEVEL_VULKAN_IMPL
+#include "Descriptor/ShaderDescriptor.hpp"
 
-	#include <SA/Render/LowLevel/Vulkan/Shader/VkShader.hpp>
-
-#endif
-
-namespace SA::RND::RHI
+namespace SA::RND
 {
-	class Shader
-	{
-	public:
+	struct ShaderCompileResult;
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
-		virtual const VK::Shader* API_Vulkan() const;
+
+	namespace VK
+	{
+		class Shader;
+	}
+
 #endif
-	};
+
+#if SA_RENDER_LOWLEVEL_DX12_IMPL
+
+	namespace DX12
+	{
+		class Shader;
+	}
+
+#endif
+
+	namespace RHI
+	{
+		class Device;
+
+		class Shader
+		{
+		protected:
+			ShaderDescriptor mDescriptor;
+
+		public:
+			virtual ~Shader() = default;
+
+			virtual void Create(const Device* _device, const ShaderCompileResult& _compil);
+			virtual void Destroy(const Device* _device) = 0;
+
+			const ShaderDescriptor& GetDescriptor() const noexcept;
+
+#if SA_RENDER_LOWLEVEL_VULKAN_IMPL
+			virtual const VK::Shader& API_Vulkan() const;
+#endif
+
+#if SA_RENDER_LOWLEVEL_DX12_IMPL
+			virtual const DX12::Shader& API_DirectX12() const;
+#endif
+		};
+	}
 }
 
 #endif // SAPPHIRE_RENDER_RHI_SHADER_GUARD
