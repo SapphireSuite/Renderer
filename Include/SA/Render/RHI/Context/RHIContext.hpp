@@ -13,6 +13,7 @@
 #include <SA/Render/RHI/Shader/RHIShader.hpp>
 #include <SA/Render/RHI/Pipeline/RHIPipelineLayout.hpp>
 #include <SA/Render/RHI/Pipeline/RHIPipeline.hpp>
+#include <SA/Render/RHI/Pipeline/RHIRenderViews.hpp>
 #include <SA/Render/RHI/Device/Command/RHICommandPool.hpp>
 
 namespace SA::RND::RHI
@@ -28,6 +29,7 @@ namespace SA::RND::RHI
 
 		void Create(Device* _device);
 		void Destroy();
+
 
 //{ Pass
 
@@ -45,6 +47,7 @@ namespace SA::RND::RHI
 
 //}
 
+
 //{ FrameBuffer
 
 	private:
@@ -60,6 +63,7 @@ namespace SA::RND::RHI
 		void DestroyAllFrameBuffers();
 
 //}
+
 
 //{ Shader
 
@@ -77,6 +81,24 @@ namespace SA::RND::RHI
 
 //}
 
+
+//{ RenderViews
+
+	private:
+		std::forward_list<RenderViews*> mRenderViews;
+
+	protected:
+		virtual RenderViews* InstantiateRenderViewsClass() = 0;
+		virtual void DeleteRenderViewsClass(RenderViews* _RenderViews);
+
+	public:
+		RenderViews* CreateRenderViews();
+		void DestroyRenderViews(RenderViews* _RenderViews);
+		void DestroyAllRenderViews();
+
+//}
+
+
 //{ PipelineLayout
 
 	private:
@@ -92,6 +114,7 @@ namespace SA::RND::RHI
 		void DestroyAllPipelineLayouts();
 
 //}
+
 
 //{ Pipeline
 

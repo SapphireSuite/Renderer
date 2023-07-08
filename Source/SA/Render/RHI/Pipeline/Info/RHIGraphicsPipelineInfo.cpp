@@ -4,6 +4,7 @@
 
 #include <Pass/RHIPass.hpp>
 #include <Shader/RHIShader.hpp>
+#include <Pipeline/RHIRenderViews.hpp>
 #include <Pipeline/RHIPipelineLayout.hpp>
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
@@ -30,7 +31,6 @@ namespace SA::RND::RHI
 		vkInfo.vertexInputState = shaders.vs->GetDescriptor().MakeVkVertexInputStateInfo();
 		vkInfo.raster = raster.API_Vulkan();
 		vkInfo.depthStencil = depthStencil.API_Vulkan();
-		vkInfo.views = views.API_Vulkan();
 
 		auto& passInfo = pass->GetInfo();
 
@@ -54,6 +54,8 @@ namespace SA::RND::RHI
 		vkInfo.renderPass = &pass->API_Vulkan();
 		vkInfo.subpassIndex = subpassIndex;
 
+		vkInfo.views = &views->API_Vulkan();
+
 		return vkInfo;
 	}
 
@@ -69,7 +71,6 @@ namespace SA::RND::RHI
 		dxDesc.shaderStages = shaders.API_MakeDX12PipelineShaderStages();
 		dxDesc.raster = raster.API_DirectX12();
 		dxDesc.depthStencil = depthStencil.API_DirectX12();
-		dxDesc.views = views.API_DirectX12();
 
 		dxDesc.vertexInputElements = shaders.vs->GetDescriptor().MakeDX12VertexInputElementDescs();
 

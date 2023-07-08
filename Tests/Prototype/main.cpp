@@ -100,6 +100,7 @@ public:
 	RHI::Shader* pixelShader = nullptr;
 	RHI::PipelineLayout* pipLayout = nullptr;
 	RHI::Pipeline* pipeline = nullptr;
+	RHI::RenderViews* views = nullptr;
 	RHI::CommandPool* cmdPool = nullptr;
 	std::vector<RHI::CommandBuffer*> cmdBuffers;
 
@@ -291,6 +292,13 @@ public:
 			}
 		}
 	
+		// RenderViews
+		{
+			views = context->CreateRenderViews();
+
+			views->AddFullView(swapchain->GetExtents());
+		}
+
 		// PipelineLayout
 		{
 			pipLayout = context->CreatePipelineLayout();
@@ -302,11 +310,11 @@ public:
 			info.shaders.vs = vertexShader;
 			info.shaders.ps = pixelShader;
 
-			info.views.AddFullViewport(swapchain->GetExtents());
-
 			info.layout = pipLayout;
 
 			info.pass = pass;
+
+			info.views = views;
 
 			pipeline = context->CreatePipeline(info);
 		}
@@ -370,6 +378,7 @@ public:
 
 			pass->Begin(cmd, fbuff);
 
+			views->Bind(cmd);
 			pipeline->Bind(cmd);
 
 

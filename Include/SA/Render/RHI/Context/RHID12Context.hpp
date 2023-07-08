@@ -17,6 +17,7 @@ namespace SA::RND::RHI
 		Pass* InstantiatePassClass() override final;
 		FrameBuffer* InstantiateFrameBufferClass() override final;
 		Shader* InstantiateShaderClass() override final;
+		RenderViews* InstantiateRenderViewsClass() override final;
 		PipelineLayout* InstantiatePipelineLayoutClass() override final;
 		Pipeline* InstantiatePipelineClass() override final;
 		CommandPool* InstantiateCommandPoolClass() override final;

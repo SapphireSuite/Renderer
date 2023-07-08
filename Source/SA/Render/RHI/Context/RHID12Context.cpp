@@ -7,6 +7,7 @@
 #include <Shader/RHID12Shader.hpp>
 #include <Pipeline/RHID12PipelineLayout.hpp>
 #include <Pipeline/RHID12Pipeline.hpp>
+#include <Pipeline/RHID12RenderViews.hpp>
 #include <Device/Command/RHID12CommandPool.hpp>
 
 #if SA_RENDER_LOWLEVEL_DX12_IMPL
@@ -26,6 +27,11 @@ namespace SA::RND::RHI
 	Shader* D12Context::InstantiateShaderClass()
 	{
 		return new D12Shader();
+	}
+
+	RenderViews* D12Context::InstantiateRenderViewsClass()
+	{
+		return new D12RenderViews();
 	}
 
 	PipelineLayout* D12Context::InstantiatePipelineLayoutClass()

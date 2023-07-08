@@ -11,8 +11,6 @@ namespace SA::RND::DX12
 {
 	class GraphicsPipeline : public Pipeline
 	{
-		GraphicsPipelineViewInfo mViews;
-
 	public:
 		void Create(const Device& _device, const GraphicsPipelineInfo& _info);
 		void Create(const Device& _device, const D3D12_GRAPHICS_PIPELINE_STATE_DESC& _desc);

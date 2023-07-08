@@ -8,7 +8,6 @@
 #include "RHIGraphicsPipelineRasterizationInfo.hpp"
 #include "RHIGraphicsPipelineShaderStageInfo.hpp"
 #include "RHIGraphicsPipelineDepthStencilInfo.hpp"
-#include "RHIGraphicsPipelineViewInfo.hpp"
 
 namespace SA::RND
 {
@@ -34,6 +33,7 @@ namespace SA::RND
 	{
 		class Pass;
 		class PipelineLayout;
+		class RenderViews;
 
 		struct GraphicsPipelineInfo
 		{
@@ -42,12 +42,12 @@ namespace SA::RND
 
 			GraphicsPipelineDepthStencilInfo depthStencil;
 
-			GraphicsPipelineViewInfo views;
-
 			const PipelineLayout* layout = nullptr;
 
 			const Pass* pass = nullptr;
 			uint32_t subpassIndex = 0u;
+
+			const RenderViews* views = nullptr;
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 			VK::GraphicsPipelineInfo API_Vulkan() const;

@@ -7,6 +7,7 @@
 
 #include <Pass/VkRenderPass.hpp>
 
+#include <Pipeline/VkRenderViews.hpp>
 #include <Pipeline/VkPipelineLayout.hpp>
 
 namespace SA::RND::VK
@@ -21,15 +22,7 @@ namespace SA::RND::VK
 			.primitiveRestartEnable = VK_FALSE
 		};
 
-		VkPipelineViewportStateCreateInfo viewportStateInfo{
-			.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
-			.pNext = nullptr,
-			.flags = 0u,
-			.viewportCount = static_cast<uint32_t>(_info.views.viewports.size()),
-			.pViewports = _info.views.viewports.data(),
-			.scissorCount = static_cast<uint32_t>(_info.views.scissors.size()),
-			.pScissors = _info.views.scissors.data(),
-		};
+		VkPipelineViewportStateCreateInfo viewportStateInfo = _info.views->MakeVkStateInfo();
 
 		// TODO: Clean.
 		VkPipelineColorBlendAttachmentState colorBlendAttachment{
@@ -53,6 +46,17 @@ namespace SA::RND::VK
 			.pAttachments = &colorBlendAttachment,
 			.blendConstants = {0, 0, 0, 0},
 		};
+
+
+		constexpr VkDynamicState dynamicStates[] = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
+
+		VkPipelineDynamicStateCreateInfo dynamicStateInfo{
+			.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
+			.pNext = nullptr,
+			.flags = 0,
+			.dynamicStateCount = sizeof(dynamicStates) / sizeof(VkDynamicState),
+			.pDynamicStates = dynamicStates
+		};
 		//
 
 		auto vkVertexInputState = _info.vertexInputState.MakeVkInfo();
@@ -71,7 +75,7 @@ namespace SA::RND::VK
 			.pMultisampleState = &_info.multisampling,
 			.pDepthStencilState = &_info.depthStencil,
 			.pColorBlendState = &colorBlendingInfo,
-			.pDynamicState = nullptr,
+			.pDynamicState = &dynamicStateInfo,
 			.layout = *_info.layout,
 			.renderPass = *_info.renderPass,
 			.subpass = _info.subpassIndex,

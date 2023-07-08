@@ -6,12 +6,12 @@
 #define SAPPHIRE_RENDER_VK_GRAPHICS_PIPELINE_INFO_GUARD
 
 #include "VkVertexInputStateInfo.hpp"
-#include "VkGraphicsPipelineViewInfo.hpp"
 
 namespace SA::RND::VK
 {
 	class RenderPass;
 	class PipelineLayout;
+	class RenderViews;
 
 	struct GraphicsPipelineInfo
 	{
@@ -22,12 +22,13 @@ namespace SA::RND::VK
 		VkPipelineMultisampleStateCreateInfo multisampling;
 
 		VkPipelineDepthStencilStateCreateInfo depthStencil;
-		GraphicsPipelineViewInfo views;
 
 		const PipelineLayout* layout = nullptr;
 
 		const RenderPass* renderPass = nullptr;
 		uint32_t subpassIndex = 0;
+
+		const RenderViews* views = nullptr;
 	};
 }
 

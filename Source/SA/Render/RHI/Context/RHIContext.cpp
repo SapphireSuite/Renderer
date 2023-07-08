@@ -177,6 +177,49 @@ namespace SA::RND::RHI
 //}
 
 
+//{ RenderViews
+
+	void Context::DeleteRenderViewsClass(RenderViews* _views)
+	{
+		SA_ASSERT((Nullptr, _views), SA.Render.RHI);
+
+		delete _views;
+	}
+
+	RenderViews* Context::CreateRenderViews()
+	{
+		RenderViews* const views = mRenderViews.emplace_front(InstantiateRenderViewsClass());
+
+		SA_ASSERT((Nullptr, views), SA.Render.RHI, (L"RenderViews instantiate class failed!"));
+
+		return views;
+	}
+
+	void Context::DestroyRenderViews(RenderViews* _views)
+	{
+		SA_ASSERT((Nullptr, _views), SA.Render.RHI);
+
+		if (std::erase(mRenderViews, _views))
+		{
+			DeleteRenderViewsClass(_views);
+		}
+		else
+			SA_LOG((L"Try destroy RenderViews [%1] that does not belong to this context!", _views), Error, SA.Render.RHI);
+	}
+
+	void Context::DestroyAllRenderViews()
+	{
+		for (auto views : mRenderViews)
+		{
+			DeleteRenderViewsClass(views);
+		}
+
+		mRenderViews.clear();
+	}
+
+//}
+
+
 //{ PipelineLayout
 
 	void Context::DeletePipelineLayoutClass(PipelineLayout* _pipLayout)
@@ -272,6 +315,7 @@ namespace SA::RND::RHI
 	}
 
 //}
+
 
 //{ CommandPool
 

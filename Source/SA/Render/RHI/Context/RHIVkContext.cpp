@@ -7,6 +7,7 @@
 #include <Shader/RHIVkShader.hpp>
 #include <Pipeline/RHIVkPipelineLayout.hpp>
 #include <Pipeline/RHIVkPipeline.hpp>
+#include <Pipeline/RHIVkRenderViews.hpp>
 #include <Device/Command/RHIVkCommandPool.hpp>
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
@@ -26,6 +27,11 @@ namespace SA::RND::RHI
 	Shader* VkContext::InstantiateShaderClass()
 	{
 		return new VkShader();
+	}
+
+	RenderViews* VkContext::InstantiateRenderViewsClass()
+	{
+		return new VkRenderViews();
 	}
 
 	PipelineLayout* VkContext::InstantiatePipelineLayoutClass()

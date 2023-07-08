@@ -9,8 +9,6 @@ namespace SA::RND::DX12
 {
 	void GraphicsPipeline::Create(const Device& _device, const GraphicsPipelineInfo& _info)
 	{
-		mViews = _info.views;
-
 		// TODO: Clean.
 		D3D12_RENDER_TARGET_BLEND_DESC rtBlend{
 			.BlendEnable = false,
@@ -128,9 +126,6 @@ namespace SA::RND::DX12
 	{
 		_cmdList->SetGraphicsRootSignature(mRootSignatureRef.Get());
 		_cmdList->SetPipelineState(mHandle.Get());
-
-		_cmdList->RSSetViewports(static_cast<uint32_t>(mViews.viewports.size()), mViews.viewports.data());
-		_cmdList->RSSetScissorRects(static_cast<uint32_t>(mViews.scissors.size()), mViews.scissors.data());
 
 		// TODO: clean
 		_cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
