@@ -121,7 +121,7 @@ namespace SA::RND::DX12
 				{
 					auto& fBuffAttach = attachInfo.type == AttachmentType::Depth ? prevSubpassFrame.depthAttachment : prevFBuffAttachs[fBuffAttachIndex++];
 
-					D3D12_RESOURCE_BARRIER barrier;
+					D3D12_RESOURCE_BARRIER barrier{};
 					barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
 					barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
 					barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;

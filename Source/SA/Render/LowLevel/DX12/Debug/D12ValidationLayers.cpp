@@ -118,8 +118,8 @@ namespace SA::RND::DX12
 			// Filter Info: too much logging on Resource create/destroy and Swapchain Present.
 			// SA logging already tracking.
 			return;
-			SA_LOG(_description, Info, SA.Render.DX12.ValidationLayers, std::move(dets));
-			break;
+			//SA_LOG(_description, Info, SA.Render.DX12.ValidationLayers, std::move(dets));
+			//break;
 		case D3D12_MESSAGE_SEVERITY_MESSAGE:
 		default:
 			SA_LOG(_description, Normal, SA.Render.DX12.ValidationLayers, std::move(dets));
