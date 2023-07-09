@@ -28,7 +28,7 @@ namespace SA::RND::RHI
 
 	void D12Pipeline::Bind(const CommandBuffer* _cmd)
 	{
-		mHandle->Bind(_cmd->API_DirectX12().GetCommandList());
+		mHandle->Bind(_cmd->API_DirectX12());
 	}
 
 

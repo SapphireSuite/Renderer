@@ -39,7 +39,7 @@ namespace SA::RND::DX12
 	}
 
 
-	const CommandList& CommandBuffer::GetCommandList() const
+	CommandBuffer::operator const CommandList& () const
 	{
 		return mCmdList;
 	}

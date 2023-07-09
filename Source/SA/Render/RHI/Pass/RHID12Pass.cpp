@@ -24,17 +24,17 @@ namespace SA::RND::RHI
 
 	void D12Pass::Begin(const CommandBuffer* _cmd, FrameBuffer* _fBuff)
 	{
-		mHandle.Begin(_cmd->API_DirectX12().GetCommandList(), _fBuff->API_DirectX12());
+		mHandle.Begin(_cmd->API_DirectX12(), _fBuff->API_DirectX12());
 	}
 
 	void D12Pass::NextSubpass(const CommandBuffer* _cmd)
 	{
-		mHandle.NextSubpass(_cmd->API_DirectX12().GetCommandList());
+		mHandle.NextSubpass(_cmd->API_DirectX12());
 	}
 
 	void D12Pass::End(const CommandBuffer* _cmd)
 	{
-		mHandle.End(_cmd->API_DirectX12().GetCommandList());
+		mHandle.End(_cmd->API_DirectX12());
 	}
 }
 

@@ -62,7 +62,7 @@ namespace SA::RND::RHI
 		d12Cmds.reserve(_cmds.size());
 
 		for (auto cmd : _cmds)
-			d12Cmds.emplace_back(cmd->API_DirectX12().GetCommandList());
+			d12Cmds.emplace_back(cmd->API_DirectX12());
 
 		mHandle.End(*mDevice, d12Cmds);
 	}
