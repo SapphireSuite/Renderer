@@ -24,7 +24,8 @@ namespace SA::RND
 		{
 		}
 
-		inline const char* GetData() const noexcept override final { return reinterpret_cast<const char*>(bitangents.data()); };
+		inline const char* GetData() const noexcept override final { return reinterpret_cast<const char*>(bitangents.data()); }
+		inline uint32_t GetDataSize() const noexcept override final { return static_cast<uint32_t>(sizeof(Vec3f) * bitangents.size()); }
 		inline const char* GetSemanticName() const noexcept override final { return "BITANGENT"; }
 	};
 

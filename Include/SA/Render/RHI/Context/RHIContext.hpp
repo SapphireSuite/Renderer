@@ -15,6 +15,7 @@
 #include <SA/Render/RHI/Pipeline/RHIPipeline.hpp>
 #include <SA/Render/RHI/Pipeline/RHIRenderViews.hpp>
 #include <SA/Render/RHI/Device/Command/RHICommandPool.hpp>
+#include <SA/Render/RHI/Buffer/RHIBuffer.hpp>
 
 namespace SA::RND::RHI
 {
@@ -150,6 +151,21 @@ namespace SA::RND::RHI
 //}
 
 
+//{ Buffer
+
+	private:
+		std::forward_list<Buffer*> mBuffers;
+
+	protected:
+		virtual Buffer* InstantiateBufferClass() = 0;
+		virtual void DeleteBufferClass(Buffer* _pipeline);
+
+	public:
+		Buffer* CreateBuffer(uint32_t _size, BufferUsage _usage);
+		void DestroyBuffer(Buffer* _pipeline);
+		void DestroyAllBuffers();
+
+//}
 	};
 }
 

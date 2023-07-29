@@ -25,6 +25,7 @@ namespace SA::RND
 		}
 
 		inline const char* GetData() const noexcept override final { return reinterpret_cast<const char*>(tangents.data()); };
+		inline uint32_t GetDataSize() const noexcept override final { return static_cast<uint32_t>(sizeof(Vec3f) * tangents.size()); }
 		inline const char* GetSemanticName() const noexcept override final { return "TANGENT"; }
 	};
 

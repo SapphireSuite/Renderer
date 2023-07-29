@@ -25,6 +25,7 @@ namespace SA::RND
 		}
 
 		inline const char* GetData() const noexcept override final { return reinterpret_cast<const char*>(positions.data()); };
+		inline uint32_t GetDataSize() const noexcept override final { return static_cast<uint32_t>(sizeof(Vec3f) * positions.size()); }
 		inline const char* GetSemanticName() const noexcept override final { return "POSITION"; }
 	};
 

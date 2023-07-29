@@ -15,6 +15,7 @@ namespace SA::RND
 		virtual ~VertexComponent() = default;
 		
 		virtual const char* GetData() const noexcept = 0;
+		virtual uint32_t GetDataSize() const noexcept = 0;
 		virtual const char* GetSemanticName() const noexcept = 0;
 		virtual const char* GetComponentName() const noexcept { return GetSemanticName(); };
 	};

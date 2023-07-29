@@ -9,6 +9,7 @@
 #include <Pipeline/RHID12Pipeline.hpp>
 #include <Pipeline/RHID12RenderViews.hpp>
 #include <Device/Command/RHID12CommandPool.hpp>
+#include <Buffer/RHID12Buffer.hpp>
 
 #if SA_RENDER_LOWLEVEL_DX12_IMPL
 
@@ -47,6 +48,11 @@ namespace SA::RND::RHI
 	CommandPool* D12Context::InstantiateCommandPoolClass()
 	{
 		return new D12CommandPool();
+	}
+
+	Buffer* D12Context::InstantiateBufferClass()
+	{
+		return new D12Buffer();
 	}
 }
 

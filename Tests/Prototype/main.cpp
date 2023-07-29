@@ -95,7 +95,7 @@ public:
 	RHI::Context* context = nullptr;
 	RHI::Pass* pass = nullptr;
 	std::vector<RHI::FrameBuffer*> frameBuffers;
-	RawMesh triangle;
+	RawMesh quad;
 	RHI::Shader* vertexShader = nullptr;
 	RHI::Shader* pixelShader = nullptr;
 	RHI::PipelineLayout* pipLayout = nullptr;
@@ -103,6 +103,8 @@ public:
 	RHI::RenderViews* views = nullptr;
 	RHI::CommandPool* cmdPool = nullptr;
 	std::vector<RHI::CommandBuffer*> cmdBuffers;
+	RHI::Buffer* vertexPositionBuffer;
+	RHI::Buffer* indexBuffer;
 
 	struct CreateInfo
 	{
@@ -254,9 +256,22 @@ public:
 
 		// Mesh
 		{
-			triangle.vertices.AddVertexComponent<VertexPosition>({{0.0f, 0.5f, 0.0f}, {0.5f, -0.5f, 0.0}, {-0.5f, -0.5f, 0.0}});
-			triangle.vertices.AddVertexComponent<VertexColor>({Color::red, Color::green, Color::blue});
-			triangle.indices.U16({0, 1, 2});
+			VertexPosition* vPos = quad.vertices.AddVertexComponent<VertexPosition>({
+				{-0.5f, 0.5f, 0.0f},
+				{0.5f, 0.5f, 0.0},
+				{-0.5f, -0.5f, 0.0},
+				{0.5f, -0.5f, 0.0},
+			});
+			quad.vertices.AddVertexComponent<VertexColor>({
+				Color::red,
+				Color::green,
+				Color::blue,
+				Color::white
+			});
+			quad.indices.U16({0, 1, 2, 1, 3, 2});
+
+			vertexPositionBuffer = context->CreateBuffer(vPos->GetDataSize(), RHI::BufferUsageFlags::VertexBuffer);
+			indexBuffer = context->CreateBuffer(sizeof(uint16_t) * 6, RHI::BufferUsageFlags::IndexBuffer);
 		}
 
 		// Shaders
@@ -270,7 +285,7 @@ public:
 					.target = "vs_6_5",
 				};
 
-				triangle.vertices.AppendDefines(vsInfo.defines);
+				quad.vertices.AppendDefines(vsInfo.defines);
 
 				ShaderCompileResult vsShaderRes = intf->CompileShader(vsInfo);
 				vertexShader = context->CreateShader(vsShaderRes);
@@ -285,7 +300,7 @@ public:
 					.target = "ps_6_5",
 				};
 
-				triangle.vertices.AppendDefines(psInfo.defines);
+				quad.vertices.AppendDefines(psInfo.defines);
 
 				ShaderCompileResult psShaderRes = intf->CompileShader(psInfo);
 				pixelShader = context->CreateShader(psShaderRes);

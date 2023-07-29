@@ -19,6 +19,7 @@ namespace SA::RND::RHI
 	
 	void Context::Destroy()
 	{
+		DestroyAllBuffers();
 		DestroyAllCommandPools();
 		DestroyAllPipelines();
 		DestroyAllPipelineLayouts();
@@ -359,6 +360,53 @@ namespace SA::RND::RHI
 		}
 
 		mCommandPools.clear();
+	}
+
+//}
+
+
+//{ Buffer
+
+	void Context::DeleteBufferClass(Buffer* _buffer)
+	{
+		SA_ASSERT((Nullptr, _buffer), SA.Render.RHI);
+
+		delete _buffer;
+	}
+
+	Buffer* Context::CreateBuffer(uint32_t _size, BufferUsage _usage)
+	{
+		Buffer* const buffer = mBuffers.emplace_front(InstantiateBufferClass());
+
+		SA_ASSERT((Nullptr, buffer), SA.Render.RHI, (L"Buffer instantiate class failed!"));
+
+		buffer->Create(mDevice, _size, _usage);
+
+		return buffer;
+	}
+
+	void Context::DestroyBuffer(Buffer* _buffer)
+	{
+		SA_ASSERT((Nullptr, _buffer), SA.Render.RHI);
+
+		if (std::erase(mBuffers, _buffer))
+		{
+			_buffer->Destroy(mDevice);
+			DeleteBufferClass(_buffer);
+		}
+		else
+			SA_LOG((L"Try destroy Buffer [%1] that does not belong to this context!", _buffer), Error, SA.Render.RHI);
+	}
+
+	void Context::DestroyAllBuffers()
+	{
+		for (auto buffer : mBuffers)
+		{
+			buffer->Destroy(mDevice);
+			DeleteBufferClass(buffer);
+		}
+
+		mBuffers.clear();
 	}
 
 //}

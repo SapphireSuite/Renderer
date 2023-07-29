@@ -9,6 +9,7 @@
 #include <Pipeline/RHIVkPipeline.hpp>
 #include <Pipeline/RHIVkRenderViews.hpp>
 #include <Device/Command/RHIVkCommandPool.hpp>
+#include <Buffer/RHIVkBuffer.hpp>
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
@@ -47,6 +48,11 @@ namespace SA::RND::RHI
 	CommandPool* VkContext::InstantiateCommandPoolClass()
 	{
 		return new VkCommandPool();
+	}
+
+	Buffer* VkContext::InstantiateBufferClass()
+	{
+		return new VkBuffer();
 	}
 }
 

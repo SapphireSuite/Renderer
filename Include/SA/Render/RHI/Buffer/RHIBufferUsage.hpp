@@ -19,7 +19,7 @@ namespace SA::RND
 {
 	namespace RHI
 	{
-		enum BufferUsage : uint32_t
+		enum BufferUsageFlags : uint32_t
 		{
 			None = 0,
 
@@ -39,6 +39,8 @@ namespace SA::RND
 			/// CPU accessible for readback.
 			CPUReadBack = 1 << 5,
 		};
+
+		using BufferUsage = uint32_t;
 	}
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
