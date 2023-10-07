@@ -6,6 +6,7 @@
 #define SAPPHIRE_RENDER_COMMON_VERTEX_COMPONENT_GUARD
 
 #include <vector>
+#include <cstdint>
 
 namespace SA::RND
 {
