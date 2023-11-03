@@ -103,8 +103,7 @@ public:
 	RHI::RenderViews* views = nullptr;
 	RHI::CommandPool* cmdPool = nullptr;
 	std::vector<RHI::CommandBuffer*> cmdBuffers;
-	RHI::Buffer* vertexPositionBuffer;
-	RHI::Buffer* vertexColorBuffer;
+	RHI::Buffer* vertexBuffer;
 	RHI::Buffer* indexBuffer;
 
 	struct CreateInfo
@@ -257,23 +256,32 @@ public:
 
 		// Mesh
 		{
-			VertexPosition* vPos = quad.vertices.AddVertexComponent<VertexPosition>({
-				{-0.5f, 0.5f, 0.0f},
-				{0.5f, 0.5f, 0.0},
-				{-0.5f, -0.5f, 0.0},
-				{0.5f, -0.5f, 0.0},
-			});
-			VertexColor* vColor = quad.vertices.AddVertexComponent<VertexColor>({
-				Color::red,
-				Color::green,
-				Color::blue,
-				Color::white
-			});
+			quad.vertices.BuildVertexBuffer(
+				VertexComponent<SA::Vec3f>{
+					"POSITION",
+					{
+						{-0.5f, 0.5f, 0.0f},
+						{0.5f, 0.5f, 0.0},
+						{-0.5f, -0.5f, 0.0},
+						{0.5f, -0.5f, 0.0}
+					}
+				},
+
+				VertexComponent<Color>{
+					"COLOR",
+					{
+						Color::red,
+						Color::green,
+						Color::blue,
+						Color::white
+					}
+				}
+			);
+
 			quad.indices.U16({0, 1, 2, 1, 3, 2});
 
-			vertexPositionBuffer = context->CreateBuffer(vPos->GetDataSize(), RHI::BufferUsageFlags::VertexBuffer | RHI::BufferUsageFlags::CPUUpload);
-			vertexColorBuffer = context->CreateBuffer(vColor->GetDataSize(), RHI::BufferUsageFlags::VertexBuffer | RHI::BufferUsageFlags::CPUUpload);
-			indexBuffer = context->CreateBuffer(sizeof(uint16_t) * 6, RHI::BufferUsageFlags::IndexBuffer | RHI::BufferUsageFlags::CPUUpload);
+			vertexBuffer = context->CreateBuffer(quad.vertices.GetDataSize(), RHI::BufferUsageFlags::VertexBuffer | RHI::BufferUsageFlags::CPUUpload);
+			indexBuffer = context->CreateBuffer(quad.indices.GetDataSize(), RHI::BufferUsageFlags::IndexBuffer | RHI::BufferUsageFlags::CPUUpload);
 		}
 
 		// Shaders

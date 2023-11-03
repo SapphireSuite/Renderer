@@ -19,7 +19,7 @@ namespace SA::RND
 
 	class RawIndexBuffer
 	{
-		std::vector<char*> mData;
+		std::vector<char> mData;
 		IndexBufferType mType = IndexBufferType::UINT16;
 
 	public:
@@ -34,6 +34,7 @@ namespace SA::RND
 		/// Getter as U32
 		const uint32_t* U32() const;
 
+		uint64_t GetDataSize() const;
 
 		/// Setter from U16 values
 		void U16(const std::vector<uint16_t>& _u16);

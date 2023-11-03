@@ -33,6 +33,10 @@ namespace SA::RND
 		return reinterpret_cast<const uint32_t*>(mData.data());
 	}
 
+	uint64_t RawIndexBuffer::GetDataSize() const
+	{
+		return mData.size();
+	}
 
 	void RawIndexBuffer::U16(const std::vector<uint16_t>& _u16)
 	{
