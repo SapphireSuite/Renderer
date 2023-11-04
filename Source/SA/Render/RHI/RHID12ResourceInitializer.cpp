@@ -10,14 +10,21 @@ namespace SA::RND::RHI
 {
 	void D12ResourceInitializer::Create(const Device* _device)
 	{
+		ResourceInitializer::Create(_device);
+
 		mHandle.Create(_device->API_DirectX12());
 	}
 
-	void D12ResourceInitializer::Destroy(const Device* _device)
+	void D12ResourceInitializer::Destroy()
 	{
-		(void)_device;
-
 		mHandle.Destroy();
+
+		ResourceInitializer::Destroy();
+	}
+
+	void D12ResourceInitializer::Submit()
+	{
+		mHandle.Submit();
 	}
 
 

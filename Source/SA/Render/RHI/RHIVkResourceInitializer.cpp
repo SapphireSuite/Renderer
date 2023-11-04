@@ -10,12 +10,21 @@ namespace SA::RND::RHI
 {
 	void VkResourceInitializer::Create(const Device* _device)
 	{
+		ResourceInitializer::Create(_device);
+
 		mHandle.Create(_device->API_Vulkan());
 	}
 
-	void VkResourceInitializer::Destroy(const Device* _device)
+	void VkResourceInitializer::Destroy()
 	{
-		mHandle.Destroy(_device->API_Vulkan());
+		mHandle.Destroy(mDevice->API_Vulkan());
+
+		ResourceInitializer::Destroy();
+	}
+
+	void VkResourceInitializer::Submit()
+	{
+		mHandle.Submit(mDevice->API_Vulkan());
 	}
 
 

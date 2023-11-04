@@ -440,7 +440,7 @@ namespace SA::RND::RHI
 
 		if (std::erase(mResourceInitializers, _init))
 		{
-			_init->Destroy(mDevice);
+			_init->Destroy();
 			DeleteResourceInitializerClass(_init);
 		}
 		else
@@ -451,7 +451,7 @@ namespace SA::RND::RHI
 	{
 		for (auto init : mResourceInitializers)
 		{
-			init->Destroy(mDevice);
+			init->Destroy();
 			DeleteResourceInitializerClass(init);
 		}
 

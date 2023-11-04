@@ -27,11 +27,16 @@ namespace SA::RND
 
 		class ResourceInitializer
 		{
+		protected:
+			const Device* mDevice = nullptr;
+
 		public:
 			virtual ~ResourceInitializer() = default;
 
-			virtual void Create(const Device* _device) = 0;
-			virtual void Destroy(const Device* _device) = 0;
+			virtual void Create(const Device* _device);
+			virtual void Destroy();
+
+			virtual void Submit() = 0;
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 

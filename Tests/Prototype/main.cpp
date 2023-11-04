@@ -6,7 +6,6 @@
 #include <SA/Collections/Debug>
 #include <SA/Collections/Maths>
 
-#include <SA/Render/LowLevel/Common/Mesh/RawMesh.hpp>
 #include <SA/Render/RHI/RHIVkRenderInterface.hpp>
 #include <SA/Render/RHI/RHID12RenderInterface.hpp>
 #include <SA/Render/RHI/Compatibility/IRenderWindow.hpp>
@@ -95,7 +94,6 @@ public:
 	RHI::Context* context = nullptr;
 	RHI::Pass* pass = nullptr;
 	std::vector<RHI::FrameBuffer*> frameBuffers;
-	RawMesh quad;
 	RHI::Shader* vertexShader = nullptr;
 	RHI::Shader* pixelShader = nullptr;
 	RHI::PipelineLayout* pipLayout = nullptr;
@@ -103,8 +101,8 @@ public:
 	RHI::RenderViews* views = nullptr;
 	RHI::CommandPool* cmdPool = nullptr;
 	std::vector<RHI::CommandBuffer*> cmdBuffers;
-	RHI::Buffer* vertexBuffer;
-	RHI::Buffer* indexBuffer;
+	RawMesh quadRaw;
+	RHI::StaticMesh* quadMesh;
 
 	struct CreateInfo
 	{
@@ -254,9 +252,11 @@ public:
 				frameBuffers[i] = context->CreateFrameBuffer(pass, swapchain->GetBackBufferHandle(i));
 		}
 
+		RHI::ResourceInitializer* resInit = context->CreateResourceInitializer();
+
 		// Mesh
 		{
-			quad.vertices.BuildVertexBuffer(
+			quadRaw.vertices.BuildVertexBuffer(
 				VertexComponent<SA::Vec3f>{
 					"POSITION",
 					{
@@ -278,11 +278,12 @@ public:
 				}
 			);
 
-			quad.indices.U16({0, 1, 2, 1, 3, 2});
+			quadRaw.indices.U16({0, 1, 2, 1, 3, 2});
 
-			vertexBuffer = context->CreateBuffer(quad.vertices.GetDataSize(), RHI::BufferUsageFlags::VertexBuffer | RHI::BufferUsageFlags::CPUUpload, quad.vertices.GetData());
-			indexBuffer = context->CreateBuffer(quad.indices.GetDataSize(), RHI::BufferUsageFlags::IndexBuffer | RHI::BufferUsageFlags::CPUUpload, quad.indices.U16());
+			quadMesh = context->CreateStaticMesh(resInit, quadRaw);
 		}
+
+		resInit->Submit();
 
 		// Shaders
 		{
@@ -295,7 +296,7 @@ public:
 					.target = "vs_6_5",
 				};
 
-				quad.vertices.AppendDefines(vsInfo.defines);
+				quadRaw.vertices.AppendDefines(vsInfo.defines);
 
 				ShaderCompileResult vsShaderRes = intf->CompileShader(vsInfo);
 				vertexShader = context->CreateShader(vsShaderRes);
@@ -310,7 +311,7 @@ public:
 					.target = "ps_6_5",
 				};
 
-				quad.vertices.AppendDefines(psInfo.defines);
+				quadRaw.vertices.AppendDefines(psInfo.defines);
 
 				ShaderCompileResult psShaderRes = intf->CompileShader(psInfo);
 				pixelShader = context->CreateShader(psShaderRes);

@@ -19,7 +19,9 @@ namespace SA::RND::RHI
 
 	public:
 		void Create(const Device* _device) override final;
-		void Destroy(const Device* _device) override final;
+		void Destroy() override final;
+
+		void Submit() override final;
 
 		VK::ResourceInitializer& API_Vulkan() override final;
 	};

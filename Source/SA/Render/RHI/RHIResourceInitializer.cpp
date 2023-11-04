@@ -6,6 +6,16 @@
 
 namespace SA::RND::RHI
 {
+	void ResourceInitializer::Create(const Device* _device)
+	{
+		mDevice = _device;
+	}
+
+	void ResourceInitializer::Destroy()
+	{
+		mDevice = nullptr;
+	}
+
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
 	VK::ResourceInitializer& ResourceInitializer::API_Vulkan()
