@@ -10,7 +10,8 @@
 				"SA_RENDER_BUILD_TESTS_OPT": true,
 				"SA_RENDER_VULKAN_OPT": true,
 				"SA_RENDER_DX12_OPT": true,
-				"SA_RENDER_OPENGL_OPT": false
+				"SA_RENDER_OPENGL_OPT": false,
+				"SA_RENDER_API_TRACKING_OPT": true
 			}
 		},
 		{
