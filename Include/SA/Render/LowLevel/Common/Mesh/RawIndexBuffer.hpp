@@ -34,7 +34,9 @@ namespace SA::RND
 		/// Getter as U32
 		const uint32_t* U32() const;
 
+		const char* GetData() const;
 		uint64_t GetDataSize() const;
+		
 		uint32_t GetIndexCount() const;
 
 		IndexBufferType GetIndexBufferType() const;

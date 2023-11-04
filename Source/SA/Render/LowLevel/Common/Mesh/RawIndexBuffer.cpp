@@ -33,6 +33,11 @@ namespace SA::RND
 		return reinterpret_cast<const uint32_t*>(mData.data());
 	}
 
+	const char* RawIndexBuffer::GetData() const
+	{
+		return mData.data();
+	}
+
 	uint64_t RawIndexBuffer::GetDataSize() const
 	{
 		return mData.size();
