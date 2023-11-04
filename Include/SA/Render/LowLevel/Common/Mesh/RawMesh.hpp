@@ -8,7 +8,7 @@
 #include "RawVertexBuffer.hpp"
 #include "RawIndexBuffer.hpp"
 
-#include <SA/Maths/Geometry/AABB3D.hpp>
+//#include <SA/Maths/Geometry/AABB3D.hpp>
 
 namespace SA::RND
 {
@@ -17,7 +17,7 @@ namespace SA::RND
 		RawVertexBuffer vertices;
 		RawIndexBuffer indices;
 
-		AABB3Df aabb;
+		//AABB3Df aabb;
 	};
 }
 

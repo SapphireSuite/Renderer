@@ -5,9 +5,9 @@
 #ifndef SAPPHIRE_RENDER_D12_STATIC_MESH_GUARD
 #define SAPPHIRE_RENDER_D12_STATIC_MESH_GUARD
 
-#include <SA/Render/Lowlevel/Common/Mesh/RawMesh.hpp>
+#include <SA/Render/LowLevel/Common/Mesh/RawMesh.hpp>
 
-#include <SA/Render/Lowlevel/DX12/Buffers/D12Buffer.hpp>
+#include <SA/Render/LowLevel/DX12/Buffers/D12Buffer.hpp>
 
 namespace SA::RND::DX12
 {
