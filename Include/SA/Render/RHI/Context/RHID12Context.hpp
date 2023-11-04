@@ -23,6 +23,7 @@ namespace SA::RND::RHI
 		CommandPool* InstantiateCommandPoolClass() override final;
 		Buffer* InstantiateBufferClass() override final;
 		ResourceInitializer* InstantiateResourceInitializerClass() override final;
+		StaticMesh* InstantiateStaticMeshClass() override final;
 	};
 }
 

@@ -19,6 +19,7 @@ namespace SA::RND::RHI
 	
 	void Context::Destroy()
 	{
+		DestroyAllStaticMeshes();
 		DestroyAllResourceInitializers();
 		DestroyAllBuffers();
 		DestroyAllCommandPools();
@@ -455,6 +456,53 @@ namespace SA::RND::RHI
 		}
 
 		mResourceInitializers.clear();
+	}
+
+//}
+
+
+//{ StaticMesh
+
+	void Context::DeleteStaticMeshClass(StaticMesh* _mesh)
+	{
+		SA_ASSERT((Nullptr, _mesh), SA.Render.RHI);
+
+		delete _mesh;
+	}
+
+	StaticMesh* Context::CreateStaticMesh(ResourceInitializer* _init, const RawMesh& _raw)
+	{
+		StaticMesh* const mesh = mStaticMeshes.emplace_front(InstantiateStaticMeshClass());
+
+		SA_ASSERT((Nullptr, mesh), SA.Render.RHI, (L"StaticMesh instantiate class failed!"));
+
+		mesh->Create(mDevice, _init, _raw);
+
+		return mesh;
+	}
+
+	void Context::DestroyStaticMesh(StaticMesh* _mesh)
+	{
+		SA_ASSERT((Nullptr, _mesh), SA.Render.RHI);
+
+		if (std::erase(mStaticMeshes, _mesh))
+		{
+			_mesh->Destroy(mDevice);
+			DeleteStaticMeshClass(_mesh);
+		}
+		else
+			SA_LOG((L"Try destroy StaticMesh [%1] that does not belong to this context!", _mesh), Error, SA.Render.RHI);
+	}
+
+	void Context::DestroyAllStaticMeshes()
+	{
+		for (auto mesh : mStaticMeshes)
+		{
+			mesh->Destroy(mDevice);
+			DeleteStaticMeshClass(mesh);
+		}
+
+		mStaticMeshes.clear();
 	}
 
 //}

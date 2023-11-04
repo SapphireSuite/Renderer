@@ -11,6 +11,7 @@
 #include <Device/Command/RHIVkCommandPool.hpp>
 #include <Buffer/RHIVkBuffer.hpp>
 #include <RHIVkResourceInitializer.hpp>
+#include <Mesh/RHIVkStaticMesh.hpp>
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
@@ -59,6 +60,11 @@ namespace SA::RND::RHI
 	ResourceInitializer* VkContext::InstantiateResourceInitializerClass()
 	{
 		return new VkResourceInitializer();
+	}
+
+	StaticMesh* VkContext::InstantiateStaticMeshClass()
+	{
+		return new VkStaticMesh();
 	}
 }
 

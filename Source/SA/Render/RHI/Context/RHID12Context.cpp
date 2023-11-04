@@ -11,6 +11,7 @@
 #include <Device/Command/RHID12CommandPool.hpp>
 #include <Buffer/RHID12Buffer.hpp>
 #include <RHID12ResourceInitializer.hpp>
+#include <Mesh/RHID12StaticMesh.hpp>
 
 #if SA_RENDER_LOWLEVEL_DX12_IMPL
 
@@ -59,6 +60,11 @@ namespace SA::RND::RHI
 	ResourceInitializer* D12Context::InstantiateResourceInitializerClass()
 	{
 		return new D12ResourceInitializer();
+	}
+
+	StaticMesh* D12Context::InstantiateStaticMeshClass()
+	{
+		return new D12StaticMesh();
 	}
 }
 

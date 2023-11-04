@@ -17,6 +17,7 @@
 #include <SA/Render/RHI/Device/Command/RHICommandPool.hpp>
 #include <SA/Render/RHI/Buffer/RHIBuffer.hpp>
 #include <SA/Render/RHI/RHIResourceInitializer.hpp>
+#include <SA/Render/RHI/Mesh/RHIStaticMesh.hpp>
 
 namespace SA::RND::RHI
 {
@@ -182,6 +183,23 @@ namespace SA::RND::RHI
 		ResourceInitializer* CreateResourceInitializer();
 		void DestroyResourceInitializer(ResourceInitializer* _init);
 		void DestroyAllResourceInitializers();
+
+//}
+
+
+//{ StaticMesh
+
+	private:
+		std::forward_list<StaticMesh*> mStaticMeshes;
+
+	protected:
+		virtual StaticMesh* InstantiateStaticMeshClass() = 0;
+		virtual void DeleteStaticMeshClass(StaticMesh* _mesh);
+
+	public:
+		StaticMesh* CreateStaticMesh(ResourceInitializer* _init, const RawMesh& _raw);
+		void DestroyStaticMesh(StaticMesh* _mesh);
+		void DestroyAllStaticMeshes();
 
 //}
 	};
