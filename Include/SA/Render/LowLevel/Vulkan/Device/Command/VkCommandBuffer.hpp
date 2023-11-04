@@ -9,6 +9,8 @@
 
 namespace SA::RND::VK
 {
+	class Buffer;
+
 	class CommandBuffer
 	{
 		friend class CommandPool;
@@ -18,6 +20,8 @@ namespace SA::RND::VK
 	public:
 		void Begin();
 		void End();
+
+		void CopyBuffer(const Buffer& _src, Buffer& _dst, uint32_t _size, uint32_t _srcOffset = 0u, uint32_t _dstOffset = 0u);
 
 		void Draw(uint32_t _vertexNum, uint32_t _instanceNum, uint32_t _firstVertex, uint32_t _firstInstance);
 

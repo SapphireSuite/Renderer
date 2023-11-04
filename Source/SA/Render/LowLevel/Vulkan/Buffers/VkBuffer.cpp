@@ -53,7 +53,7 @@ namespace SA::RND::VK
 		}
 
 		if (_data)
-			CopyData(_device, _data, _size);
+			CopyCPUToGPUData(_device, _data, _size);
 
 		SA_LOG(L"Buffer created.", Info, SA.Render.Vulkan, (L"Handle [%1], Memory [%2]", mHandle, mDeviceMemory));
 	}
@@ -66,7 +66,7 @@ namespace SA::RND::VK
 		SA_VK_API(vkFreeMemory(_device, mDeviceMemory, nullptr));
 	}
 
-	void Buffer::CopyData(const Device& _device, const void* _src, uint64_t _size, uint64_t _offset)
+	void Buffer::CopyCPUToGPUData(const Device& _device, const void* _src, uint64_t _size, uint64_t _offset)
 	{
 		SA_ASSERT((Nullptr, _src), SA.Render.Vulkan);
 #if SA_DEBUG
@@ -79,5 +79,10 @@ namespace SA::RND::VK
 		std::memcpy(GPUData, _src, _size);
 
 		SA_VK_API(vkUnmapMemory(_device, mDeviceMemory));
+	}
+
+	Buffer::operator VkBuffer() const
+	{
+		return mHandle;
 	}
 }

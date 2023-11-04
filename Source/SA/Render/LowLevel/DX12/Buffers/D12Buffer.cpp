@@ -41,6 +41,9 @@ namespace SA::RND::DX12
 			IID_PPV_ARGS(&mHandle)
 		));
 
+		if (_src)
+			CopyCPUToGPUData(_device, _src, _size);
+
 		SA_LOG("Buffer created.", Info, SA.Render.DX12, (L"Handle [%1]", mHandle.Get()));
 	}
 
@@ -51,7 +54,7 @@ namespace SA::RND::DX12
 		mHandle.Reset();
 	}
 
-	void Buffer::CopyData(const Device& _device, const void* _src, uint64_t _size, uint64_t _offset)
+	void Buffer::CopyCPUToGPUData(const Device& _device, const void* _src, uint64_t _size, uint64_t _offset)
 	{
 		SA_ASSERT((Nullptr, _src), SA.Render.Vulkan);
 #if SA_DEBUG

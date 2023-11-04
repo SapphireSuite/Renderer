@@ -2,6 +2,8 @@
 
 #include <Device/Command/VkCommandBuffer.hpp>
 
+#include <Buffers/VkBuffer.hpp>
+
 namespace SA::RND::VK
 {
 	void CommandBuffer::Begin()
@@ -24,6 +26,15 @@ namespace SA::RND::VK
 		SA_VK_API(vkEndCommandBuffer(mHandle), L"Failed to end command buffer!");
 	}
 
+	void CommandBuffer::CopyBuffer(const Buffer& _src, Buffer& _dst, uint32_t _size, uint32_t _srcOffset, uint32_t _dstOffset)
+	{
+		VkBufferCopy copyRegion{};
+		copyRegion.srcOffset = _srcOffset;
+		copyRegion.dstOffset = _dstOffset;
+		copyRegion.size = _size;
+
+		vkCmdCopyBuffer(mHandle, _src, _dst, 1, &copyRegion);
+	}
 
 	void CommandBuffer::Draw(uint32_t _vertexNum, uint32_t _instanceNum, uint32_t _firstVertex, uint32_t _firstInstance)
 	{
