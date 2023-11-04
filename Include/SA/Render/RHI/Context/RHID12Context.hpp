@@ -22,6 +22,7 @@ namespace SA::RND::RHI
 		Pipeline* InstantiatePipelineClass() override final;
 		CommandPool* InstantiateCommandPoolClass() override final;
 		Buffer* InstantiateBufferClass() override final;
+		ResourceInitializer* InstantiateResourceInitializerClass() override final;
 	};
 }
 

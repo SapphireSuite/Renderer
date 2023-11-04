@@ -19,6 +19,7 @@ namespace SA::RND::RHI
 	
 	void Context::Destroy()
 	{
+		DestroyAllResourceInitializers();
 		DestroyAllBuffers();
 		DestroyAllCommandPools();
 		DestroyAllPipelines();
@@ -407,6 +408,53 @@ namespace SA::RND::RHI
 		}
 
 		mBuffers.clear();
+	}
+
+//}
+
+
+//{ ResourceInitializer
+
+	void Context::DeleteResourceInitializerClass(ResourceInitializer* _init)
+	{
+		SA_ASSERT((Nullptr, _init), SA.Render.RHI);
+
+		delete _init;
+	}
+
+	ResourceInitializer* Context::CreateResourceInitializer()
+	{
+		ResourceInitializer* const init = mResourceInitializers.emplace_front(InstantiateResourceInitializerClass());
+
+		SA_ASSERT((Nullptr, init), SA.Render.RHI, (L"ResourceInitializer instantiate class failed!"));
+
+		init->Create(mDevice);
+
+		return init;
+	}
+
+	void Context::DestroyResourceInitializer(ResourceInitializer* _init)
+	{
+		SA_ASSERT((Nullptr, _init), SA.Render.RHI);
+
+		if (std::erase(mResourceInitializers, _init))
+		{
+			_init->Destroy(mDevice);
+			DeleteResourceInitializerClass(_init);
+		}
+		else
+			SA_LOG((L"Try destroy ResourceInitializer [%1] that does not belong to this context!", _init), Error, SA.Render.RHI);
+	}
+
+	void Context::DestroyAllResourceInitializers()
+	{
+		for (auto init : mResourceInitializers)
+		{
+			init->Destroy(mDevice);
+			DeleteResourceInitializerClass(init);
+		}
+
+		mResourceInitializers.clear();
 	}
 
 //}

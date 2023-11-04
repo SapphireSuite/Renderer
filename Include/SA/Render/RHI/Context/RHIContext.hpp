@@ -16,6 +16,7 @@
 #include <SA/Render/RHI/Pipeline/RHIRenderViews.hpp>
 #include <SA/Render/RHI/Device/Command/RHICommandPool.hpp>
 #include <SA/Render/RHI/Buffer/RHIBuffer.hpp>
+#include <SA/Render/RHI/RHIResourceInitializer.hpp>
 
 namespace SA::RND::RHI
 {
@@ -158,12 +159,29 @@ namespace SA::RND::RHI
 
 	protected:
 		virtual Buffer* InstantiateBufferClass() = 0;
-		virtual void DeleteBufferClass(Buffer* _pipeline);
+		virtual void DeleteBufferClass(Buffer* _init);
 
 	public:
 		Buffer* CreateBuffer(uint32_t _size, BufferUsage _usage, const void* _src);
-		void DestroyBuffer(Buffer* _pipeline);
+		void DestroyBuffer(Buffer* _buffer);
 		void DestroyAllBuffers();
+
+//}
+
+
+//{ ResourceInitializer
+
+	private:
+		std::forward_list<ResourceInitializer*> mResourceInitializers;
+
+	protected:
+		virtual ResourceInitializer* InstantiateResourceInitializerClass() = 0;
+		virtual void DeleteResourceInitializerClass(ResourceInitializer* _init);
+
+	public:
+		ResourceInitializer* CreateResourceInitializer();
+		void DestroyResourceInitializer(ResourceInitializer* _init);
+		void DestroyAllResourceInitializers();
 
 //}
 	};

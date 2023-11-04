@@ -10,6 +10,7 @@
 #include <Pipeline/RHIVkRenderViews.hpp>
 #include <Device/Command/RHIVkCommandPool.hpp>
 #include <Buffer/RHIVkBuffer.hpp>
+#include <RHIVkResourceInitializer.hpp>
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
@@ -53,6 +54,11 @@ namespace SA::RND::RHI
 	Buffer* VkContext::InstantiateBufferClass()
 	{
 		return new VkBuffer();
+	}
+
+	ResourceInitializer* VkContext::InstantiateResourceInitializerClass()
+	{
+		return new VkResourceInitializer();
 	}
 }
 
