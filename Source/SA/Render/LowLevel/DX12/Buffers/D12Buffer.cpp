@@ -6,8 +6,16 @@
 
 namespace SA::RND::DX12
 {
-	void Buffer::Create(const Device& _device, uint32_t _size, D3D12_RESOURCE_STATES _usage, D3D12_HEAP_TYPE _memory)
+	void Buffer::Create(const Device& _device,
+		uint32_t _size,
+		D3D12_RESOURCE_STATES _usage,
+		D3D12_HEAP_TYPE _memory,
+		const void* _src)
 	{
+#if SA_DEBUG
+		mHeapType = _memory;
+#endif
+
 		D3D12_HEAP_PROPERTIES heap{
 			.Type = _memory,
 		};
@@ -41,5 +49,22 @@ namespace SA::RND::DX12
 		SA_LOG_RAII("Buffer destroyed.", Info, SA.Render.DX12, (L"Handle [%1]", mHandle.Get()));
 
 		mHandle.Reset();
+	}
+
+	void Buffer::CopyData(const Device& _device, const void* _src, uint64_t _size, uint64_t _offset)
+	{
+		SA_ASSERT((Nullptr, _src), SA.Render.Vulkan);
+#if SA_DEBUG
+		SA_ASSERT((Default, (mHeapType & D3D12_HEAP_TYPE_UPLOAD)), SA.Render.DX12,
+			L"Buffer must have `D3D12_HEAP_TYPE_UPLOAD` memory type to copy data from CPU to GPU");
+#endif
+
+		void* GPUData = nullptr;
+		D3D12_RANGE mapRange{ _offset , _offset + _size };
+		SA_DX12_API(mHandle->Map(0, &mapRange, &GPUData));
+
+		std::memcpy(GPUData, _src, _size);
+
+		SA_DX12_API(mHandle->Unmap(0, nullptr));
 	}
 }

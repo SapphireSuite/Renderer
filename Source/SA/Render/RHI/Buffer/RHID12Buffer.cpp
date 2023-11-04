@@ -8,9 +8,14 @@
 
 namespace SA::RND::RHI
 {
-	void D12Buffer::Create(const Device* _device, uint32_t _size, BufferUsage _usage)
+	void D12Buffer::Create(const Device* _device, uint32_t _size, BufferUsage _usage, const void* _src)
 	{
-		mHandle.Create(_device->API_DirectX12(), _size, DX12::API_GetBufferUsage(_usage), DX12::API_GetBufferMemoryHeapType(_usage));
+		mHandle.Create(_device->API_DirectX12(),
+			_size,
+			DX12::API_GetBufferUsage(_usage),
+			DX12::API_GetBufferMemoryHeapType(_usage),
+			_src
+		);
 	}
 
 	void D12Buffer::Destroy(const Device* _device)

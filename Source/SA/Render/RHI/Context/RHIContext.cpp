@@ -374,13 +374,13 @@ namespace SA::RND::RHI
 		delete _buffer;
 	}
 
-	Buffer* Context::CreateBuffer(uint32_t _size, BufferUsage _usage)
+	Buffer* Context::CreateBuffer(uint32_t _size, BufferUsage _usage, const void* _src)
 	{
 		Buffer* const buffer = mBuffers.emplace_front(InstantiateBufferClass());
 
 		SA_ASSERT((Nullptr, buffer), SA.Render.RHI, (L"Buffer instantiate class failed!"));
 
-		buffer->Create(mDevice, _size, _usage);
+		buffer->Create(mDevice, _size, _usage, _src);
 
 		return buffer;
 	}

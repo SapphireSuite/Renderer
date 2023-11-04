@@ -16,9 +16,29 @@ namespace SA::RND::VK
 		VkBuffer mHandle = VK_NULL_HANDLE;
 		VkDeviceMemory mDeviceMemory = VK_NULL_HANDLE;
 
+#if SA_DEBUG
+		VkMemoryPropertyFlags mMemoryPropertyFlags;
+#endif
+
 	public:
-		void Create(const Device& _device, uint32_t _size, VkBufferUsageFlags _usage, VkMemoryPropertyFlags _memory);
+		/**
+		* Create a GPU memory buffer.
+		* 
+		* @param[in] _src	Data to copy to the buffer. MemoryPropertyFlags must be `VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT`
+		*/
+		void Create(const Device& _device,
+			uint32_t _size,
+			VkBufferUsageFlags _usage,
+			VkMemoryPropertyFlags _memory,
+			const void* _src = nullptr);
 		void Destroy(const Device& _device);
+
+
+		/**
+		* Copy data from the CPU to the GPU Buffer.
+		* MemoryPropertyFlags must contain `VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT`
+		*/
+		void CopyData(const Device& _device, const void* _src, uint64_t _size, uint64_t _offset = 0u);
 	};
 }
 

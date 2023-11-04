@@ -161,7 +161,7 @@ namespace SA::RND::RHI
 		virtual void DeleteBufferClass(Buffer* _pipeline);
 
 	public:
-		Buffer* CreateBuffer(uint32_t _size, BufferUsage _usage);
+		Buffer* CreateBuffer(uint32_t _size, BufferUsage _usage, const void* _src);
 		void DestroyBuffer(Buffer* _pipeline);
 		void DestroyAllBuffers();
 

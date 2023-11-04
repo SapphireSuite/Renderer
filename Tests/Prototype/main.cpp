@@ -280,8 +280,8 @@ public:
 
 			quad.indices.U16({0, 1, 2, 1, 3, 2});
 
-			vertexBuffer = context->CreateBuffer(quad.vertices.GetDataSize(), RHI::BufferUsageFlags::VertexBuffer | RHI::BufferUsageFlags::CPUUpload);
-			indexBuffer = context->CreateBuffer(quad.indices.GetDataSize(), RHI::BufferUsageFlags::IndexBuffer | RHI::BufferUsageFlags::CPUUpload);
+			vertexBuffer = context->CreateBuffer(quad.vertices.GetDataSize(), RHI::BufferUsageFlags::VertexBuffer | RHI::BufferUsageFlags::CPUUpload, quad.vertices.GetData());
+			indexBuffer = context->CreateBuffer(quad.indices.GetDataSize(), RHI::BufferUsageFlags::IndexBuffer | RHI::BufferUsageFlags::CPUUpload, quad.indices.U16());
 		}
 
 		// Shaders

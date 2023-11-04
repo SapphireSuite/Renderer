@@ -8,9 +8,13 @@
 
 namespace SA::RND::RHI
 {
-	void VkBuffer::Create(const Device* _device, uint32_t _size, BufferUsage _usage)
+	void VkBuffer::Create(const Device* _device, uint32_t _size, BufferUsage _usage, const void* _src)
 	{
-		mHandle.Create(_device->API_Vulkan(), _size, VK::API_GetBufferUsage(_usage), VK::API_GetBufferMemoryProperties(_usage));
+		mHandle.Create(_device->API_Vulkan(),
+			_size,
+			VK::API_GetBufferUsage(_usage),
+			VK::API_GetBufferMemoryProperties(_usage),
+			_src);
 	}
 
 	void VkBuffer::Destroy(const Device* _device)
