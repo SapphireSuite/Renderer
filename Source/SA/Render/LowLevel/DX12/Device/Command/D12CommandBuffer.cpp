@@ -2,6 +2,8 @@
 
 #include <Device/Command/D12CommandBuffer.hpp>
 
+#include <Buffers/D12Buffer.hpp>
+
 namespace SA::RND::DX12
 {
 	void CommandBuffer::Create(const Device& _device, D3D12_COMMAND_LIST_TYPE _type)
@@ -32,6 +34,10 @@ namespace SA::RND::DX12
 		mCmdList->Close();
 	}
 
+	void CommandBuffer::CopyBuffer(const Buffer& _src, Buffer& _dst, uint32_t _size, uint32_t _srcOffset, uint32_t _dstOffset)
+	{
+		SA_DX12_API(mCmdList->CopyBufferRegion(_dst.Get(), _dstOffset, _src.Get(), _srcOffset, _size));
+	}
 
 	void CommandBuffer::Draw(uint32_t _vertexNum, uint32_t _instanceNum, uint32_t _firstVertex, uint32_t _firstInstance)
 	{

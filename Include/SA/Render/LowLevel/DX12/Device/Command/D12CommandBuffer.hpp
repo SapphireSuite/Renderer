@@ -10,6 +10,8 @@
 
 namespace SA::RND::DX12
 {
+	class Buffer;
+
 	class CommandBuffer
 	{
 		CommandList mCmdList;
@@ -21,6 +23,8 @@ namespace SA::RND::DX12
 
 		void Begin();
 		void End();
+
+		void CopyBuffer(const Buffer& _src, Buffer& _dst, uint32_t _size, uint32_t _srcOffset = 0u, uint32_t _dstOffset = 0u);
 
 		void Draw(uint32_t _vertexNum, uint32_t _instanceNum, uint32_t _firstVertex, uint32_t _firstInstance);
 

@@ -6,6 +6,11 @@
 
 namespace SA::RND::DX12
 {
+	ID3D12Resource* Buffer::Get() const
+	{
+		return mHandle.Get();
+	}
+
 	void Buffer::Create(const Device& _device,
 		uint32_t _size,
 		D3D12_RESOURCE_STATES _usage,
@@ -54,7 +59,7 @@ namespace SA::RND::DX12
 		mHandle.Reset();
 	}
 
-	void Buffer::CopyCPUToGPUData(const Device& _device, const void* _src, uint64_t _size, uint64_t _offset)
+	void Buffer::CopyCPUToGPUData(const void* _src, uint64_t _size, uint64_t _offset)
 	{
 		SA_ASSERT((Nullptr, _src), SA.Render.Vulkan);
 #if SA_DEBUG

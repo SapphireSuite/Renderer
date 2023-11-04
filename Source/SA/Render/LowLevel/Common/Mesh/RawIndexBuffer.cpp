@@ -38,6 +38,22 @@ namespace SA::RND
 		return mData.size();
 	}
 
+	uint32_t RawIndexBuffer::GetIndexCount() const
+	{
+		if (mType == IndexBufferType::UINT16)
+			return mData.size() / 2;
+
+		if (mType == IndexBufferType::UINT32)
+			return mData.size() / 4;
+
+		return 0;
+	}
+
+	IndexBufferType RawIndexBuffer::GetIndexBufferType() const
+	{
+		return mType;
+	}
+
 	void RawIndexBuffer::U16(const std::vector<uint16_t>& _u16)
 	{
 		mData.clear();

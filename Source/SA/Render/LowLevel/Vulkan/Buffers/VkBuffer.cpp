@@ -7,7 +7,7 @@
 namespace SA::RND::VK
 {
 	void Buffer::Create(const Device& _device,
-		uint32_t _size,
+		uint64_t _size,
 		VkBufferUsageFlags _usage,
 		VkMemoryPropertyFlags _memory,
 		const void* _data)

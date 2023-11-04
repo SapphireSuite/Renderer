@@ -20,6 +20,8 @@ namespace SA::RND::DX12
 #endif
 
 	public:
+		ID3D12Resource* Get() const;
+
 		/**
 		* Create a GPU memory buffer.
 		*
@@ -36,7 +38,7 @@ namespace SA::RND::DX12
 		* Copy data from the CPU to the GPU Buffer.
 		* MemoryPropertyFlags must contain `VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT`
 		*/
-		void CopyCPUToGPUData(const Device& _device, const void* _src, uint64_t _size, uint64_t _offset = 0u);
+		void CopyCPUToGPUData(const void* _src, uint64_t _size, uint64_t _offset = 0u);
 	};
 }
 

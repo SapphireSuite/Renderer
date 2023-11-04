@@ -1,13 +1,10 @@
 // Copyright (c) 2023 Sapphire's Suite. All Rights Reserved.
 
-#include <Mesh/VkStaticMesh.hpp>
+#include <Mesh/D12StaticMesh.hpp>
 
-#include <SA/Collections/Debug>
+#include <D12ResourceInitializer.hpp>
 
-#include <Device/VkDevice.hpp>
-#include <VkResourceInitializer.hpp>
-
-namespace SA::RND::VK
+namespace SA::RND::DX12
 {
 	void StaticMesh::Create(const Device& _device, ResourceInitializer& _init, const RawMesh& _raw)
 	{
@@ -17,8 +14,8 @@ namespace SA::RND::VK
 
 			mVertexBuffer.Create(_device,
 				_raw.vertices.GetDataSize(),
-				VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-				VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+				D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER,
+				D3D12_HEAP_TYPE_DEFAULT);
 
 			_init.cmd.CopyBuffer(staging, mVertexBuffer, _raw.vertices.GetDataSize());
 		}
@@ -32,20 +29,20 @@ namespace SA::RND::VK
 
 			mIndexBuffer.Create(_device,
 				_raw.indices.GetDataSize(),
-				VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-				VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+				D3D12_RESOURCE_STATE_INDEX_BUFFER,
+				D3D12_HEAP_TYPE_DEFAULT);
 
 			_init.cmd.CopyBuffer(staging, mIndexBuffer, _raw.indices.GetDataSize());
 		}
 
-		SA_LOG("Static Mesh created.", Info, SA.Render.Vulkan);
+		SA_LOG("Static Mesh created.", Info, SA.Render.DX12);
 	}
 
-	void StaticMesh::Destroy(const Device& _device)
+	void StaticMesh::Destroy()
 	{
-		mVertexBuffer.Destroy(_device);
-		mIndexBuffer.Destroy(_device);
+		mVertexBuffer.Destroy();
+		mIndexBuffer.Destroy();
 
-		SA_LOG("Static Mesh destroyed.", Info, SA.Render.Vulkan);
+		SA_LOG("Static Mesh destroyed.", Info, SA.Render.DX12);
 	}
 }

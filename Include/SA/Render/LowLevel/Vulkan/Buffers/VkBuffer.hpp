@@ -27,7 +27,7 @@ namespace SA::RND::VK
 		* @param[in] _src	Data to copy to the buffer. MemoryPropertyFlags must be `VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT`
 		*/
 		void Create(const Device& _device,
-			uint32_t _size,
+			uint64_t _size,
 			VkBufferUsageFlags _usage,
 			VkMemoryPropertyFlags _memory,
 			const void* _src = nullptr);

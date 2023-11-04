@@ -32,7 +32,13 @@ namespace SA::RND::VK
 	void ResourceInitializer::Destroy(const Device& _device)
 	{
 		mCmdPool.Destroy(_device);
-	
+
+		// Clear remaining staging buffers
+		for (auto& stagingBuffer : mStagingBuffers)
+			stagingBuffer.Destroy(_device);
+
+		mStagingBuffers.clear();
+
 		SA_LOG(L"Resource Initializer destroyed.", Info, SA.Render.Vulkan);
 	}
 
@@ -42,9 +48,9 @@ namespace SA::RND::VK
 		Buffer& stagingBuffer = mStagingBuffers.emplace_back();
 
 		stagingBuffer.Create(_device,
+			_size,
 			VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-			_size,
 			_data
 		);
 
@@ -77,7 +83,7 @@ namespace SA::RND::VK
 		// Clear staging buffers
 		for (auto& stagingBuffer : mStagingBuffers)
 			stagingBuffer.Destroy(_device);
-		
+
 		mStagingBuffers.clear();
 
 

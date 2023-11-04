@@ -35,6 +35,9 @@ namespace SA::RND
 		const uint32_t* U32() const;
 
 		uint64_t GetDataSize() const;
+		uint32_t GetIndexCount() const;
+
+		IndexBufferType GetIndexBufferType() const;
 
 		/// Setter from U16 values
 		void U16(const std::vector<uint16_t>& _u16);
