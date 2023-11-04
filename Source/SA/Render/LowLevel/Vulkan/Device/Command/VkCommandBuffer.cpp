@@ -26,7 +26,7 @@ namespace SA::RND::VK
 		SA_VK_API(vkEndCommandBuffer(mHandle), L"Failed to end command buffer!");
 	}
 
-	void CommandBuffer::CopyBuffer(const Buffer& _src, Buffer& _dst, uint32_t _size, uint32_t _srcOffset, uint32_t _dstOffset)
+	void CommandBuffer::CopyBuffer(const Buffer& _src, Buffer& _dst, uint64_t _size, uint64_t _srcOffset, uint64_t _dstOffset)
 	{
 		VkBufferCopy copyRegion{};
 		copyRegion.srcOffset = _srcOffset;

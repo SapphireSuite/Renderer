@@ -28,7 +28,7 @@ namespace SA::RND::DX12
 		* @param[in] _src	Data to copy to the buffer. HeapType must be D3D12_HEAP_TYPE_UPLOAD.
 		*/
 		void Create(const Device& _device,
-			uint32_t _size,
+			uint64_t _size,
 			D3D12_RESOURCE_STATES _usage,
 			D3D12_HEAP_TYPE _memory,
 			const void* _src = nullptr);

@@ -34,7 +34,7 @@ namespace SA::RND::DX12
 		mCmdList->Close();
 	}
 
-	void CommandBuffer::CopyBuffer(const Buffer& _src, Buffer& _dst, uint32_t _size, uint32_t _srcOffset, uint32_t _dstOffset)
+	void CommandBuffer::CopyBuffer(const Buffer& _src, Buffer& _dst, uint64_t _size, uint64_t _srcOffset, uint64_t _dstOffset)
 	{
 		SA_DX12_API(mCmdList->CopyBufferRegion(_dst.Get(), _dstOffset, _src.Get(), _srcOffset, _size));
 	}

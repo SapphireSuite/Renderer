@@ -70,7 +70,7 @@ namespace SA::RND::DX12
 		return stagingBuffer;
 	}
 
-	void ResourceInitializer::Submit(const Device& _device)
+	void ResourceInitializer::Submit()
 	{
 		cmd.End();
 

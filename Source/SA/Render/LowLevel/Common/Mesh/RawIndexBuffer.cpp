@@ -41,10 +41,10 @@ namespace SA::RND
 	uint32_t RawIndexBuffer::GetIndexCount() const
 	{
 		if (mType == IndexBufferType::UINT16)
-			return mData.size() / 2;
+			return static_cast<uint32_t>(mData.size() / 2);
 
 		if (mType == IndexBufferType::UINT32)
-			return mData.size() / 4;
+			return static_cast<uint32_t>(mData.size() / 4);
 
 		return 0;
 	}

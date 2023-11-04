@@ -34,7 +34,7 @@ namespace SA::RND::DX12
 
 		Buffer& CreateStagingBuffer(const Device& _device, uint64_t _size, const void* _data = nullptr);
 
-		void Submit(const Device& _device);
+		void Submit();
 	};
 }
 

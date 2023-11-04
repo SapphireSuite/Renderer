@@ -12,7 +12,7 @@ namespace SA::RND::DX12
 	}
 
 	void Buffer::Create(const Device& _device,
-		uint32_t _size,
+		uint64_t _size,
 		D3D12_RESOURCE_STATES _usage,
 		D3D12_HEAP_TYPE _memory,
 		const void* _src)
@@ -47,7 +47,7 @@ namespace SA::RND::DX12
 		));
 
 		if (_src)
-			CopyCPUToGPUData(_device, _src, _size);
+			CopyCPUToGPUData(_src, _size);
 
 		SA_LOG("Buffer created.", Info, SA.Render.DX12, (L"Handle [%1]", mHandle.Get()));
 	}
