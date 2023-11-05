@@ -22,7 +22,7 @@ namespace SA::RND::DX12
 			// View
 			mVertexView.BufferLocation = mVertexBuffer->GetGPUVirtualAddress();
 			mVertexView.StrideInBytes = _raw.vertices.GetVertexStride();
-			mVertexView.SizeInBytes = _raw.vertices.GetDataSize();
+			mVertexView.SizeInBytes = static_cast<uint32_t>(_raw.vertices.GetDataSize());
 		}
 
 
@@ -42,7 +42,7 @@ namespace SA::RND::DX12
 
 			// View
 			mIndexView.BufferLocation = mIndexBuffer->GetGPUVirtualAddress();
-			mIndexView.SizeInBytes = _raw.indices.GetDataSize();
+			mIndexView.SizeInBytes = static_cast<uint32_t>(_raw.indices.GetDataSize());
 
 			switch (indexBufferType)
 			{
