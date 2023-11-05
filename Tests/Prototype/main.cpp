@@ -145,7 +145,6 @@ public:
 				SA_LOG((L"Device found: Name: [%1], ID: [%2], Vendor [%3], Score [%4]", info->GetName(), info->GetID(), info->GetVendorID(), info->GetScore()));
 
 			device = intf->CreateDevice(infos[0].get());
-		
 		}
 		
 		// Swapchain

@@ -24,6 +24,7 @@ namespace SA::RND::DX12
 		void Begin();
 		void End();
 
+		void Transition(const D3D12_RESOURCE_BARRIER* _barriers, uint32_t _num);
 		void CopyBuffer(const Buffer& _src, Buffer& _dst, uint64_t _size, uint64_t _srcOffset = 0u, uint64_t _dstOffset = 0u);
 
 		void Draw(uint32_t _vertexNum, uint32_t _instanceNum, uint32_t _firstVertex, uint32_t _firstInstance);

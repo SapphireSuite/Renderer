@@ -9,9 +9,10 @@ namespace SA::RND::DX12
 {
 	void ResourceInitializer::Create(const Device& _device)
 	{
-		if (_device.queueMgr.transfer.GetQueueNum())
-			Create(_device, _device.queueMgr.transfer.GetQueue(0));
-		else
+		// TODO: FIX: DX12 Transfer queue does not work for staging buffer creation and copy data?
+		//if (_device.queueMgr.transfer.GetQueueNum())
+		//	Create(_device, _device.queueMgr.transfer.GetQueue(0));
+		//else
 			Create(_device, _device.queueMgr.graphics.GetQueue(0));
 	}
 
