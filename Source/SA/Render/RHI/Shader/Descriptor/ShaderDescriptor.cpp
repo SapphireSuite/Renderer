@@ -64,7 +64,32 @@ namespace SA::RND::RHI
 
 #if SA_RENDER_LOWLEVEL_DX12_IMPL
 
-	std::vector<D3D12_INPUT_ELEMENT_DESC> ShaderDescriptor::MakeDX12VertexInputElementDescs() const
+	std::vector<D3D12_INPUT_ELEMENT_DESC> ShaderDescriptor::MakeDX12VertexInputElementDescsSingleVertexBuffer() const
+	{
+		std::vector<D3D12_INPUT_ELEMENT_DESC> dxDescs;
+		dxDescs.reserve(inputs.size());
+
+		uint32_t offset = 0u;
+
+		for (auto& input : inputs)
+		{
+			auto& out = dxDescs.emplace_back();
+
+			out.SemanticName = input.semantic.c_str();
+			out.SemanticIndex = 0;
+			out.Format = DX12::API_GetFormat(input.format);
+			out.InputSlot = 0;
+			out.AlignedByteOffset = offset;
+			out.InputSlotClass = D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA;
+			out.InstanceDataStepRate = 0;
+
+			offset += input.size;
+		}
+
+		return dxDescs;
+	}
+
+	std::vector<D3D12_INPUT_ELEMENT_DESC> ShaderDescriptor::MakeDX12VertexInputElementDescsMultipleVertexBuffers() const
 	{
 		std::vector<D3D12_INPUT_ELEMENT_DESC> dxDescs;
 		dxDescs.reserve(inputs.size());

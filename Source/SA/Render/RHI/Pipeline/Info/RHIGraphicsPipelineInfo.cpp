@@ -72,7 +72,7 @@ namespace SA::RND::RHI
 		dxDesc.raster = raster.API_DirectX12();
 		dxDesc.depthStencil = depthStencil.API_DirectX12();
 
-		dxDesc.vertexInputElements = shaders.vs->GetDescriptor().MakeDX12VertexInputElementDescs();
+		dxDesc.vertexInputElements = shaders.vs->GetDescriptor().MakeDX12VertexInputElementDescsSingleVertexBuffer();
 
 		const auto& passInfo = pass->GetInfo();
 		const auto& subpassInfo = passInfo.subpasses[subpassIndex];

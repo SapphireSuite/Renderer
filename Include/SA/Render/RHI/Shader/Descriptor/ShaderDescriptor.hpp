@@ -43,7 +43,8 @@ namespace SA::RND::RHI
 
 #if SA_RENDER_LOWLEVEL_DX12_IMPL
 
-		std::vector<D3D12_INPUT_ELEMENT_DESC> MakeDX12VertexInputElementDescs() const;
+		std::vector<D3D12_INPUT_ELEMENT_DESC> MakeDX12VertexInputElementDescsSingleVertexBuffer() const;
+		std::vector<D3D12_INPUT_ELEMENT_DESC> MakeDX12VertexInputElementDescsMultipleVertexBuffers() const;
 
 #endif
 	};
