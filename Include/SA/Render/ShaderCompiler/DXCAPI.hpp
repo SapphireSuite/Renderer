@@ -17,6 +17,8 @@
 #include <SA/Support/Compilers.hpp>
 #include <SA/Support/API/Windows.hpp>
 
+#include "Exception_DXC.hpp"
+
 #if SA_UNIX && SA_CLANG
 // Force UUID emulation on unix clang.
 #define __EMULATE_UUID 1
@@ -44,7 +46,7 @@
 		[&]<typename T>(T)\
 		{\
 			if constexpr (std::is_same_v<RType, HRESULT>)\
-				SA_ASSERT((DX12, _dxcFunc), SA.Render.ShaderCompiler.DXC.API, ##__VA_ARGS__)\
+				SA_ASSERT((DXC, _dxcFunc), SA.Render.ShaderCompiler.DXC.API, ##__VA_ARGS__)\
 			else if constexpr (std::is_same_v<RType, bool>)\
 				SA_ASSERT((Default, _dxcFunc), SA.Render.ShaderCompiler.DXC.API, ##__VA_ARGS__)\
 			else\
