@@ -11,7 +11,7 @@ namespace SA::RND
 	) noexcept :
 		Exception(std::move(_info),
 			SUCCEEDED(_hrRes),
-			std::move(_predStr) + L" => SUCCEEDED")
+			std::move(_predStr) + L" == " + SA::ToWString(_hrRes))
 	{
 	}
 }
