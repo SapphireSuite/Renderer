@@ -36,7 +36,8 @@ namespace SA::RND::RHI
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
-		VK::VertexInputStateInfo MakeVkVertexInputStateInfo() const;
+		VK::VertexInputStateInfo MakeVkVertexInputStateInfoSingleVertexBuffer() const;
+		VK::VertexInputStateInfo MakeVkVertexInputStateInfoMultipleVertexBuffers() const;
 
 #endif
 

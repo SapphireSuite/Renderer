@@ -5,18 +5,18 @@
 
 //-------------------- Vertex Shader --------------------
 
-SA::V2P mainVS(SA::VertexInputAssembly _input)
+struct VertexOutput : SA::VertexOutputBase
 {
-	SA::V2P output;
+};
+
+VertexOutput mainVS(SA::VertexInputAssembly _input)
+{
+	VertexOutput output;
 
 	// TODO: apply model and camera transformation.
 	output.svPosition = float4(_input.position, 1.0);
 
-#if SA_HAS_UV
-
-	output.uv = _input.uv;
-
-#elif SA_HAS_COLOR
+#if SA_HAS_COLOR
 
 	output.color = _input.color;
 
@@ -25,22 +25,16 @@ SA::V2P mainVS(SA::VertexInputAssembly _input)
 	return output;
 }
 
-//-------------------- Pixel Shader --------------------
 
-#if SA_HAS_UV
+//-------------------- Pixel Shader ---------------------
 
-Texture2D albedo : SA_REG(t, SA_ALBEDO_ID);
-SamplerState albedoSampler : SA_REG(s, SA_ALBEDO_ID);
-
-#endif
-
-float4 mainPS(SA::V2P _input) : SV_TARGET
+struct PixelInput : VertexOutput
 {
-#if SA_HAS_UV
+};
 
-	const float4 color = albedo.Sample(albedoSampler, _input.uv);
-
-#elif SA_HAS_COLOR
+float4 mainPS(PixelInput _input) : SV_TARGET
+{
+#if SA_HAS_COLOR
 
 	const float4 color = _input.color;
 
@@ -50,7 +44,7 @@ float4 mainPS(SA::V2P _input) : SV_TARGET
 
 #endif
 
-	if(color.a < 0.001)
+	if (color.a < 0.001)
 		discard;
 
 	return color;

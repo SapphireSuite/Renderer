@@ -290,7 +290,7 @@ public:
 			{
 				ShaderCompileInfo vsInfo
 				{
-					.path = L"Resources/Shaders/Forward/HelloTriangle.hlsl",
+					.path = L"Resources/Shaders/Passes/MainPass.hlsl",
 					.entrypoint = "mainVS",
 					.target = "vs_6_5",
 				};
@@ -305,7 +305,7 @@ public:
 			{
 				ShaderCompileInfo psInfo
 				{
-					.path = L"Resources/Shaders/Forward/HelloTriangle.hlsl",
+					.path = L"Resources/Shaders/Passes/MainPass.hlsl",
 					.entrypoint = "mainPS",
 					.target = "ps_6_5",
 				};
@@ -407,7 +407,7 @@ public:
 			pipeline->Bind(cmd);
 
 
-			cmd->Draw(3, 1, 0, 0);
+			quadMesh->Draw(cmd);
 
 
 			pass->End(cmd);

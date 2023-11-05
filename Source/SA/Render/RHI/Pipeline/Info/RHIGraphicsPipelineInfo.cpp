@@ -28,7 +28,7 @@ namespace SA::RND::RHI
 		VK::GraphicsPipelineInfo vkInfo;
 
 		vkInfo.shaderStages = shaders.API_MakeVkPipelineShaderStagesInfo();
-		vkInfo.vertexInputState = shaders.vs->GetDescriptor().MakeVkVertexInputStateInfo();
+		vkInfo.vertexInputState = shaders.vs->GetDescriptor().MakeVkVertexInputStateInfoSingleVertexBuffer();
 		vkInfo.raster = raster.API_Vulkan();
 		vkInfo.depthStencil = depthStencil.API_Vulkan();
 

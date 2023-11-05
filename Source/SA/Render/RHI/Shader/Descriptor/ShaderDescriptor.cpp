@@ -14,14 +14,37 @@ namespace SA::RND::RHI
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
-	VK::VertexInputStateInfo ShaderDescriptor::MakeVkVertexInputStateInfo() const
+	VK::VertexInputStateInfo ShaderDescriptor::MakeVkVertexInputStateInfoSingleVertexBuffer() const
 	{
 		VK::VertexInputStateInfo info;
 
-		for(uint32_t i = 0; i < static_cast<uint32_t>(inputs.size()); ++i)
+		VkVertexInputBindingDescription& bindDesc = info.bindDescs.emplace_back();
+		bindDesc.binding = 0;
+		bindDesc.stride = 0;
+		bindDesc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+		for(auto& input : inputs)
+		{
+			VkVertexInputAttributeDescription& attribDesc = info.attribDescs.emplace_back();
+			attribDesc.location = input.location;
+			attribDesc.binding = 0;
+			attribDesc.format = VK::API_GetFormat(input.format);
+			attribDesc.offset = bindDesc.stride;
+
+			bindDesc.stride += input.size;
+		}
+
+		return info;
+	}
+
+	VK::VertexInputStateInfo ShaderDescriptor::MakeVkVertexInputStateInfoMultipleVertexBuffers() const
+	{
+		VK::VertexInputStateInfo info;
+
+		for (uint32_t i = 0; i < static_cast<uint32_t>(inputs.size()); ++i)
 		{
 			auto& input = inputs[i];
-	
+
 			VkVertexInputBindingDescription& bindDesc = info.bindDescs.emplace_back();
 			bindDesc.binding = i;
 			bindDesc.stride = input.size;

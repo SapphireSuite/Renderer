@@ -32,7 +32,9 @@ namespace SA
 
 		float2 uv : TEXCOORD;
 
-	#elif SA_HAS_COLOR
+	#endif
+
+	#if SA_HAS_COLOR
 
 		float4 color : COLOR;
 
@@ -41,7 +43,7 @@ namespace SA
 
 
 	/// Base struct for common Vertex-to-Pixel data
-	struct V2P : VertexInputAssembly
+	struct VertexOutputBase : VertexInputAssembly
 	{
 		float4 svPosition : SV_POSITION;
 	};
