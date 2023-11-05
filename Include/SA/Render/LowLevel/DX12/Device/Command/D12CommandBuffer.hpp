@@ -30,6 +30,7 @@ namespace SA::RND::DX12
 		void Draw(uint32_t _vertexNum, uint32_t _instanceNum, uint32_t _firstVertex, uint32_t _firstInstance);
 
 		operator const CommandList&() const;
+		const CommandList& operator->() const;
 	};
 }
 

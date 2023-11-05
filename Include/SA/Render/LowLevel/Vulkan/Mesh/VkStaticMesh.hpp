@@ -13,18 +13,21 @@ namespace SA::RND::VK
 {
 	class Device;
 	class ResourceInitializer;
+	class CommandBuffer;
 
 	class StaticMesh
 	{
 		Buffer mVertexBuffer;
 		Buffer mIndexBuffer;
 
-		uint32_t mIndexCount = 0;
+		uint32_t mIndicesCount = 0;
 		SA::RND::IndexBufferType mIndexBufferType;
 
 	public:
 		void Create(const Device& _device, ResourceInitializer& _init, const RawMesh& _raw);
 		void Destroy(const Device& _device);
+
+		void Draw(const CommandBuffer& _cmd, uint32_t _instanceNum = 1u);
 	};
 }
 

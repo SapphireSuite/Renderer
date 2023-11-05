@@ -54,4 +54,9 @@ namespace SA::RND::DX12
 	{
 		return mCmdList;
 	}
+
+	const CommandList& CommandBuffer::operator->() const
+	{
+		return mCmdList;
+	}
 }

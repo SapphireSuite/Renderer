@@ -75,4 +75,9 @@ namespace SA::RND::DX12
 
 		SA_DX12_API(mHandle->Unmap(0, nullptr));
 	}
+
+	ID3D12Resource* Buffer::operator->() const
+	{
+		return mHandle.Get();
+	}
 }

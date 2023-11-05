@@ -41,7 +41,8 @@ namespace SA::RND
 	public:
 		const char* GetData() const;
 		uint64_t GetDataSize() const;
-		
+		uint32_t GetVertexStride() const;
+
 		template <typename CompT, typename... Args>
 		void BuildVertexBuffer(VertexComponent<CompT>&& _comp, Args&&... _args);
 

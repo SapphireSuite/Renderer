@@ -39,6 +39,8 @@ namespace SA::RND::DX12
 		* MemoryPropertyFlags must contain `VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT`
 		*/
 		void CopyCPUToGPUData(const void* _src, uint64_t _size, uint64_t _offset = 0u);
+
+		ID3D12Resource* operator->() const;
 	};
 }
 

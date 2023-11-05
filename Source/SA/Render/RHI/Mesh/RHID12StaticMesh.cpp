@@ -20,7 +20,11 @@ namespace SA::RND::RHI
 		mHandle.Destroy();
 	}
 
-	
+	void D12StaticMesh::Draw(const CommandBuffer* _cmd, uint32_t _instanceNum)
+	{
+		mHandle.Draw(_cmd->API_DirectX12(), _instanceNum);
+	}
+
 	const DX12::StaticMesh& D12StaticMesh::API_DirectX12() const
 	{
 		return mHandle;

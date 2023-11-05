@@ -18,13 +18,18 @@ namespace SA::RND::DX12
 				D3D12_HEAP_TYPE_DEFAULT);
 
 			_init.cmd.CopyBuffer(staging, mVertexBuffer, _raw.vertices.GetDataSize());
+
+			// View
+			mVertexView.BufferLocation = mVertexBuffer->GetGPUVirtualAddress();
+			mVertexView.StrideInBytes = _raw.vertices.GetVertexStride();
+			mVertexView.SizeInBytes = _raw.vertices.GetDataSize();
 		}
 
 
 		// Index Buffer
 		{
 			mIndexCount = _raw.indices.GetIndexCount();
-			mIndexBufferType = _raw.indices.GetIndexBufferType();
+			SA::RND::IndexBufferType indexBufferType = _raw.indices.GetIndexBufferType();
 
 			Buffer& staging = _init.CreateStagingBuffer(_device, _raw.indices.GetDataSize(), _raw.indices.GetData());
 
@@ -34,6 +39,26 @@ namespace SA::RND::DX12
 				D3D12_HEAP_TYPE_DEFAULT);
 
 			_init.cmd.CopyBuffer(staging, mIndexBuffer, _raw.indices.GetDataSize());
+
+			// View
+			mIndexView.BufferLocation = mIndexBuffer->GetGPUVirtualAddress();
+			mIndexView.SizeInBytes = _raw.indices.GetDataSize();
+
+			switch (indexBufferType)
+			{
+				case SA::RND::IndexBufferType::UINT16:
+					mIndexView.Format = DXGI_FORMAT_R16_UINT;
+					break;
+				case SA::RND::IndexBufferType::UINT32:
+					mIndexView.Format = DXGI_FORMAT_R32_UINT;
+					break;
+				default:
+				{
+					mIndexView.Format = DXGI_FORMAT_UNKNOWN;
+					SA_LOG((L"Invalid index buffer format [%1]", indexBufferType), Error, SA.Render.DX12);
+					break;
+				}
+			}
 		}
 
 
@@ -77,5 +102,12 @@ namespace SA::RND::DX12
 		mIndexBuffer.Destroy();
 
 		SA_LOG("Static Mesh destroyed.", Info, SA.Render.DX12);
+	}
+
+	void StaticMesh::Draw(const CommandBuffer& _cmd, uint32_t _instanceNum)
+	{
+		_cmd->IASetVertexBuffers(0, 1, &mVertexView);
+		_cmd->IASetIndexBuffer(&mIndexView);
+		_cmd->DrawIndexedInstanced(mIndexCount, _instanceNum, 0, 0, 0);
 	}
 }

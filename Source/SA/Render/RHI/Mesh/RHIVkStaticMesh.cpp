@@ -16,6 +16,10 @@ namespace SA::RND::RHI
 		mHandle.Destroy(_device->API_Vulkan());
 	}
 
+	void VkStaticMesh::Draw(const CommandBuffer* _cmd, uint32_t _instanceNum)
+	{
+		mHandle.Draw(_cmd->API_Vulkan(), _instanceNum);
+	}
 
 	const VK::StaticMesh& VkStaticMesh::API_Vulkan() const
 	{

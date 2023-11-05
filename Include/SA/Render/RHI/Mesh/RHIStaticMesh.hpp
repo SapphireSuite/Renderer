@@ -27,6 +27,7 @@ namespace SA::RND
 	{
 		class Device;
 		class ResourceInitializer;
+		class CommandBuffer;
 
 		class StaticMesh
 		{
@@ -35,6 +36,8 @@ namespace SA::RND
 
 			virtual void Create(const Device* _device, ResourceInitializer* _init, const SA::RND::RawMesh& _raw) = 0;
 			virtual void Destroy(const Device* _device) = 0;
+
+			virtual void Draw(const CommandBuffer* _cmd, uint32_t _instanceNum = 1) = 0;
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 

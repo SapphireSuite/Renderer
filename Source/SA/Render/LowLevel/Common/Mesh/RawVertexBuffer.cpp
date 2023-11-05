@@ -14,6 +14,16 @@ namespace SA::RND
 		return mData.size();
 	}
 
+	uint32_t RawVertexBuffer::GetVertexStride() const
+	{
+		uint32_t stride = 0u;
+
+		for (auto& layout : mLayouts)
+			stride += layout.size;
+
+		return stride;
+	}
+
 	void RawVertexBuffer::AppendDefines(std::vector<std::string>& _defines) const
 	{
 		for(auto& layout : mLayouts)

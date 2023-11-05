@@ -21,6 +21,8 @@ namespace SA::RND::RHI
 		void Create(const Device* _device, ResourceInitializer* _init, const SA::RND::RawMesh& _raw) override final;
 		void Destroy(const Device* _device) override final;
 
+		void Draw(const CommandBuffer* _cmd, uint32_t _instanceNum = 1) override final;
+
 		const DX12::StaticMesh& API_DirectX12() const override final;
 	};
 }

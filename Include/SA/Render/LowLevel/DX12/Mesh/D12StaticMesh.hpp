@@ -13,18 +13,23 @@ namespace SA::RND::DX12
 {
 	class Device;
 	class ResourceInitializer;
+	class CommandBuffer;
 
 	class StaticMesh
 	{
 		Buffer mVertexBuffer;
+		D3D12_VERTEX_BUFFER_VIEW mVertexView;
+
 		Buffer mIndexBuffer;
+		D3D12_INDEX_BUFFER_VIEW mIndexView;
 
 		uint32_t mIndexCount = 0;
-		SA::RND::IndexBufferType mIndexBufferType;
 
 	public:
 		void Create(const Device& _device, ResourceInitializer& _init, const RawMesh& _raw);
 		void Destroy();
+
+		void Draw(const CommandBuffer& _cmd, uint32_t _instanceNum = 1u);
 	};
 }
 

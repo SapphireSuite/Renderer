@@ -25,7 +25,7 @@ namespace SA::RND::VK
 
 		// Index Buffer
 		{
-			mIndexCount = _raw.indices.GetIndexCount();
+			mIndicesCount = _raw.indices.GetIndexCount();
 			mIndexBufferType = _raw.indices.GetIndexBufferType();
 
 			Buffer& staging = _init.CreateStagingBuffer(_device, _raw.indices.GetDataSize(), _raw.indices.GetData());
@@ -47,5 +47,19 @@ namespace SA::RND::VK
 		mIndexBuffer.Destroy(_device);
 
 		SA_LOG("Static Mesh destroyed.", Info, SA.Render.Vulkan);
+	}
+
+	void StaticMesh::Draw(const CommandBuffer& _cmd, uint32_t _instanceNum)
+	{
+		// Bind vertex.
+		VkDeviceSize offsets[] = { 0 };
+		const VkBuffer& vkVertexBuffer = mVertexBuffer;
+		vkCmdBindVertexBuffers(_cmd, 0, 1, &vkVertexBuffer, offsets);
+
+		// Bind index.
+		vkCmdBindIndexBuffer(_cmd, mIndexBuffer, 0, (VkIndexType)mIndexBufferType);
+
+		// Draw.
+		vkCmdDrawIndexed(_cmd, mIndicesCount, _instanceNum, 0, 0, 0);
 	}
 }
