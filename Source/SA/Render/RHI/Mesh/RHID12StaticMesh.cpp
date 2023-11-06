@@ -9,7 +9,7 @@
 
 namespace SA::RND::RHI
 {
-	void D12StaticMesh::Create(const Device* _device, ResourceInitializer* _init, const SA::RND::RawMesh& _raw)
+	void D12StaticMesh::Create(const Device* _device, ResourceInitializer* _init, const SA::RND::RawStaticMesh& _raw)
 	{
 		mHandle.Create(_device->API_DirectX12(), _init->API_DirectX12(), _raw);
 	}

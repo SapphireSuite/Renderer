@@ -18,7 +18,7 @@ namespace SA::RND::RHI
 		DX12::StaticMesh mHandle;
 
 	public:
-		void Create(const Device* _device, ResourceInitializer* _init, const SA::RND::RawMesh& _raw) override final;
+		void Create(const Device* _device, ResourceInitializer* _init, const SA::RND::RawStaticMesh& _raw) override final;
 		void Destroy(const Device* _device) override final;
 
 		void Draw(const CommandBuffer* _cmd, uint32_t _instanceNum = 1) override final;

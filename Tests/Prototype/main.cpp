@@ -101,7 +101,7 @@ public:
 	RHI::RenderViews* views = nullptr;
 	RHI::CommandPool* cmdPool = nullptr;
 	std::vector<RHI::CommandBuffer*> cmdBuffers;
-	RawMesh quadRaw;
+	RawStaticMesh quadRaw;
 	RHI::StaticMesh* quadMesh;
 
 	struct CreateInfo

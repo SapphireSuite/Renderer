@@ -2,7 +2,7 @@
 
 #include <SA/Collections/Debug>
 
-#include <SA/Render/LowLevel/Common/Mesh/RawMesh.hpp>
+#include <SA/Render/LowLevel/Common/Mesh/RawStaticMesh.hpp>
 #include <SA/Render/LowLevel/Vulkan/VkInstance.hpp>
 #include <SA/Render/LowLevel/Vulkan/Device/VkDevice.hpp>
 #include <SA/Render/LowLevel/Vulkan/Surface/VkWindowSurface.hpp>
@@ -34,7 +34,7 @@ VK::Shader vertexShader;
 VK::Shader fragmentShader;
 VK::PipelineLayout pipLayout;
 VK::Pipeline pipeline;
-RawMesh triangle;
+RawStaticMesh triangle;
 RHI::ShaderDescriptor vsDesc;
 RHI::ShaderDescriptor fsDesc;
 

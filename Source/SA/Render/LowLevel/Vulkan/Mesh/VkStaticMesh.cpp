@@ -9,7 +9,7 @@
 
 namespace SA::RND::VK
 {
-	void StaticMesh::Create(const Device& _device, ResourceInitializer& _init, const RawMesh& _raw)
+	void StaticMesh::Create(const Device& _device, ResourceInitializer& _init, const RawStaticMesh& _raw)
 	{
 		// Vertex Buffer
 		{

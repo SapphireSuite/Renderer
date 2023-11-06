@@ -2,8 +2,8 @@
 
 #pragma once
 
-#ifndef SAPPHIRE_RENDER_COMMON_RAW_MESH_GUARD
-#define SAPPHIRE_RENDER_COMMON_RAW_MESH_GUARD
+#ifndef SAPPHIRE_RENDER_COMMON_RAW_STATIC_MESH_GUARD
+#define SAPPHIRE_RENDER_COMMON_RAW_STATIC_MESH_GUARD
 
 #include "RawVertexBuffer.hpp"
 #include "RawIndexBuffer.hpp"
@@ -12,7 +12,7 @@
 
 namespace SA::RND
 {
-	struct RawMesh
+	struct RawStaticMesh
 	{
 		RawVertexBuffer vertices;
 		RawIndexBuffer indices;
@@ -21,4 +21,4 @@ namespace SA::RND
 	};
 }
 
-#endif // SAPPHIRE_RENDER_COMMON_RAW_MESH_GUARD
+#endif // SAPPHIRE_RENDER_COMMON_RAW_STATIC_MESH_GUARD

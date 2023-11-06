@@ -197,7 +197,7 @@ namespace SA::RND::RHI
 		virtual void DeleteStaticMeshClass(StaticMesh* _mesh);
 
 	public:
-		StaticMesh* CreateStaticMesh(ResourceInitializer* _init, const RawMesh& _raw);
+		StaticMesh* CreateStaticMesh(ResourceInitializer* _init, const RawStaticMesh& _raw);
 		void DestroyStaticMesh(StaticMesh* _mesh);
 		void DestroyAllStaticMeshes();
 

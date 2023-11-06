@@ -470,7 +470,7 @@ namespace SA::RND::RHI
 		delete _mesh;
 	}
 
-	StaticMesh* Context::CreateStaticMesh(ResourceInitializer* _init, const RawMesh& _raw)
+	StaticMesh* Context::CreateStaticMesh(ResourceInitializer* _init, const RawStaticMesh& _raw)
 	{
 		StaticMesh* const mesh = mStaticMeshes.emplace_front(InstantiateStaticMeshClass());
 

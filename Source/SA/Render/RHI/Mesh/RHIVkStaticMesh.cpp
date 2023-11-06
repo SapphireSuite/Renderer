@@ -6,7 +6,7 @@
 
 namespace SA::RND::RHI
 {
-	void VkStaticMesh::Create(const Device* _device, ResourceInitializer* _init, const SA::RND::RawMesh& _raw)
+	void VkStaticMesh::Create(const Device* _device, ResourceInitializer* _init, const SA::RND::RawStaticMesh& _raw)
 	{
 		mHandle.Create(_device->API_Vulkan(), _init->API_Vulkan(), _raw);
 	}
