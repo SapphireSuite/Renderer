@@ -53,7 +53,7 @@ namespace SA::RND::VK
 		}
 
 		if (_data)
-			CopyCPUToGPUData(_device, _data, _size);
+			UploadData(_device, _data, _size);
 
 		SA_LOG(L"Buffer created.", Info, SA.Render.Vulkan, (L"Handle [%1], Memory [%2]", mHandle, mDeviceMemory));
 	}
@@ -66,7 +66,7 @@ namespace SA::RND::VK
 		SA_VK_API(vkFreeMemory(_device, mDeviceMemory, nullptr));
 	}
 
-	void Buffer::CopyCPUToGPUData(const Device& _device, const void* _src, uint64_t _size, uint64_t _offset)
+	void Buffer::UploadData(const Device& _device, const void* _src, uint64_t _size, uint64_t _offset)
 	{
 		SA_ASSERT((Nullptr, _src), SA.Render.Vulkan);
 #if SA_DEBUG
@@ -80,6 +80,22 @@ namespace SA::RND::VK
 
 		SA_VK_API(vkUnmapMemory(_device, mDeviceMemory));
 	}
+
+	void Buffer::ReadbackData(const Device& _device, void* _dst, uint64_t _size, uint64_t _offset)
+	{
+		SA_ASSERT((Nullptr, _dst), SA.Render.Vulkan);
+#if SA_DEBUG
+		SA_ASSERT((Default, (mMemoryPropertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) && (mMemoryPropertyFlags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)), SA.Render.Vulkan, L"Buffer must have `VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT` and `VK_MEMORY_PROPERTY_HOST_COHERENT_BIT` flags to copy data from CPU to GPU");
+#endif
+
+		void* GPUData = nullptr;
+		SA_VK_API(vkMapMemory(_device, mDeviceMemory, _offset, _size, 0, &GPUData));
+
+		std::memcpy(_dst, GPUData, _size);
+
+		SA_VK_API(vkUnmapMemory(_device, mDeviceMemory));
+	}
+
 
 	Buffer::operator VkBuffer() const
 	{

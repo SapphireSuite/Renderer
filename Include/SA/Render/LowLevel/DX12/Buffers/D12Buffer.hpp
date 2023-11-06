@@ -35,10 +35,16 @@ namespace SA::RND::DX12
 		void Destroy();
 
 		/**
-		* Copy data from the CPU to the GPU Buffer.
-		* MemoryPropertyFlags must contain `VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT`
+		* Upload data from CPU to GPU Buffer.
+		* HeapType must be D3D12_HEAP_TYPE_UPLOAD.
 		*/
-		void CopyCPUToGPUData(const void* _src, uint64_t _size, uint64_t _offset = 0u);
+		void UploadData(const void* _src, uint64_t _size, uint64_t _offset = 0u);
+
+		/**
+		* Upload data from CPU to GPU Buffer.
+		* HeapType must be D3D12_HEAP_TYPE_READBACK.
+		*/
+		void ReadbackData(void* _dst, uint64_t _size, uint64_t _offset = 0u);
 
 		ID3D12Resource* operator->() const;
 	};

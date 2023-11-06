@@ -35,10 +35,16 @@ namespace SA::RND::VK
 
 
 		/**
-		* Copy data from the CPU to the GPU Buffer.
+		* Upload data from CPU to GPU Buffer.
 		* MemoryPropertyFlags must contain `VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT`
 		*/
-		void CopyCPUToGPUData(const Device& _device, const void* _src, uint64_t _size, uint64_t _offset = 0u);
+		void UploadData(const Device& _device, const void* _src, uint64_t _size, uint64_t _offset = 0u);
+
+		/**
+		* Read back data from GPU to CPU Buffer.
+		* MemoryPropertyFlags must contain `VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT`
+		*/
+		void ReadbackData(const Device& _device, void* _dst, uint64_t _size, uint64_t _offset = 0u);
 
 		operator VkBuffer() const;
 	};

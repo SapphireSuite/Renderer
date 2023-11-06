@@ -47,7 +47,7 @@ namespace SA::RND::DX12
 		));
 
 		if (_src)
-			CopyCPUToGPUData(_src, _size);
+			UploadData(_src, _size);
 
 		SA_LOG("Buffer created.", Info, SA.Render.DX12, (L"Handle [%1]", mHandle.Get()));
 	}
@@ -59,7 +59,7 @@ namespace SA::RND::DX12
 		mHandle.Reset();
 	}
 
-	void Buffer::CopyCPUToGPUData(const void* _src, uint64_t _size, uint64_t _offset)
+	void Buffer::UploadData(const void* _src, uint64_t _size, uint64_t _offset)
 	{
 		SA_ASSERT((Nullptr, _src), SA.Render.Vulkan);
 #if SA_DEBUG
@@ -72,6 +72,23 @@ namespace SA::RND::DX12
 		SA_DX12_API(mHandle->Map(0, &mapRange, &GPUData));
 
 		std::memcpy(GPUData, _src, _size);
+
+		SA_DX12_API(mHandle->Unmap(0, nullptr));
+	}
+
+	void Buffer::ReadbackData(void* _dst, uint64_t _size, uint64_t _offset)
+	{
+		SA_ASSERT((Nullptr, _dst), SA.Render.Vulkan);
+#if SA_DEBUG
+		SA_ASSERT((Default, (mHeapType & D3D12_HEAP_TYPE_READBACK)), SA.Render.DX12,
+			L"Buffer must have `D3D12_HEAP_TYPE_READBACK` memory type to copy data from CPU to GPU");
+#endif
+
+		void* GPUData = nullptr;
+		D3D12_RANGE mapRange{ _offset , _offset + _size };
+		SA_DX12_API(mHandle->Map(0, &mapRange, &GPUData));
+
+		std::memcpy(_dst, GPUData, _size);
 
 		SA_DX12_API(mHandle->Unmap(0, nullptr));
 	}
