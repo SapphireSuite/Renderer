@@ -376,7 +376,7 @@ namespace SA::RND::RHI
 		delete _buffer;
 	}
 
-	Buffer* Context::CreateBuffer(uint32_t _size, BufferUsage _usage, const void* _src)
+	Buffer* Context::CreateBuffer(uint64_t _size, BufferUsage _usage, const void* _src)
 	{
 		Buffer* const buffer = mBuffers.emplace_front(InstantiateBufferClass());
 

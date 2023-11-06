@@ -8,7 +8,7 @@
 
 namespace SA::RND::RHI
 {
-	void VkBuffer::Create(const Device* _device, uint32_t _size, BufferUsage _usage, const void* _src)
+	void VkBuffer::Create(const Device* _device, uint64_t _size, BufferUsage _usage, const void* _src)
 	{
 		mHandle.Create(_device->API_Vulkan(),
 			_size,

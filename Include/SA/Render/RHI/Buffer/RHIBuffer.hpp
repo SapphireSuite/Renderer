@@ -32,7 +32,7 @@ namespace SA::RND
 		public:
 			virtual ~Buffer() = default;
 
-			virtual void Create(const Device* _device, uint32_t _size, BufferUsage _usage, const void* _src = nullptr) = 0;
+			virtual void Create(const Device* _device, uint64_t _size, BufferUsage _usage, const void* _src = nullptr) = 0;
 			virtual void Destroy(const Device* _device) = 0;
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL

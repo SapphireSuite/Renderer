@@ -18,7 +18,7 @@ namespace SA::RND::RHI
 		DX12::Buffer mHandle;
 
 	public:
-		void Create(const Device* _device, uint32_t _size, BufferUsage _usage, const void* _src) override final;
+		void Create(const Device* _device, uint64_t _size, BufferUsage _usage, const void* _src) override final;
 		void Destroy(const Device* _device) override final;
 	};
 }
