@@ -6,6 +6,8 @@
 #include <SA/Collections/Debug>
 #include <SA/Collections/Maths>
 
+#include <SA/Maths/Transform/Transform.hpp>
+#include <SA/Render/LowLevel/Common/Camera/CameraUBO.hpp>
 #include <SA/Render/RHI/RHIVkRenderInterface.hpp>
 #include <SA/Render/RHI/RHID12RenderInterface.hpp>
 #include <SA/Render/RHI/Compatibility/IRenderWindow.hpp>
@@ -103,6 +105,8 @@ public:
 	std::vector<RHI::CommandBuffer*> cmdBuffers;
 	RawStaticMesh quadRaw;
 	RHI::StaticMesh* quadMesh;
+	SA::TransformPRSf cameraTr;
+	std::vector<RHI::Buffer*> cameraBuffers;
 
 	struct CreateInfo
 	{
@@ -350,6 +354,14 @@ public:
 
 			cmdBuffers = cmdPool->Allocate(swapchain->GetImageNum());
 		}
+
+		// Camera
+		{
+			cameraBuffers.resize(swapchain->GetImageNum());
+
+			for (auto& cameraBuffer : cameraBuffers)
+				cameraBuffer = context->CreateBuffer(sizeof(CameraUBO), RHI::BufferUsageFlags::UniformBuffer | RHI::BufferUsageFlags::CPUUpload);
+		}
 	}
 
 	void Destroy()
@@ -390,11 +402,75 @@ public:
 
 	void Loop()
 	{
+		double oldMouseX = 0.0f;
+		double oldMouseY = 0.0f;
+		float dx = 0.0f;
+		float dy = 0.0f;
+
+		glfwGetCursorPos(window, &oldMouseX, &oldMouseY);
+
+		auto start = std::chrono::steady_clock::now();
+
 		while (!glfwWindowShouldClose(window))
 		{
+			auto end = std::chrono::steady_clock::now();
+			float deltaTime = std::chrono::duration_cast<std::chrono::duration<float, std::milli>>(end - start).count();
+			start = end;
+
 			glfwPollEvents();
 
+			// Process input
+			{
+				if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+					cameraTr.position += deltaTime * cameraTr.Right();
+				if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+					cameraTr.position -= deltaTime * cameraTr.Right();
+				if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+					cameraTr.position -= deltaTime * cameraTr.Up();
+				if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+					cameraTr.position += deltaTime * cameraTr.Up();
+				if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+					cameraTr.position -= deltaTime * cameraTr.Forward();
+				if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+					cameraTr.position += deltaTime * cameraTr.Forward();
+
+				double mouseX = 0.0f;
+				double mouseY = 0.0f;
+
+				glfwGetCursorPos(window, &mouseX, &mouseY);
+
+				if (mouseX != oldMouseX || mouseY != oldMouseY)
+				{
+					dx -= static_cast<float>(mouseX - oldMouseX) * deltaTime * SA::Maths::DegToRad<float>;
+					dy += static_cast<float>(mouseY - oldMouseY) * deltaTime * SA::Maths::DegToRad<float>;
+
+					oldMouseX = mouseX;
+					oldMouseY = mouseY;
+
+					dx = dx > SA::Maths::Pi<float> ?
+						dx - SA::Maths::Pi<float> :
+						dx < -SA::Maths::Pi<float> ? dx + SA::Maths::Pi<float> : dx;
+					dy = dy > SA::Maths::Pi<float> ?
+						dy - SA::Maths::Pi<float> :
+						dy < -SA::Maths::Pi<float> ? dy + SA::Maths::Pi<float> : dy;
+
+					cameraTr.rotation = SA::Quatf(cos(dx), 0, sin(dx), 0) * SA::Quatf(cos(dy), sin(dy), 0, 0);
+				}
+			}
+
 			const uint32_t frameIndex = swapchain->Begin();
+
+			// Update camera.
+			{
+				CameraUBO cameraUBO;
+
+				cameraUBO.position = cameraTr.position;
+				cameraUBO.inverseView = cameraTr.Matrix().GetInversed();
+				cameraUBO.projection = SA::Mat4f::MakePerspective(90, 960.0f / 540.0f);
+
+
+				cameraBuffers[frameIndex]->UploadData(cameraUBO);
+			}
 
 			RHI::CommandBuffer* const cmd = cmdBuffers[frameIndex];
 			RHI::FrameBuffer* const fbuff = frameBuffers[frameIndex];
