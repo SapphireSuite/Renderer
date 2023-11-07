@@ -196,8 +196,16 @@ if(SA_RENDER_SHADER_COMPILER_OPT)
 	### Add source folder for shader include directory.
 	target_compile_definitions(SA_Render_ShaderCompiler PRIVATE SA_CMAKE_SOURCE_DIR=L"${CMAKE_SOURCE_DIR}")
 
-	### Fix dxil.dll lookup on windows.
 	if(WIN32)
+		### Fix dxcompiler.dll mUtils->CreateReflection.
+		add_custom_command(
+			TARGET SA_Render_ShaderCompiler POST_BUILD
+			COMMAND ${CMAKE_COMMAND} -E copy
+			${CMAKE_SOURCE_DIR}/ThirdParty/DirectXShaderCompiler/bin/windows/dxcompiler.dll
+			$<TARGET_FILE_DIR:SA_Render_ShaderCompiler>/../
+		)
+
+		### Fix dxil.dll lookup.
 		add_custom_command(
 			TARGET SA_Render_ShaderCompiler POST_BUILD
 			COMMAND ${CMAKE_COMMAND} -E copy
