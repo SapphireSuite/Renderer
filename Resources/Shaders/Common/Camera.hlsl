@@ -5,26 +5,33 @@
 
 #include "Preprocessors.hlsl"
 
-cbuffer Camera : SA_REG(b, SA_CAMERA_BUFFER_ID)
+#if SA_CAMERA_BUFFER_ID
+
+namespace SA
 {
-	/// Camera inverse transformation matrix.
-	float4x4 inverseView;
+	cbuffer Camera : SA_REG(b, SA_CAMERA_BUFFER_ID)
+	{
+		/// Camera inverse transformation matrix.
+		float4x4 inverseView;
 
-	/// Camera projection matrix.
-	float4x4 projection;
+		/// Camera projection matrix.
+		float4x4 projection;
 
-    /// Camera raw position.
-	float3 position;
-};
+		/// Camera raw position.
+		float3 position;
+	};
 
-float4x4 ComputeInvViewProj()
-{
-	return mul(Camera.projection, Camera.inverseView);
+	float4x4 ComputeInvViewProj()
+	{
+		return mul(Camera.projection, Camera.inverseView);
+	}
+
+	float4 ComputeViewPosition(float3 _worldPosition)
+	{
+		return mul(ComputeInvViewProj(), float4(_worldPosition, 1.0));
+	}
 }
 
-float4 ComputeViewPosition(float3 _modelPosition)
-{
-	return mul(ComputeInvViewProj(), float4(_modelPosition, 1.0));
-}
+#endif // SA_CAMERA_BUFFER_ID
 
 #endif // SAPPHIRE_RENDER_SHADER_CAMERA_GUARD

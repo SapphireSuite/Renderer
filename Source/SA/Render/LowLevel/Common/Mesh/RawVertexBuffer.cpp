@@ -29,7 +29,7 @@ namespace SA::RND
 		for(auto& layout : mLayouts)
 		{
 			if(!layout.semantic.empty())
-				_defines.push_back("SA_HAS_" + layout.semantic);
+				_defines.push_back("SA_VERTEX_HAS_" + layout.semantic);
 		}
 	}
 }

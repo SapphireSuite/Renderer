@@ -2,21 +2,44 @@
 
 #include <Common/VertexFactory.hlsl>
 #include <Common/Preprocessors.hlsl>
+#include <Common/Camera.hlsl>
 
 //-------------------- Vertex Shader --------------------
 
-struct VertexOutput : SA::VertexOutputBase
+struct VertexOutput
 {
+	/// Vertex world position
+	float3 worldPosition : POSITION;
+	
+	/// Shader view position
+	float4 svPosition : SV_POSITION;
+	
+#if SA_VERTEX_HAS_COLOR
+	
+	/// Vertex color
+	float4 color : COLOR;
+	
+#endif
 };
 
 VertexOutput mainVS(SA::VertexInputAssembly _input)
 {
 	VertexOutput output;
 
-	// TODO: apply model and camera transformation.
-	output.svPosition = float4(_input.position, 1.0);
+	output.worldPosition = _input.position;
+	
+#if SA_CAMERA_BUFFER_ID
+	
+	output.svPosition = SA::ComputeViewPosition(output.worldPosition);
+	
+#else
+	
+	output.svPosition = float4(output.worldPosition, 1.0);
+	
+	
+#endif
 
-#if SA_HAS_COLOR
+#if SA_VERTEX_HAS_COLOR
 
 	output.color = _input.color;
 
@@ -34,7 +57,7 @@ struct PixelInput : VertexOutput
 
 float4 mainPS(PixelInput _input) : SV_TARGET
 {
-#if SA_HAS_COLOR
+#if SA_VERTEX_HAS_COLOR
 
 	const float4 color = _input.color;
 
