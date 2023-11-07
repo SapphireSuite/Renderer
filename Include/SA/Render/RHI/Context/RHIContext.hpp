@@ -163,7 +163,7 @@ namespace SA::RND::RHI
 		virtual void DeleteBufferClass(Buffer* _init);
 
 	public:
-		Buffer* CreateBuffer(uint64_t _size, BufferUsage _usage, const void* _src);
+		Buffer* CreateBuffer(uint64_t _size, BufferUsage _usage, const void* _src = nullptr);
 		void DestroyBuffer(Buffer* _buffer);
 		void DestroyAllBuffers();
 

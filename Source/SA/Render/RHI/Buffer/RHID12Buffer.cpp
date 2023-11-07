@@ -24,6 +24,17 @@ namespace SA::RND::RHI
 
 		mHandle.Destroy();
 	}
+
+
+	void D12Buffer::UploadData(const void* _src, uint64_t _size, uint64_t _offset)
+	{
+		mHandle.UploadData(_src, _size, _offset);
+	}
+
+	void D12Buffer::ReadbackData(void* _dst, uint64_t _size, uint64_t _offset)
+	{
+		mHandle.ReadbackData(_dst, _size, _offset);
+	}
 }
 
 #endif // SA_RENDER_LOWLEVEL_DX12_IMPL
