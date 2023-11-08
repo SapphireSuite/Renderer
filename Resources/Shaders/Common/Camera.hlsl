@@ -9,7 +9,10 @@
 
 namespace SA
 {
-	cbuffer Camera : SA_REG(b, SA_CAMERA_BUFFER_ID)
+	/**
+	*	Must match `CameraUBO` struct in `CameraUBO.hpp`
+	*/
+	struct Camera
 	{
 		/// Camera inverse transformation matrix.
 		float4x4 inverseView;
@@ -21,9 +24,17 @@ namespace SA
 		float3 position;
 	};
 
+	cbuffer CameraBuffer : SA_REG(b, SA_CAMERA_BUFFER_ID)
+	{
+		Camera camera;
+	};
+
+
+	//---------- Helper Functions ----------
+
 	float4x4 ComputeInvViewProj()
 	{
-		return mul(Camera.projection, Camera.inverseView);
+		return mul(camera.projection, camera.inverseView);
 	}
 
 	float4 ComputeViewPosition(float3 _worldPosition)
