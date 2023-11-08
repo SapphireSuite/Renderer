@@ -35,18 +35,17 @@ VertexOutput mainVS(SA::VertexInputAssembly _input)
 	VertexOutput output;
 
 	output.worldPosition = _input.position;
-	
+
 #if SA_CAMERA_BUFFER_ID
-	
+
 	output.svPosition = SA::ComputeObjectViewPosition(output.worldPosition);
-	
+
 	output.viewPosition = SA::GetCameraViewPosition();
 
 #else
-	
+
 	output.svPosition = float4(output.worldPosition, 1.0);
-	
-	
+
 #endif
 
 #if SA_VERTEX_HAS_COLOR

@@ -8,7 +8,7 @@
 
 namespace SA::RND::RHI
 {
-	void VkPipelineLayout::Create(const Device* _device)
+	void VkPipelineLayout::Create(const Device* _device, const PipelineLayoutDescriptor& _desc)
 	{
 		// TODO: Implement.
 		VkPipelineLayoutCreateInfo info

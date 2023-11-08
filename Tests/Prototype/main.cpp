@@ -98,6 +98,7 @@ public:
 	std::vector<RHI::FrameBuffer*> frameBuffers;
 	RHI::Shader* vertexShader = nullptr;
 	RHI::Shader* pixelShader = nullptr;
+	RHI::PipelineLayoutDescriptor pipLayoutDesc;
 	RHI::PipelineLayout* pipLayout = nullptr;
 	RHI::Pipeline* pipeline = nullptr;
 	RHI::RenderViews* views = nullptr;
@@ -303,6 +304,7 @@ public:
 
 				ShaderCompileResult vsShaderRes = intf->CompileShader(vsInfo);
 				vertexShader = context->CreateShader(vsShaderRes);
+				pipLayoutDesc.AddShader(vsShaderRes.desc);
 			}
 
 			// Pixel
@@ -318,6 +320,7 @@ public:
 
 				ShaderCompileResult psShaderRes = intf->CompileShader(psInfo);
 				pixelShader = context->CreateShader(psShaderRes);
+				pipLayoutDesc.AddShader(psShaderRes.desc);
 			}
 		}
 	
@@ -330,7 +333,7 @@ public:
 
 		// PipelineLayout
 		{
-			pipLayout = context->CreatePipelineLayout();
+			pipLayout = context->CreatePipelineLayout(pipLayoutDesc);
 		}
 
 		// Pipeline

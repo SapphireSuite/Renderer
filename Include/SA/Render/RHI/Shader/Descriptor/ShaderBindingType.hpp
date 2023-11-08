@@ -16,11 +16,11 @@ namespace SA
 
 		StorageBuffer,
 
-		InputAttachment,
-
 		Texture,
 
 		Sampler,
+
+		InputAttachment,
 	};
 }
 

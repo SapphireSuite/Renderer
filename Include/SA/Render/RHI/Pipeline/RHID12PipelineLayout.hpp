@@ -18,7 +18,7 @@ namespace SA::RND::RHI
 		DX12::RootSignature mHandle;
 
 	public:
-		void Create(const Device* _device) override final;
+		void Create(const Device* _device, const PipelineLayoutDescriptor& _desc) override final;
 		void Destroy(const Device* _device) override final;
 
 		const DX12::RootSignature& API_DirectX12() const override final;

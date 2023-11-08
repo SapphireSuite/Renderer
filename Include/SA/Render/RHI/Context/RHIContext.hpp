@@ -112,7 +112,7 @@ namespace SA::RND::RHI
 		virtual void DeletePipelineLayoutClass(PipelineLayout* _pipLayout);
 
 	public:
-		PipelineLayout* CreatePipelineLayout();
+		PipelineLayout* CreatePipelineLayout(const PipelineLayoutDescriptor& _desc);
 		void DestroyPipelineLayout(PipelineLayout* _pipLayout);
 		void DestroyAllPipelineLayouts();
 

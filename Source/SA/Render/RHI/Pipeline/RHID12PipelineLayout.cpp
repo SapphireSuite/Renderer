@@ -8,7 +8,7 @@
 
 namespace SA::RND::RHI
 {
-	void D12PipelineLayout::Create(const Device* _device)
+	void D12PipelineLayout::Create(const Device* _device, const PipelineLayoutDescriptor& _desc)
 	{
 		// TODO: Implement.
 		D3D12_VERSIONED_ROOT_SIGNATURE_DESC desc

@@ -18,7 +18,7 @@ namespace SA::RND::RHI
 		VK::PipelineLayout mHandle;
 
 	public:
-		void Create(const Device* _device) override final;
+		void Create(const Device* _device, const PipelineLayoutDescriptor& _desc) override final;
 		void Destroy(const Device* _device) override final;
 
 		const VK::PipelineLayout& API_Vulkan() const override final;

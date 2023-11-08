@@ -232,13 +232,13 @@ namespace SA::RND::RHI
 		delete _pipLayout;
 	}
 
-	PipelineLayout* Context::CreatePipelineLayout()
+	PipelineLayout* Context::CreatePipelineLayout(const PipelineLayoutDescriptor& _desc)
 	{
 		PipelineLayout* const pipLayout = mPipelineLayouts.emplace_front(InstantiatePipelineLayoutClass());
 
 		SA_ASSERT((Nullptr, pipLayout), SA.Render.RHI, (L"PipelineLayout instantiate class failed!"));
 
-		pipLayout->Create(mDevice);
+		pipLayout->Create(mDevice, _desc);
 
 		return pipLayout;
 	}
