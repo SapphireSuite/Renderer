@@ -194,7 +194,7 @@ if(SA_RENDER_SHADER_COMPILER_OPT)
 	target_link_libraries(SA_Render INTERFACE SA_Render_ShaderCompiler)
 
 	### Add source folder for shader include directory.
-	target_compile_definitions(SA_Render_ShaderCompiler PRIVATE SA_CMAKE_SOURCE_DIR=L"${CMAKE_SOURCE_DIR}")
+	target_compile_definitions(SA_Render_ShaderCompiler PRIVATE SA_CMAKE_SOURCE_DIR="${CMAKE_SOURCE_DIR}")
 
 	if(WIN32)
 		### Fix dxcompiler.dll mUtils->CreateReflection.

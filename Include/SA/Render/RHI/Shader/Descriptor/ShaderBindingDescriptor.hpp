@@ -7,6 +7,8 @@
 
 #include <string>
 
+#include "ShaderBindingType.hpp"
+
 namespace SA::RND::RHI
 {
 	struct ShaderBindingDescriptor
@@ -19,6 +21,8 @@ namespace SA::RND::RHI
 
 		/// Number of elements (array).
 		uint32_t num = 1u;
+
+		ShaderBindingType type = ShaderBindingType::UniformConstantBuffer;
 	};
 }
 

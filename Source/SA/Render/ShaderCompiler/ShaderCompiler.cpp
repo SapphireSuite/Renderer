@@ -62,7 +62,7 @@ namespace SA::RND
 			DXC_ARG_PACK_MATRIX_ROW_MAJOR,
 			DXC_ARG_ALL_RESOURCES_BOUND,
 			L"-I",
-			SA_CMAKE_SOURCE_DIR L"/Resources/Shaders",
+			SA_WIDE(SA_CMAKE_SOURCE_DIR) L"/Resources/Shaders",
 			L"-I",
 			L"/Resources/Shaders"
 		};
@@ -200,6 +200,13 @@ namespace SA::RND
 					return 0;
 			}
 		}
+
+		static const ShaderBindingType bindingTypeMap[] = {
+			ShaderBindingType::UniformConstantBuffer,
+			(ShaderBindingType)0,
+			ShaderBindingType::Texture,
+			ShaderBindingType::Sampler,
+		};
 	}
 
 	bool ShaderCompiler::ReflectDX(CComPtr<IDxcBlob> _reflectionBlob, RHI::ShaderDescriptor& _desc)
@@ -248,6 +255,7 @@ namespace SA::RND
 				outDesc.name = inDesc.Name;
 				outDesc.binding = inDesc.BindPoint;
 				outDesc.num = inDesc.BindCount;
+				outDesc.type = DX12::bindingTypeMap[(uint32_t)inDesc.Type];
 			}
 		}
 
@@ -345,6 +353,20 @@ namespace SA::RND
 			4 * sizeof(float),
 		};
 
+		static const ShaderBindingType bindingTypeMap[] = {
+			ShaderBindingType::Sampler,
+			ShaderBindingType::Texture,
+			(ShaderBindingType)0,
+			(ShaderBindingType)0,
+			(ShaderBindingType)0,
+			(ShaderBindingType)0,
+			ShaderBindingType::UniformConstantBuffer,
+			ShaderBindingType::StorageBuffer,
+			(ShaderBindingType)0,
+			(ShaderBindingType)0,
+			ShaderBindingType::InputAttachment,
+		};
+
 		uint32_t API_GetSizeFromFormat(SpvReflectFormat _spvFormat)
 		{
 			// SpvReflectFormat enum does *not* start at 0: remove offset.
@@ -403,6 +425,7 @@ namespace SA::RND
 					outDesc.name = inDesc.name;
 					outDesc.binding = inDesc.binding;
 					outDesc.num = inDesc.count;
+					outDesc.type = SPV::bindingTypeMap[(uint32_t)inDesc.descriptor_type];
 				}
 			}
 		}
