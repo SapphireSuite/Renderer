@@ -20,6 +20,14 @@ struct VertexOutput
 	float4 color : COLOR;
 	
 #endif
+
+#if SA_CAMERA_BUFFER_ID
+
+	/// Camera view position.
+	float3 viewPosition : VIEW_POSITION;
+
+#endif
+
 };
 
 VertexOutput mainVS(SA::VertexInputAssembly _input)
@@ -30,8 +38,10 @@ VertexOutput mainVS(SA::VertexInputAssembly _input)
 	
 #if SA_CAMERA_BUFFER_ID
 	
-	output.svPosition = SA::ComputeViewPosition(output.worldPosition);
+	output.svPosition = SA::ComputeObjectViewPosition(output.worldPosition);
 	
+	output.viewPosition = SA::GetCameraViewPosition();
+
 #else
 	
 	output.svPosition = float4(output.worldPosition, 1.0);

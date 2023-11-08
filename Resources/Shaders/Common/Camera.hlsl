@@ -32,12 +32,17 @@ namespace SA
 
 	//---------- Helper Functions ----------
 
+	float3 GetCameraViewPosition()
+	{
+		return camera.position;
+	}
+
 	float4x4 ComputeInvViewProj()
 	{
 		return mul(camera.projection, camera.inverseView);
 	}
 
-	float4 ComputeViewPosition(float3 _worldPosition)
+	float4 ComputeObjectViewPosition(float3 _worldPosition)
 	{
 		return mul(ComputeInvViewProj(), float4(_worldPosition, 1.0));
 	}
