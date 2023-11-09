@@ -29,6 +29,11 @@ namespace SA::RND
 			ShaderCompileResult& _result);
 
 	public:
+		/**
+		* Additionnal defines common for all shaders compiled with this compiler.
+		*/
+		std::vector<std::string> defines;
+
 		void Create();
 		void Destroy();
 

@@ -14,6 +14,8 @@ namespace SA::RND::RHI
 	{
 		RenderInterface::Create(_winIntf);
 
+		mShaderCompiler.defines.emplace_back("SA_DX12_API=1");
+
 		mFactory.Create();
 	}
 	

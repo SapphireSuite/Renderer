@@ -79,8 +79,18 @@ namespace SA::RND
 	#endif
 
 
-		cArgs.reserve(_info.defines.size() * 2);
+		cArgs.reserve(defines.size() + _info.defines.size() * 2);
 
+		// Common defines.
+		for (auto& define : defines)
+		{
+			std::wstring& wDefine = _strBuff.emplace_back(SA::ToWString(define));
+
+			cArgs.push_back(L"-D");
+			cArgs.push_back(wDefine.c_str());
+		}
+
+		// Instance-specific defines.
 		for(auto& define : _info.defines)
 		{
 			std::wstring& wDefine = _strBuff.emplace_back(SA::ToWString(define));
