@@ -5,7 +5,9 @@
 #ifndef SAPPHIRE_RENDER_VK_PIPELINE_LAYOUT_GUARD
 #define SAPPHIRE_RENDER_VK_PIPELINE_LAYOUT_GUARD
 
-#include <SA/Render/LowLevel/Vulkan/VulkanAPI.hpp>
+#include <vector>
+
+#include <SA/Render/LowLevel/Vulkan/DescriptorSet/VkDescriptorSetLayout.hpp>
 
 namespace SA::RND::VK
 {
@@ -15,8 +17,10 @@ namespace SA::RND::VK
 	{
 		VkPipelineLayout mHandle = VK_NULL_HANDLE;
 
+		std::vector<DescriptorSetLayout> mDescriptorSetLayouts;
+
 	public:
-		void Create(const Device& _device, const VkPipelineLayoutCreateInfo& _vkInfo);
+		void Create(const Device& _device, const std::vector<std::vector<VkDescriptorSetLayoutBinding>>& _setLayoutBindings);
 		void Destroy(const Device& _device);
 
 		operator VkPipelineLayout() const noexcept;

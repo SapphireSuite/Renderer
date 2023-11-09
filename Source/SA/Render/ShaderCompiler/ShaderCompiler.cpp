@@ -211,11 +211,11 @@ namespace SA::RND
 			}
 		}
 
-		static const ShaderBindingType bindingTypeMap[] = {
-			ShaderBindingType::UniformConstantBuffer,
-			(ShaderBindingType)0,
-			ShaderBindingType::Texture,
-			ShaderBindingType::Sampler,
+		static constexpr RHI::ShaderBindingType sBindingTypeMap[] = {
+			RHI::ShaderBindingType::UniformConstantBuffer,
+			(RHI::ShaderBindingType)0,
+			RHI::ShaderBindingType::Texture,
+			RHI::ShaderBindingType::Sampler,
 		};
 	}
 
@@ -265,7 +265,7 @@ namespace SA::RND
 				outDesc.name = inDesc.Name;
 				outDesc.binding = inDesc.BindPoint;
 				outDesc.num = inDesc.BindCount;
-				outDesc.type = DX12::bindingTypeMap[(uint32_t)inDesc.Type];
+				outDesc.type = DX12::sBindingTypeMap[(uint32_t)inDesc.Type];
 			}
 		}
 
@@ -315,7 +315,7 @@ namespace SA::RND
 
 	namespace SPV
 	{
-		static const RHI::Format formatIndexMap[] = {
+		static constexpr RHI::Format sFormatIndexMap[] = {
 			RHI::Format::R32_UINT,
 			RHI::Format::R32_SINT,
 			RHI::Format::R32_SFLOAT,
@@ -338,14 +338,14 @@ namespace SA::RND
 			// SpvReflectFormat enum does *not* start at 0: remove offset.
 			const uint32_t index = static_cast<uint32_t>(_spvFormat - SPV_REFLECT_FORMAT_R32_UINT);
 
-			SA_ASSERT((OutOfRange, index, 0u, sizeof(formatIndexMap)), SA.Render.ShaderCompiler.SPV,
+			SA_ASSERT((OutOfRange, index, 0u, sizeof(sFormatIndexMap)), SA.Render.ShaderCompiler.SPV,
 				(L"Format value [%1] invalid", index));
 
-			return formatIndexMap[index];
+			return sFormatIndexMap[index];
 		}
 
 
-		static const uint32_t sizeIndexMap[] = {
+		static constexpr uint32_t sSizeIndexMap[] = {
 			sizeof(uint32_t),
 			sizeof(uint32_t),
 			sizeof(float),
@@ -363,18 +363,18 @@ namespace SA::RND
 			4 * sizeof(float),
 		};
 
-		static const ShaderBindingType bindingTypeMap[] = {
-			ShaderBindingType::Sampler,
-			ShaderBindingType::Texture,
-			(ShaderBindingType)0,
-			(ShaderBindingType)0,
-			(ShaderBindingType)0,
-			(ShaderBindingType)0,
-			ShaderBindingType::UniformConstantBuffer,
-			ShaderBindingType::StorageBuffer,
-			(ShaderBindingType)0,
-			(ShaderBindingType)0,
-			ShaderBindingType::InputAttachment,
+		static constexpr RHI::ShaderBindingType sBindingTypeMap[] = {
+			RHI::ShaderBindingType::Sampler,
+			RHI::ShaderBindingType::Texture,
+			(RHI::ShaderBindingType)0,
+			(RHI::ShaderBindingType)0,
+			(RHI::ShaderBindingType)0,
+			(RHI::ShaderBindingType)0,
+			RHI::ShaderBindingType::UniformConstantBuffer,
+			RHI::ShaderBindingType::StorageBuffer,
+			(RHI::ShaderBindingType)0,
+			(RHI::ShaderBindingType)0,
+			RHI::ShaderBindingType::InputAttachment,
 		};
 
 		uint32_t API_GetSizeFromFormat(SpvReflectFormat _spvFormat)
@@ -382,10 +382,10 @@ namespace SA::RND
 			// SpvReflectFormat enum does *not* start at 0: remove offset.
 			const uint32_t index = static_cast<uint32_t>(_spvFormat - SPV_REFLECT_FORMAT_R32_UINT);
 
-			SA_ASSERT((OutOfRange, index, 0u, sizeof(sizeIndexMap)), SA.Render.ShaderCompiler.SPV,
+			SA_ASSERT((OutOfRange, index, 0u, sizeof(sSizeIndexMap)), SA.Render.ShaderCompiler.SPV,
 				(L"Format value [%1] invalid", index));
 
-			return sizeIndexMap[index];
+			return sSizeIndexMap[index];
 		}
 	}
 
@@ -435,7 +435,7 @@ namespace SA::RND
 					outDesc.name = inDesc.name;
 					outDesc.binding = inDesc.binding;
 					outDesc.num = inDesc.count;
-					outDesc.type = SPV::bindingTypeMap[(uint32_t)inDesc.descriptor_type];
+					outDesc.type = SPV::sBindingTypeMap[(uint32_t)inDesc.descriptor_type];
 				}
 			}
 		}

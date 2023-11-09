@@ -35,4 +35,34 @@ namespace SA::RND::RHI
 			}
 		}
 	}
+
+#if SA_RENDER_LOWLEVEL_VULKAN_IMPL
+
+	std::vector<std::vector<VkDescriptorSetLayoutBinding>> PipelineLayoutDescriptor::API_Vulkan() const
+	{
+		std::vector<std::vector<VkDescriptorSetLayoutBinding>> result;
+
+		result.reserve(sets.size());
+
+		for (auto& set : sets)
+		{
+			auto& outSet = result.emplace_back();
+
+			outSet.reserve(set.bindings.size());
+
+			for (auto& binding : set.bindings)
+			{
+				auto& outBinding = outSet.emplace_back();
+
+				outBinding.binding = binding.binding;
+				outBinding.descriptorCount = binding.num;
+				outBinding.descriptorType = VK::API_GetDescriptorType(binding.type);
+				outBinding.stageFlags = VK::API_GetShaderStageFlags((ShaderStage)binding.stageFlags);
+			}
+		}
+
+		return result;
+	}
+
+#endif
 }

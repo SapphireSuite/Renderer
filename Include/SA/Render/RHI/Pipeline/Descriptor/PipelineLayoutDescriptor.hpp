@@ -16,6 +16,12 @@ namespace SA::RND::RHI
 		std::vector<PipelineBindingSetDescriptor> sets;
 
 		void AddShader(const ShaderDescriptor& _desc);
+
+#if SA_RENDER_LOWLEVEL_VULKAN_IMPL
+
+		std::vector<std::vector<VkDescriptorSetLayoutBinding>> API_Vulkan() const;
+
+#endif
 	};
 }
 

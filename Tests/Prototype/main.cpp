@@ -300,6 +300,8 @@ public:
 					.target = "vs_6_5",
 				};
 
+				vsInfo.defines.push_back("SA_CAMERA_BUFFER_ID=1");
+
 				quadRaw.vertices.AppendDefines(vsInfo.defines);
 
 				ShaderCompileResult vsShaderRes = intf->CompileShader(vsInfo);
@@ -411,6 +413,8 @@ public:
 		float dy = 0.0f;
 
 		glfwGetCursorPos(window, &oldMouseX, &oldMouseY);
+
+		cameraTr.position.z = 1.0f;
 
 		auto start = std::chrono::steady_clock::now();
 

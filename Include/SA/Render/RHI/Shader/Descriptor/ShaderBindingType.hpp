@@ -7,21 +7,37 @@
 
 #include <cstdint>
 
-namespace SA
+#if SA_RENDER_LOWLEVEL_VULKAN_IMPL
+#include <SA/Render/LowLevel/Vulkan/VulkanAPI.hpp>
+#endif
+
+namespace SA::RND
 {
-	enum class ShaderBindingType : uint8_t
+	namespace RHI
 	{
-		/// Vk::Uniform / DX::Constant buffer binding
-		UniformConstantBuffer = 1,
+		enum class ShaderBindingType : uint8_t
+		{
+			/// Vk::Uniform / DX::Constant buffer binding
+			UniformConstantBuffer,
 
-		StorageBuffer,
+			StorageBuffer,
 
-		Texture,
+			Texture,
 
-		Sampler,
+			Sampler,
 
-		InputAttachment,
-	};
+			InputAttachment,
+		};
+	}
+
+#if SA_RENDER_LOWLEVEL_VULKAN_IMPL
+	
+	namespace VK
+	{
+		VkDescriptorType API_GetDescriptorType(RHI::ShaderBindingType _type);
+	}
+
+#endif
 }
 
 #endif // SAPPHIRE_RENDER_SHADER_BINDING_TYPE_GUARD
