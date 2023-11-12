@@ -14,6 +14,9 @@ namespace SA::RND::VK
 		friend class DescriptorPool;
 
 		VkDescriptorSet mHandle = VK_NULL_HANDLE;
+
+	public:
+		operator VkDescriptorSet() const noexcept;
 	};
 
 	static_assert(sizeof(DescriptorSet) == sizeof(VkDescriptorSet),

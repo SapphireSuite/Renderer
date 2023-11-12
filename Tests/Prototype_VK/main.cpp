@@ -210,6 +210,8 @@ void Init()
 					.target = "vs_6_5",
 				};
 
+				vsInfo.defines.push_back("SA_CAMERA_BUFFER_ID=0");
+
 				quadRaw.vertices.AppendDefines(vsInfo.defines);
 
 				ShaderCompileResult vsShaderRes = compiler.CompileSPIRV(vsInfo);
@@ -240,14 +242,80 @@ void Init()
 			compiler.Destroy();	
 		}
 
+		// Camera
+		{
+			cameraBuffers.resize(swapchain.GetImageNum());
+
+			for (auto& cameraBuffer : cameraBuffers)
+			{
+				cameraBuffer.Create(device, sizeof(CameraUBO), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+			}
+
+			// Pool.
+			{
+				VK::DescriptorPoolInfos info;
+				info.poolSizes.emplace_back(VkDescriptorPoolSize{
+					.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+					.descriptorCount = 1
+					});
+				info.setNum = swapchain.GetImageNum();
+
+				cameraDescPool.Create(device, info);
+			}
+
+			// Layout
+			{
+				cameraDescSetLayout.Create(device, { {
+					.binding = 0,
+					.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+					.descriptorCount = 1,
+					.stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
+					.pImmutableSamplers = nullptr
+				} });
+			}
+
+
+			// Set
+			{
+				cameraSets = cameraDescPool.Allocate(device,
+					std::vector<VK::DescriptorSetLayout>(swapchain.GetImageNum(), cameraDescSetLayout));
+
+				std::vector<VkDescriptorBufferInfo> bufferInfo;
+				bufferInfo.reserve(swapchain.GetImageNum());
+
+				std::vector<VkWriteDescriptorSet> writes;
+				writes.reserve(swapchain.GetImageNum());
+
+				for (uint32_t i = 0; i < cameraSets.size(); ++i)
+				{
+					VkDescriptorBufferInfo& buffInfo = bufferInfo.emplace_back();
+					buffInfo.buffer = cameraBuffers[i];
+					buffInfo.offset = 0;
+					buffInfo.range = VK_WHOLE_SIZE;
+
+					VkWriteDescriptorSet& descWrite = writes.emplace_back();
+					descWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+					descWrite.pNext = nullptr;
+					descWrite.dstSet = cameraSets[i];
+					descWrite.dstBinding = 0;
+					descWrite.dstArrayElement = 0;
+					descWrite.descriptorCount = 1;
+					descWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+					descWrite.pBufferInfo = &buffInfo;
+				}
+
+				vkUpdateDescriptorSets(device, (uint32_t)writes.size(), writes.data(), 0, nullptr);
+			}
+		}
+
 		// Pipeline layout
 		{
 			VkPipelineLayoutCreateInfo info{};
 			info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 			info.pNext = nullptr;
 			info.flags = 0u;
-			info.setLayoutCount = 0;
-			info.pSetLayouts = nullptr;
+			info.setLayoutCount = 1;
+			info.pSetLayouts = reinterpret_cast<VkDescriptorSetLayout*>(&cameraDescSetLayout);
 			info.pushConstantRangeCount = 0;
 			info.pPushConstantRanges = nullptr;
 
@@ -403,41 +471,6 @@ void Init()
 
 			pipeline.Create(device, pipelineCreateInfo);
 		}
-
-		// Camera
-		{
-			cameraBuffers.resize(swapchain.GetImageNum());
-
-			for (auto& cameraBuffer : cameraBuffers)
-			{
-				cameraBuffer.Create(device, sizeof(CameraUBO), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-			}
-
-			// Pool.
-			{
-				VK::DescriptorPoolInfos info;
-				info.poolSizes.emplace_back(VkDescriptorPoolSize{
-					.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-					.descriptorCount = 1
-					});
-				info.setNum = swapchain.GetImageNum();
-
-				cameraDescPool.Create(device, info);
-			}
-
-			// Layout
-			{
-				cameraDescSetLayout.Create(device, { {
-					.binding = 0,
-					.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-					.descriptorCount = 1,
-					.stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
-					.pImmutableSamplers = nullptr
-				}});
-			}
-
-			cameraSets = cameraDescPool.Allocate(device, { cameraDescSetLayout, cameraDescSetLayout, cameraDescSetLayout });
-		}
 	}
 }
 
@@ -493,7 +526,7 @@ void Loop()
 
 		cameraUBO.position = cameraTr.position;
 		cameraUBO.inverseView = cameraTr.Matrix().GetInversed();
-		cameraUBO.projection = SA::Mat4f::MakePerspective(90, 1200.0f / 900.0f);
+		cameraUBO.projection = SA::Mat4f::MakePerspective(90, 1200.0f / 900.0f, 0.1f, 1000.0f);
 
 
 		cameraBuffers[frameIndex].UploadData(device, &cameraUBO, sizeof(CameraUBO));
@@ -507,6 +540,13 @@ void Loop()
 	renderPass.Begin(cmd, fbuff);
 
 	vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+
+	vkCmdBindDescriptorSets(cmd,
+		VK_PIPELINE_BIND_POINT_GRAPHICS,
+		pipLayout,
+		0, 1,
+		reinterpret_cast<VkDescriptorSet*>(&cameraSets[frameIndex]),
+		0, nullptr);
 
 	quadMesh.Draw(cmd);
 
@@ -526,9 +566,13 @@ int main()
 	float dx = 0.0f;
 	float dy = 0.0f;
 
+	float speed = 0.0025f;
+
 	glfwGetCursorPos(window, &oldMouseX, &oldMouseY);
 
 	auto start = std::chrono::steady_clock::now();
+
+	cameraTr.position.z = 1.0f;
 
 	while(!glfwWindowShouldClose(window))
 	{
@@ -541,17 +585,17 @@ int main()
 		// Process input
 		{
 			if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-				cameraTr.position += deltaTime * cameraTr.Right();
+				cameraTr.position += deltaTime * speed * cameraTr.Right();
 			if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-				cameraTr.position -= deltaTime * cameraTr.Right();
+				cameraTr.position -= deltaTime * speed * cameraTr.Right();
 			if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
-				cameraTr.position -= deltaTime * cameraTr.Up();
+				cameraTr.position -= deltaTime * speed * cameraTr.Up();
 			if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
-				cameraTr.position += deltaTime * cameraTr.Up();
+				cameraTr.position += deltaTime * speed * cameraTr.Up();
 			if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-				cameraTr.position -= deltaTime * cameraTr.Forward();
+				cameraTr.position -= deltaTime * speed * cameraTr.Forward();
 			if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-				cameraTr.position += deltaTime * cameraTr.Forward();
+				cameraTr.position += deltaTime * speed * cameraTr.Forward();
 
 			double mouseX = 0.0f;
 			double mouseY = 0.0f;
@@ -560,8 +604,8 @@ int main()
 
 			if (mouseX != oldMouseX || mouseY != oldMouseY)
 			{
-				dx -= static_cast<float>(mouseX - oldMouseX) * deltaTime * SA::Maths::DegToRad<float>;
-				dy += static_cast<float>(mouseY - oldMouseY) * deltaTime * SA::Maths::DegToRad<float>;
+				dx -= static_cast<float>(mouseX - oldMouseX) * deltaTime * speed * SA::Maths::DegToRad<float>;
+				dy += static_cast<float>(mouseY - oldMouseY) * deltaTime * speed * SA::Maths::DegToRad<float>;
 
 				oldMouseX = mouseX;
 				oldMouseY = mouseY;

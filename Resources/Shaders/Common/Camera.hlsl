@@ -5,7 +5,7 @@
 
 #include "Preprocessors.hlsl"
 
-#if SA_CAMERA_BUFFER_ID
+#ifdef SA_CAMERA_BUFFER_ID
 
 namespace SA
 {
