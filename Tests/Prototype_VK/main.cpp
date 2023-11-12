@@ -2,6 +2,8 @@
 
 #include <SA/Collections/Debug>
 
+#include <SA/Maths/Space/Vector3.hpp>
+
 #include <SA/Render/LowLevel/Common/Mesh/RawStaticMesh.hpp>
 #include <SA/Render/LowLevel/Vulkan/VkInstance.hpp>
 #include <SA/Render/LowLevel/Vulkan/Device/VkDevice.hpp>
@@ -13,6 +15,8 @@
 #include <SA/Render/LowLevel/Vulkan/Pipeline/VkPipelineLayout.hpp>
 #include <SA/Render/LowLevel/Vulkan/Pipeline/VkPipeline.hpp>
 #include <SA/Render/LowLevel/Vulkan/Shader/VkShader.hpp>
+#include <SA/Render/LowLevel/Vulkan/Mesh/VkStaticMesh.hpp>
+#include <SA/Render/LowLevel/Vulkan/VkResourceInitializer.hpp>
 #include <SA/Render/ShaderCompiler/ShaderCompiler.hpp>
 using namespace SA::RND;
 
@@ -34,14 +38,10 @@ VK::Shader vertexShader;
 VK::Shader fragmentShader;
 VK::PipelineLayout pipLayout;
 VK::Pipeline pipeline;
-RawStaticMesh triangle;
+RawStaticMesh quadRaw;
+VK::StaticMesh quadMesh;
 RHI::ShaderDescriptor vsDesc;
 RHI::ShaderDescriptor fsDesc;
-
-VkBuffer vertexPositionBuffer = VK_NULL_HANDLE;
-VkDeviceMemory vertexPositionDeviceMemory = VK_NULL_HANDLE;
-VkBuffer vertexColorBuffer = VK_NULL_HANDLE;
-VkDeviceMemory vertexColorDeviceMemory = VK_NULL_HANDLE;
 
 void GLFWErrorCallback(int32_t error, const char* description)
 {
@@ -153,95 +153,40 @@ void Init()
 			}
 		}
 
+		VK::ResourceInitializer init;
+		init.Create(device);
+
 		// Mesh
 		{
-			triangle.vertices.AddVertexComponent<VertexPosition>({{0.0f, 0.5f, 0.0f}, {0.5f, -0.5f, 0.0}, {-0.5f, -0.5f, 0.0}});
-			triangle.vertices.AddVertexComponent<VertexColor>({Color::red, Color::green, Color::blue});
-			triangle.indices.U16({0, 1, 2});
+			quadRaw.vertices.BuildVertexBuffer(
+				VertexComponent<SA::Vec3f>{
+				"POSITION",
+				{
+					{-0.5f, 0.5f, 0.0f},
+					{0.5f, 0.5f, 0.0},
+					{-0.5f, -0.5f, 0.0},
+					{0.5f, -0.5f, 0.0}
+				}
+			},
 
-
-			// Position Buffer
-			{
-				VkBufferCreateInfo positionBufferInfo{
-					.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-					.pNext = nullptr,
-					.flags = 0u,
-					.size = sizeof(SA::Vec3f) * 3,
-					.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-					.sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-					.queueFamilyIndexCount = 0u,
-					.pQueueFamilyIndices = nullptr,
-				};
-
-				vkCreateBuffer(device, &positionBufferInfo, nullptr, &vertexPositionBuffer);
-
-
-				VkMemoryRequirements memRequirements{};
-				vkGetBufferMemoryRequirements(device, vertexPositionBuffer, &memRequirements);
-
-				uint32_t memoryTypeIndex = VK::BufferBase::FindMemoryType(device, memRequirements.memoryTypeBits,
-					VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-
-				VkMemoryAllocateInfo memoryAllocInfo{};
-				memoryAllocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-				memoryAllocInfo.pNext = nullptr;
-				memoryAllocInfo.allocationSize = memRequirements.size;
-				memoryAllocInfo.memoryTypeIndex = memoryTypeIndex;
-
-				vkAllocateMemory(device, &memoryAllocInfo, nullptr, &vertexPositionDeviceMemory);
-
-				vkBindBufferMemory(device, vertexPositionBuffer, vertexPositionDeviceMemory, 0);
-
-
-				void* data;
-				vkMapMemory(device, vertexPositionDeviceMemory, 0, sizeof(SA::Vec3f) * 3, 0, &data);
-				
-					std::memcpy(data, triangle.vertices.GetVertexComponent<VertexPosition>()->positions.data(), sizeof(SA::Vec3f) * 3);
-				
-				vkUnmapMemory(device, vertexPositionDeviceMemory);
+				VertexComponent<Color>{
+				"COLOR",
+				{
+					Color::red,
+					Color::green,
+					Color::blue,
+					Color::white
+				}
 			}
+			);
 
-			// Color buffer
-			{
-				VkBufferCreateInfo colorBufferInfo{
-					.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-					.pNext = nullptr,
-					.flags = 0u,
-					.size = sizeof(Color) * 3,
-					.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-					.sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-					.queueFamilyIndexCount = 0u,
-					.pQueueFamilyIndices = nullptr,
-				};
-			
-				vkCreateBuffer(device, &colorBufferInfo, nullptr, &vertexColorBuffer);
+			quadRaw.indices.U16({ 0, 1, 2, 1, 3, 2 });
 
-
-				VkMemoryRequirements memRequirements{};
-				vkGetBufferMemoryRequirements(device, vertexColorBuffer, &memRequirements);
-
-				uint32_t memoryTypeIndex = VK::BufferBase::FindMemoryType(device, memRequirements.memoryTypeBits,
-					VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-
-				VkMemoryAllocateInfo memoryAllocInfo{};
-				memoryAllocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-				memoryAllocInfo.pNext = nullptr;
-				memoryAllocInfo.allocationSize = memRequirements.size;
-				memoryAllocInfo.memoryTypeIndex = memoryTypeIndex;
-
-				vkAllocateMemory(device, &memoryAllocInfo, nullptr, &vertexColorDeviceMemory);
-
-				vkBindBufferMemory(device, vertexColorBuffer, vertexColorDeviceMemory, 0);
-
-
-				void* data;
-				vkMapMemory(device, vertexColorDeviceMemory, 0, sizeof(Color) * 3, 0, &data);
-				
-					std::memcpy(data, triangle.vertices.GetVertexComponent<VertexColor>()->colors.data(), sizeof(Color) * 3);
-				
-				vkUnmapMemory(device, vertexColorDeviceMemory);
-			}
+			quadMesh.Create(device, init, quadRaw);
 		}
+
+		init.Submit(device);
+		init.Destroy(device);
 
 		// Shaders
 		{
@@ -253,12 +198,12 @@ void Init()
 			{
 				ShaderCompileInfo vsInfo
 				{
-					.path = L"Resources/Shaders/Forward/Unlit.hlsl",
+					.path = L"Resources/Shaders/Passes/MainPass.hlsl",
 					.entrypoint = "mainVS",
 					.target = "vs_6_5",
 				};
 
-				triangle.vertices.AppendDefines(vsInfo.defines);
+				quadRaw.vertices.AppendDefines(vsInfo.defines);
 
 				ShaderCompileResult vsShaderRes = compiler.CompileSPIRV(vsInfo);
 				vsDesc = vsShaderRes.desc;
@@ -271,12 +216,12 @@ void Init()
 			{
 				ShaderCompileInfo psInfo
 				{
-					.path = L"Resources/Shaders/Forward/Unlit.hlsl",
+					.path = L"Resources/Shaders/Passes/MainPass.hlsl",
 					.entrypoint = "mainPS",
 					.target = "ps_6_5",
 				};
 
-				triangle.vertices.AppendDefines(psInfo.defines);
+				quadRaw.vertices.AppendDefines(psInfo.defines);
 
 				ShaderCompileResult psShaderRes = compiler.CompileSPIRV(psInfo);
 				fsDesc = psShaderRes.desc;
@@ -325,7 +270,7 @@ void Init()
 				}
 			};
 
-			auto vertInputState = vsDesc.MakeVkVertexInputStateInfo();
+			auto vertInputState = vsDesc.MakeVkVertexInputStateInfoSingleVertexBuffer();
 			VkPipelineVertexInputStateCreateInfo vkVertInputState = vertInputState.MakeVkInfo();
 
 			VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo{
@@ -466,10 +411,7 @@ void Uninit()
 		fragmentShader.Destroy(device);
 		vertexShader.Destroy(device);
 
-		vkDestroyBuffer(device, vertexPositionBuffer, nullptr);
-		vkFreeMemory(device, vertexPositionDeviceMemory, nullptr);
-		vkDestroyBuffer(device, vertexColorBuffer, nullptr);
-		vkFreeMemory(device, vertexColorDeviceMemory, nullptr);
+		quadMesh.Destroy(device);
 
 		for(auto& frameBuffer : frameBuffers)
 			frameBuffer.Destroy(device);
@@ -506,14 +448,7 @@ void Loop()
 
 	vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 
-	// Draw
-	VkBuffer vkVertexBuffers[] = {vertexPositionBuffer, vertexColorBuffer};
-	VkDeviceSize offsets[] = {0, 0};
-	vkCmdBindVertexBuffers(cmd, 0, 2, vkVertexBuffers, offsets);
-
-	//vkCmdBindIndexBuffer(cmd, mIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
-	vkCmdDraw(cmd, 3, 1, 0, 0);
-	//
+	quadMesh.Draw(cmd);
 
 	renderPass.End(cmd);
 
