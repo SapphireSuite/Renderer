@@ -2,8 +2,9 @@
 
 #include <SA/Collections/Debug>
 
-#include <SA/Maths/Space/Vector3.hpp>
+#include <SA/Maths/Transform/Transform.hpp>
 
+#include <SA/Render/LowLevel/Common/Camera/CameraUBO.hpp>
 #include <SA/Render/LowLevel/Common/Mesh/RawStaticMesh.hpp>
 #include <SA/Render/LowLevel/Vulkan/VkInstance.hpp>
 #include <SA/Render/LowLevel/Vulkan/Device/VkDevice.hpp>
@@ -17,6 +18,7 @@
 #include <SA/Render/LowLevel/Vulkan/Shader/VkShader.hpp>
 #include <SA/Render/LowLevel/Vulkan/Mesh/VkStaticMesh.hpp>
 #include <SA/Render/LowLevel/Vulkan/VkResourceInitializer.hpp>
+#include <SA/Render/LowLevel/Vulkan/DescriptorSet/VkDescriptorPool.hpp>
 #include <SA/Render/ShaderCompiler/ShaderCompiler.hpp>
 using namespace SA::RND;
 
@@ -42,6 +44,11 @@ RawStaticMesh quadRaw;
 VK::StaticMesh quadMesh;
 RHI::ShaderDescriptor vsDesc;
 RHI::ShaderDescriptor fsDesc;
+std::vector<VK::Buffer> cameraBuffers;
+SA::TransformPRSf cameraTr;
+VK::DescriptorPool cameraDescPool;
+VK::DescriptorSetLayout cameraDescSetLayout;
+std::vector<VK::DescriptorSet> cameraSets;
 
 void GLFWErrorCallback(int32_t error, const char* description)
 {
@@ -396,6 +403,41 @@ void Init()
 
 			pipeline.Create(device, pipelineCreateInfo);
 		}
+
+		// Camera
+		{
+			cameraBuffers.resize(swapchain.GetImageNum());
+
+			for (auto& cameraBuffer : cameraBuffers)
+			{
+				cameraBuffer.Create(device, sizeof(CameraUBO), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+			}
+
+			// Pool.
+			{
+				VK::DescriptorPoolInfos info;
+				info.poolSizes.emplace_back(VkDescriptorPoolSize{
+					.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+					.descriptorCount = 1
+					});
+				info.setNum = swapchain.GetImageNum();
+
+				cameraDescPool.Create(device, info);
+			}
+
+			// Layout
+			{
+				cameraDescSetLayout.Create(device, { {
+					.binding = 0,
+					.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+					.descriptorCount = 1,
+					.stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
+					.pImmutableSamplers = nullptr
+				}});
+			}
+
+			cameraSets = cameraDescPool.Allocate(device, { cameraDescSetLayout, cameraDescSetLayout, cameraDescSetLayout });
+		}
 	}
 }
 
@@ -412,6 +454,12 @@ void Uninit()
 		vertexShader.Destroy(device);
 
 		quadMesh.Destroy(device);
+
+		for (auto& cameraBuffer : cameraBuffers)
+			cameraBuffer.Destroy(device);
+
+		cameraDescSetLayout.Destroy(device);
+		cameraDescPool.Destroy(device);
 
 		for(auto& frameBuffer : frameBuffers)
 			frameBuffer.Destroy(device);
@@ -439,6 +487,18 @@ void Loop()
 {
 	const uint32_t frameIndex = swapchain.Begin(device);
 
+	// Update camera.
+	{
+		CameraUBO cameraUBO;
+
+		cameraUBO.position = cameraTr.position;
+		cameraUBO.inverseView = cameraTr.Matrix().GetInversed();
+		cameraUBO.projection = SA::Mat4f::MakePerspective(90, 1200.0f / 900.0f);
+
+
+		cameraBuffers[frameIndex].UploadData(device, &cameraUBO, sizeof(CameraUBO));
+	}
+
 	VK::CommandBuffer& cmd = cmdBuffers[frameIndex];
 	VK::FrameBuffer& fbuff = frameBuffers[frameIndex];
 
@@ -461,9 +521,61 @@ int main()
 {
 	Init();
 
+	double oldMouseX = 0.0f;
+	double oldMouseY = 0.0f;
+	float dx = 0.0f;
+	float dy = 0.0f;
+
+	glfwGetCursorPos(window, &oldMouseX, &oldMouseY);
+
+	auto start = std::chrono::steady_clock::now();
+
 	while(!glfwWindowShouldClose(window))
 	{
+		auto end = std::chrono::steady_clock::now();
+		float deltaTime = std::chrono::duration_cast<std::chrono::duration<float, std::milli>>(end - start).count();
+		start = end;
+
 		glfwPollEvents();
+
+		// Process input
+		{
+			if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+				cameraTr.position += deltaTime * cameraTr.Right();
+			if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+				cameraTr.position -= deltaTime * cameraTr.Right();
+			if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+				cameraTr.position -= deltaTime * cameraTr.Up();
+			if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+				cameraTr.position += deltaTime * cameraTr.Up();
+			if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+				cameraTr.position -= deltaTime * cameraTr.Forward();
+			if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+				cameraTr.position += deltaTime * cameraTr.Forward();
+
+			double mouseX = 0.0f;
+			double mouseY = 0.0f;
+
+			glfwGetCursorPos(window, &mouseX, &mouseY);
+
+			if (mouseX != oldMouseX || mouseY != oldMouseY)
+			{
+				dx -= static_cast<float>(mouseX - oldMouseX) * deltaTime * SA::Maths::DegToRad<float>;
+				dy += static_cast<float>(mouseY - oldMouseY) * deltaTime * SA::Maths::DegToRad<float>;
+
+				oldMouseX = mouseX;
+				oldMouseY = mouseY;
+
+				dx = dx > SA::Maths::Pi<float> ?
+					dx - SA::Maths::Pi<float> :
+					dx < -SA::Maths::Pi<float> ? dx + SA::Maths::Pi<float> : dx;
+				dy = dy > SA::Maths::Pi<float> ?
+					dy - SA::Maths::Pi<float> :
+					dy < -SA::Maths::Pi<float> ? dy + SA::Maths::Pi<float> : dy;
+
+				cameraTr.rotation = SA::Quatf(cos(dx), 0, sin(dx), 0) * SA::Quatf(cos(dy), sin(dy), 0, 0);
+			}
+		}
 
 		Loop();
 	}
