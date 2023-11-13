@@ -566,10 +566,14 @@ int main()
 	float dx = 0.0f;
 	float dy = 0.0f;
 
-	float speed = 0.0025f;
+	float moveSpeed = 7.0f;
+	float rotSpeed = 17.0f;
 
 	glfwGetCursorPos(window, &oldMouseX, &oldMouseY);
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
+	float fixedTime = 0.0025f;
+	float accumulateTime = 0.0f;
 	auto start = std::chrono::steady_clock::now();
 
 	cameraTr.position.z = 1.0f;
@@ -577,47 +581,55 @@ int main()
 	while(!glfwWindowShouldClose(window))
 	{
 		auto end = std::chrono::steady_clock::now();
-		float deltaTime = std::chrono::duration_cast<std::chrono::duration<float, std::milli>>(end - start).count();
+		float deltaTime = std::chrono::duration_cast<std::chrono::duration<float, std::ratio<1, 1>>>(end - start).count();
+		accumulateTime += deltaTime;
 		start = end;
 
-		glfwPollEvents();
-
-		// Process input
+		if (accumulateTime >= fixedTime)
 		{
-			if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-				cameraTr.position += deltaTime * speed * cameraTr.Right();
-			if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-				cameraTr.position -= deltaTime * speed * cameraTr.Right();
-			if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
-				cameraTr.position -= deltaTime * speed * cameraTr.Up();
-			if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
-				cameraTr.position += deltaTime * speed * cameraTr.Up();
-			if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-				cameraTr.position -= deltaTime * speed * cameraTr.Forward();
-			if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-				cameraTr.position += deltaTime * speed * cameraTr.Forward();
+			accumulateTime -= fixedTime;
 
-			double mouseX = 0.0f;
-			double mouseY = 0.0f;
+			glfwPollEvents();
 
-			glfwGetCursorPos(window, &mouseX, &mouseY);
-
-			if (mouseX != oldMouseX || mouseY != oldMouseY)
+			// Process input
 			{
-				dx -= static_cast<float>(mouseX - oldMouseX) * deltaTime * speed * SA::Maths::DegToRad<float>;
-				dy += static_cast<float>(mouseY - oldMouseY) * deltaTime * speed * SA::Maths::DegToRad<float>;
+				if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+					glfwSetWindowShouldClose(window, true);
+				if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+					cameraTr.position += fixedTime * moveSpeed * cameraTr.Right();
+				if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+					cameraTr.position -= fixedTime * moveSpeed * cameraTr.Right();
+				if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+					cameraTr.position -= fixedTime * moveSpeed * cameraTr.Up();
+				if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+					cameraTr.position += fixedTime * moveSpeed * cameraTr.Up();
+				if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+					cameraTr.position -= fixedTime * moveSpeed * cameraTr.Forward();
+				if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+					cameraTr.position += fixedTime * moveSpeed * cameraTr.Forward();
 
-				oldMouseX = mouseX;
-				oldMouseY = mouseY;
+				double mouseX = 0.0f;
+				double mouseY = 0.0f;
 
-				dx = dx > SA::Maths::Pi<float> ?
-					dx - SA::Maths::Pi<float> :
-					dx < -SA::Maths::Pi<float> ? dx + SA::Maths::Pi<float> : dx;
-				dy = dy > SA::Maths::Pi<float> ?
-					dy - SA::Maths::Pi<float> :
-					dy < -SA::Maths::Pi<float> ? dy + SA::Maths::Pi<float> : dy;
+				glfwGetCursorPos(window, &mouseX, &mouseY);
 
-				cameraTr.rotation = SA::Quatf(cos(dx), 0, sin(dx), 0) * SA::Quatf(cos(dy), sin(dy), 0, 0);
+				if (mouseX != oldMouseX || mouseY != oldMouseY)
+				{
+					dx -= static_cast<float>(mouseX - oldMouseX) * fixedTime * rotSpeed * SA::Maths::DegToRad<float>;
+					dy -= static_cast<float>(mouseY - oldMouseY) * fixedTime * rotSpeed * SA::Maths::DegToRad<float>;
+
+					oldMouseX = mouseX;
+					oldMouseY = mouseY;
+
+					dx = dx > SA::Maths::Pi<float> ?
+						dx - SA::Maths::Pi<float> :
+						dx < -SA::Maths::Pi<float> ? dx + SA::Maths::Pi<float> : dx;
+					dy = dy > SA::Maths::Pi<float> ?
+						dy - SA::Maths::Pi<float> :
+						dy < -SA::Maths::Pi<float> ? dy + SA::Maths::Pi<float> : dy;
+
+					cameraTr.rotation = SA::Quatf(cos(dx), 0, sin(dx), 0) * SA::Quatf(cos(dy), sin(dy), 0, 0);
+				}
 			}
 		}
 
