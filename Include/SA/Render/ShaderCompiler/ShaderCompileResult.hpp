@@ -26,7 +26,7 @@ namespace SA::RND
 #if SA_RENDER_LOWLEVEL_DX12_IMPL
 
 		/// Shader Data used for DX12.
-		CComPtr<IDxcBlob> dxShader;
+		CComPtr<ID3DBlob> dxShader;
 
 #endif
 

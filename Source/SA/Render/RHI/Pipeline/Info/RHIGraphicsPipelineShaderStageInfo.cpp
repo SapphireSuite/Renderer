@@ -71,8 +71,8 @@ namespace SA::RND::RHI
 
 			return D3D12_SHADER_BYTECODE
 			{
-				.pShaderBytecode = dxShader.handle->GetBufferPointer(),
-				.BytecodeLength = dxShader.handle->GetBufferSize(),
+				.pShaderBytecode = dxShader->GetBufferPointer(),
+				.BytecodeLength = dxShader->GetBufferSize(),
 			};
 		}
 	}

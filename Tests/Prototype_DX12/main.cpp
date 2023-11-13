@@ -241,7 +241,7 @@ void Init()
 				ShaderCompileResult vsShaderRes = compiler.CompileDX(vsInfo);
 				vsDesc = vsShaderRes.desc;
 
-				vertexShader.handle = reinterpret_cast<const SA::MComPtr<ID3DBlob>&>(vsShaderRes.dxShader);
+				vertexShader.Create(vsShaderRes.dxShader);
 			}
 
 
@@ -259,7 +259,7 @@ void Init()
 				ShaderCompileResult psShaderRes = compiler.CompileDX(psInfo);
 				fsDesc = psShaderRes.desc;
 
-				fragmentShader.handle = reinterpret_cast<const SA::MComPtr<ID3DBlob>&>(psShaderRes.dxShader);
+				fragmentShader.Create(psShaderRes.dxShader);
 			}
 
 
@@ -301,8 +301,8 @@ void Init()
 
 				.shaderStages
 				{
-					.vs {.pShaderBytecode = vertexShader.handle->GetBufferPointer(), .BytecodeLength = vertexShader.handle->GetBufferSize()},
-					.ps {.pShaderBytecode = fragmentShader.handle->GetBufferPointer(), .BytecodeLength = fragmentShader.handle->GetBufferSize()},
+					.vs {.pShaderBytecode = vertexShader->GetBufferPointer(), .BytecodeLength = vertexShader->GetBufferSize()},
+					.ps {.pShaderBytecode = fragmentShader->GetBufferPointer(), .BytecodeLength = fragmentShader->GetBufferSize()},
 				},
 
 				.raster
@@ -384,8 +384,8 @@ void Uninit()
 		pipeline.Destroy();
 		rootSign.Destroy();
 
-		fragmentShader.handle = nullptr;
-		vertexShader.handle = nullptr;
+		fragmentShader.Destroy();
+		vertexShader.Destroy();
 
 		quadMesh.Destroy();
 

@@ -11,8 +11,13 @@ namespace SA::RND::DX12
 {
 	class Shader
 	{
+		MComPtr<ID3DBlob> mHandle;
+
 	public:
-		MComPtr<ID3DBlob> handle;
+		void Create(MComPtr<ID3DBlob> _handle);
+		void Destroy();
+
+		ID3DBlob* operator->() const noexcept;
 	};
 }
 
