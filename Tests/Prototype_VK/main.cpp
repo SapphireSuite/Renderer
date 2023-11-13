@@ -49,15 +49,42 @@ SA::TransformPRSf cameraTr;
 VK::DescriptorPool cameraDescPool;
 VK::DescriptorSetLayout cameraDescSetLayout;
 std::vector<VK::DescriptorSet> cameraSets;
+VK::Buffer objectBuffer;
+VK::DescriptorPool objectDescPool;
+VK::DescriptorSetLayout objectDescSetLayout;
+VK::DescriptorSet objectSet;
+
 
 void GLFWErrorCallback(int32_t error, const char* description)
 {
 	SA_LOG((L"GLFW Error [%1]: %2", error, description), Error, SA.Render.Proto.GLFW.API);
 }
 
+float RandFloat(float min, float max)
+{
+	return min + static_cast <float> (rand()) / static_cast <float> (RAND_MAX / (max - min));
+}
+
+SA::Vec3f RandVec3Position()
+{
+	return SA::Vec3f(RandFloat(-10, 10), RandFloat(-10, 10), RandFloat(-10, 10));
+}
+
+SA::Quatf RandQuat()
+{
+	return SA::Quatf::FromEuler({ RandFloat(0, 360), RandFloat(0, 360), RandFloat(0, 360) });
+}
+
+SA::Vec3f RandVec3Scale()
+{
+	return SA::Vec3f(RandFloat(0.5, 2.5), RandFloat(0.5, 2.5), RandFloat(0.5, 2.5));
+}
+
 void Init()
 {
 	SA::Debug::InitDefaultLogger();
+
+	srand(time(nullptr));
 
 	// GLFW
 	{
@@ -121,7 +148,7 @@ void Init()
 
 		// Render Pass
 		{
-			constexpr bool bDepth = false;
+			constexpr bool bDepth = true;
 			constexpr bool bMSAA = true;
 
 			// Forward
@@ -142,6 +169,7 @@ void Init()
 					auto& depthRT = mainSubpass.AddAttachment("Depth");
 					depthRT.format = VK_FORMAT_D16_UNORM;
 					depthRT.type = AttachmentType::Depth;
+					depthRT.clearColor = SA::RND::Color::white;
 				}
 				
 				mainSubpass.SetAllAttachmentExtents(swapchain.GetExtents());
@@ -190,6 +218,71 @@ void Init()
 			quadRaw.indices.U16({ 0, 1, 2, 1, 3, 2 });
 
 			quadMesh.Create(device, init, quadRaw);
+
+
+			// Object
+			{
+
+				// Instanting
+				std::vector<SA::Mat4f> objectsMats;
+				objectsMats.resize(100);
+
+				for (auto& mat : objectsMats)
+					mat = SA::TransformPRSf(RandVec3Position(), RandQuat(), RandVec3Scale()).Matrix();
+
+				objectBuffer.Create(device, sizeof(SA::Mat4f) * 100, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+					VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, objectsMats.data());
+				
+
+				// DescPool.
+				{
+					VK::DescriptorPoolInfos info;
+					info.poolSizes.emplace_back(VkDescriptorPoolSize{
+						.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+						.descriptorCount = 1
+						});
+					info.setNum = 1;
+
+					objectDescPool.Create(device, info);
+				}
+
+				// Layout
+				{
+					objectDescSetLayout.Create(device,
+					{
+						{
+							.binding = 0,
+							.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+							.descriptorCount = 1,
+							.stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
+							.pImmutableSamplers = nullptr
+						}
+					});
+				}
+
+				// Set
+				{
+					objectSet = objectDescPool.Allocate(device, objectDescSetLayout);
+
+
+					VkDescriptorBufferInfo buffInfo;
+					buffInfo.buffer = objectBuffer;
+					buffInfo.offset = 0;
+					buffInfo.range = VK_WHOLE_SIZE;
+
+					VkWriteDescriptorSet write;
+					write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+					write.pNext = nullptr;
+					write.dstSet = objectSet;
+					write.dstBinding = 0;
+					write.dstArrayElement = 0;
+					write.descriptorCount = 1;
+					write.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+					write.pBufferInfo = &buffInfo;
+
+					vkUpdateDescriptorSets(device, 1, &write, 0, nullptr);
+				}
+			}
 		}
 
 		init.Submit(device);
@@ -211,6 +304,7 @@ void Init()
 				};
 
 				vsInfo.defines.push_back("SA_CAMERA_BUFFER_ID=0");
+				vsInfo.defines.push_back("SA_OBJECT_BUFFER_ID=0");
 
 				quadRaw.vertices.AppendDefines(vsInfo.defines);
 
@@ -265,13 +359,16 @@ void Init()
 
 			// Layout
 			{
-				cameraDescSetLayout.Create(device, { {
-					.binding = 0,
-					.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-					.descriptorCount = 1,
-					.stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
-					.pImmutableSamplers = nullptr
-				} });
+				cameraDescSetLayout.Create(device,
+					{
+						{
+							.binding = 0,
+							.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+							.descriptorCount = 1,
+							.stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
+							.pImmutableSamplers = nullptr
+						}
+					});
 			}
 
 
@@ -310,12 +407,17 @@ void Init()
 
 		// Pipeline layout
 		{
+			std::vector<VkDescriptorSetLayout> setLayouts{
+				static_cast<VkDescriptorSetLayout>(cameraDescSetLayout),
+				static_cast<VkDescriptorSetLayout>(objectDescSetLayout)
+			};
+
 			VkPipelineLayoutCreateInfo info{};
 			info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 			info.pNext = nullptr;
 			info.flags = 0u;
-			info.setLayoutCount = 1;
-			info.pSetLayouts = reinterpret_cast<VkDescriptorSetLayout*>(&cameraDescSetLayout);
+			info.setLayoutCount = static_cast<uint32_t>(setLayouts.size());
+			info.pSetLayouts = setLayouts.data();
 			info.pushConstantRangeCount = 0;
 			info.pPushConstantRanges = nullptr;
 
@@ -387,7 +489,8 @@ void Init()
 				.depthClampEnable = VK_FALSE,
 				.rasterizerDiscardEnable = VK_FALSE,
 				.polygonMode = VK_POLYGON_MODE_FILL,
-				.cullMode = VK_CULL_MODE_BACK_BIT,
+				.cullMode = VK_CULL_MODE_NONE,
+				//.cullMode = VK_CULL_MODE_BACK_BIT,
 				.frontFace = VK_FRONT_FACE_CLOCKWISE,
 				.depthBiasEnable = VK_FALSE,
 				.depthBiasConstantFactor = 0.0f,
@@ -494,6 +597,10 @@ void Uninit()
 		cameraDescSetLayout.Destroy(device);
 		cameraDescPool.Destroy(device);
 
+		objectBuffer.Destroy(device);
+		objectDescSetLayout.Destroy(device);
+		objectDescPool.Destroy(device);
+
 		for(auto& frameBuffer : frameBuffers)
 			frameBuffer.Destroy(device);
 
@@ -541,14 +648,19 @@ void Loop()
 
 	vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 
+	std::vector<VkDescriptorSet> boundSets{
+		static_cast<VkDescriptorSet>(cameraSets[frameIndex]),
+		static_cast<VkDescriptorSet>(objectSet)
+	};
+
 	vkCmdBindDescriptorSets(cmd,
 		VK_PIPELINE_BIND_POINT_GRAPHICS,
 		pipLayout,
-		0, 1,
-		reinterpret_cast<VkDescriptorSet*>(&cameraSets[frameIndex]),
+		0, (uint32_t)boundSets.size(),
+		boundSets.data(),
 		0, nullptr);
 
-	quadMesh.Draw(cmd);
+	quadMesh.Draw(cmd, 100u);
 
 	renderPass.End(cmd);
 
@@ -566,8 +678,8 @@ int main()
 	float dx = 0.0f;
 	float dy = 0.0f;
 
-	float moveSpeed = 7.0f;
-	float rotSpeed = 17.0f;
+	float moveSpeed = 4.0f;
+	float rotSpeed = 16.0f;
 
 	glfwGetCursorPos(window, &oldMouseX, &oldMouseY);
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);

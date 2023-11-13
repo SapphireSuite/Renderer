@@ -2,6 +2,7 @@
 
 #include <Common/VertexFactory.hlsl>
 #include <Common/Preprocessors.hlsl>
+#include <Common/Object.hlsl>
 #include <Common/Camera.hlsl>
 
 //-------------------- Vertex Shader --------------------
@@ -30,11 +31,20 @@ struct VertexOutput
 
 };
 
-VertexOutput mainVS(SA::VertexInputAssembly _input)
+VertexOutput mainVS(SA::VertexInputAssembly _input,
+	uint _instanceId : SV_InstanceID)
 {
 	VertexOutput output;
 
+#ifdef SA_OBJECT_BUFFER_ID
+
+	output.worldPosition = SA::ComputeObjectWorldPosition(_input.position, _instanceId);
+
+#else
+
 	output.worldPosition = _input.position;
+
+#endif
 
 #ifdef SA_CAMERA_BUFFER_ID
 

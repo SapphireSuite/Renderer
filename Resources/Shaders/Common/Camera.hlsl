@@ -24,7 +24,7 @@ namespace SA
 		float3 position;
 	};
 
-	cbuffer CameraBuffer : SA_REG(b, SA_CAMERA_BUFFER_ID)
+	cbuffer CameraBuffer : SA_REG_SPACE(b, SA_CAMERA_BUFFER_ID, 0)
 	{
 		Camera camera;
 	};
