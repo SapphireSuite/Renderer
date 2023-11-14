@@ -81,6 +81,8 @@ namespace SA::RND::DX12
 
 			mHandle.Reset();
 		}
+
+		mFrames.clear();
 	}
 //}
 
