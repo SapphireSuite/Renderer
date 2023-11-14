@@ -487,7 +487,6 @@ public:
 				cameraUBO.inverseView = cameraTr.Matrix().GetInversed();
 				cameraUBO.projection = SA::Mat4f::MakePerspective(90, 960.0f / 540.0f);
 
-
 				cameraBuffers[frameIndex]->UploadData(cameraUBO);
 			}
 

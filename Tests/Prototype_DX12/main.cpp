@@ -49,6 +49,7 @@ std::vector<DX12::Buffer> cameraBuffers;
 SA::TransformPRSf cameraTr;
 D3D12_VIEWPORT d12Viewport;
 D3D12_RECT d12Scissor;
+std::vector<SA::MComPtr<ID3D12DescriptorHeap>> cameraCBVHeaps;
 //DX12::DescriptorPool cameraDescPool;
 //DX12::DescriptorSetLayout cameraDescSetLayout;
 //std::vector<VK::DescriptorSet> cameraSets;
@@ -235,7 +236,7 @@ void Init()
 					.target = "vs_6_5",
 				};
 
-				//vsInfo.defines.push_back("SA_CAMERA_BUFFER_ID=0");
+				vsInfo.defines.push_back("SA_CAMERA_BUFFER_ID=0");
 				//vsInfo.defines.push_back("SA_OBJECT_BUFFER_ID=0");
 
 				quadRaw.vertices.AppendDefines(vsInfo.defines);
@@ -271,21 +272,50 @@ void Init()
 		// Camera
 		{
 			cameraBuffers.resize(swapchain.GetImageNum());
+			cameraCBVHeaps.resize(swapchain.GetImageNum());
 
-			for (auto& cameraBuffer : cameraBuffers)
+			for (uint32_t i = 0; i < swapchain.GetImageNum(); ++i)
 			{
-				cameraBuffer.Create(device, sizeof(CameraUBO), D3D12_RESOURCE_STATE_COMMON, D3D12_HEAP_TYPE_UPLOAD);
+				uint32_t bufferSize = sizeof(CameraUBO) + 116; // padding for 256 bytes alignment
+
+				auto& cameraBuffer = cameraBuffers[i];
+				cameraBuffer.Create(device, bufferSize, D3D12_RESOURCE_STATE_COMMON, D3D12_HEAP_TYPE_UPLOAD);
+
+
+				//auto& cameraCBVHeap = cameraCBVHeaps[i];
+				//D3D12_DESCRIPTOR_HEAP_DESC cbvHeapDesc = {};
+				//cbvHeapDesc.NumDescriptors = 1;
+				//cbvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+				//cbvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+				//SA_DX12_API(device->CreateDescriptorHeap(&cbvHeapDesc, IID_PPV_ARGS(&cameraCBVHeap)));
+
+				//D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
+				//cbvDesc.BufferLocation = cameraBuffer->GetGPUVirtualAddress();
+				//cbvDesc.SizeInBytes = bufferSize;
+				//SA_DX12_API(device->CreateConstantBufferView(&cbvDesc, cameraCBVHeap->GetCPUDescriptorHandleForHeapStart()));
 			}
 		}
 
 		// Root Signature
 		{
+			std::vector<D3D12_ROOT_PARAMETER1> params;
+
+			params.push_back(D3D12_ROOT_PARAMETER1{
+				.ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV,
+				.Descriptor{
+					.ShaderRegister = 0,
+					.RegisterSpace = 0,
+					.Flags = D3D12_ROOT_DESCRIPTOR_FLAG_DATA_STATIC_WHILE_SET_AT_EXECUTE,
+				},
+				.ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX,
+			});
+
 			D3D12_VERSIONED_ROOT_SIGNATURE_DESC info{
 				.Version = D3D_ROOT_SIGNATURE_VERSION_1_1,
 				.Desc_1_1
 				{
-					.NumParameters = 0u,
-					.pParameters = nullptr,
+					.NumParameters = (uint32_t)params.size(),
+					.pParameters = params.data(),
 					.NumStaticSamplers = 0u,
 					.pStaticSamplers = nullptr,
 					.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT,
@@ -394,6 +424,9 @@ void Uninit()
 		for (auto& cameraBuffer : cameraBuffers)
 			cameraBuffer.Destroy();
 
+		//for (auto& cameraCBVHeap : cameraCBVHeaps)
+		//	cameraCBVHeap.Reset();
+
 		objectBuffer.Destroy();
 
 		for (auto& frameBuffer : frameBuffers)
@@ -431,7 +464,6 @@ void Loop()
 		cameraUBO.inverseView = cameraTr.Matrix().GetInversed();
 		cameraUBO.projection = SA::Mat4f::MakePerspective(90, 1200.0f / 900.0f, 0.1f, 1000.0f);
 
-
 		cameraBuffers[frameIndex].UploadData(&cameraUBO, sizeof(CameraUBO));
 	}
 
@@ -445,6 +477,11 @@ void Loop()
 	cmd->RSSetViewports(1, &d12Viewport);
 	cmd->RSSetScissorRects(1, &d12Scissor);
 	pipeline.Bind(cmd);
+
+	//ID3D12DescriptorHeap* ppHeaps[] = { cameraCBVHeaps[frameIndex].Get() };
+	//cmd->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
+
+	cmd->SetGraphicsRootConstantBufferView(0, cameraBuffers[frameIndex]->GetGPUVirtualAddress());
 
 	quadMesh.Draw(cmd, 100u);
 

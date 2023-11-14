@@ -637,7 +637,6 @@ void Loop()
 		cameraUBO.inverseView = cameraTr.Matrix().GetInversed();
 		cameraUBO.projection = SA::Mat4f::MakePerspective(90, 1200.0f / 900.0f, 0.1f, 1000.0f);
 
-
 		cameraBuffers[frameIndex].UploadData(device, &cameraUBO, sizeof(CameraUBO));
 	}
 
