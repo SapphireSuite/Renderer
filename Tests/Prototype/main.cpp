@@ -130,6 +130,8 @@ public:
 			window = glfwCreateWindow(960, 540, _info.winName.c_str(), nullptr, nullptr);
 			glfwSetWindowPos(window, _info.winPosX, _info.winPosY + 30);
 			SA_ASSERT((Nullptr, window), SA.Render.Proto.GLFW, L"GLFW create window failed!");
+			
+			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 		}
 
 		// Win Surface
@@ -410,54 +412,68 @@ public:
 		float dx = 0.0f;
 		float dy = 0.0f;
 
+		const float moveSpeed = 4.0f;
+		const float rotSpeed = 16.0f;
+
 		glfwGetCursorPos(window, &oldMouseX, &oldMouseY);
 
+		const float fixedTime = 0.0025f;
+		float accumulateTime = 0.0f;
 		auto start = std::chrono::steady_clock::now();
 
 		while (!glfwWindowShouldClose(window))
 		{
 			auto end = std::chrono::steady_clock::now();
 			float deltaTime = std::chrono::duration_cast<std::chrono::duration<float, std::milli>>(end - start).count();
+			accumulateTime += deltaTime;
 			start = end;
 
-			glfwPollEvents();
-
-			// Process input
+			// Fixed Update
+			if (accumulateTime >= fixedTime)
 			{
-				if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-					cameraTr.position += deltaTime * cameraTr.Right();
-				if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-					cameraTr.position -= deltaTime * cameraTr.Right();
-				if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
-					cameraTr.position -= deltaTime * cameraTr.Up();
-				if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
-					cameraTr.position += deltaTime * cameraTr.Up();
-				if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-					cameraTr.position -= deltaTime * cameraTr.Forward();
-				if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-					cameraTr.position += deltaTime * cameraTr.Forward();
+				accumulateTime -= fixedTime;
 
-				double mouseX = 0.0f;
-				double mouseY = 0.0f;
+				glfwPollEvents();
 
-				glfwGetCursorPos(window, &mouseX, &mouseY);
-
-				if (mouseX != oldMouseX || mouseY != oldMouseY)
+				// Process input
 				{
-					dx -= static_cast<float>(mouseX - oldMouseX) * deltaTime * SA::Maths::DegToRad<float>;
-					dy += static_cast<float>(mouseY - oldMouseY) * deltaTime * SA::Maths::DegToRad<float>;
+					if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+						glfwSetWindowShouldClose(window, true);
+					if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) 
+						cameraTr.position += fixedTime * moveSpeed * cameraTr.Right();
+					if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+						cameraTr.position -= fixedTime * moveSpeed * cameraTr.Right();
+					if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+						cameraTr.position -= fixedTime * moveSpeed * cameraTr.Up();
+					if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+						cameraTr.position += fixedTime * moveSpeed * cameraTr.Up();
+					if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+						cameraTr.position -= fixedTime * moveSpeed * cameraTr.Forward();
+					if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+						cameraTr.position += fixedTime * moveSpeed * cameraTr.Forward();
 
-					oldMouseX = mouseX;
-					oldMouseY = mouseY;
+					double mouseX = 0.0f;
+					double mouseY = 0.0f;
 
-					dx = dx > SA::Maths::Pi<float> ?
-						dx - SA::Maths::Pi<float> :
-						dx < -SA::Maths::Pi<float> ? dx + SA::Maths::Pi<float> : dx;
-					dy = dy > SA::Maths::Pi<float> ?
-						dy - SA::Maths::Pi<float> :
-						dy < -SA::Maths::Pi<float> ? dy + SA::Maths::Pi<float> : dy;
+					glfwGetCursorPos(window, &mouseX, &mouseY);
 
-					cameraTr.rotation = SA::Quatf(cos(dx), 0, sin(dx), 0) * SA::Quatf(cos(dy), sin(dy), 0, 0);
+					if (mouseX != oldMouseX || mouseY != oldMouseY)
+					{
+						dx -= static_cast<float>(mouseX - oldMouseX) * fixedTime * rotSpeed * SA::Maths::DegToRad<float>;
+						dy += static_cast<float>(mouseY - oldMouseY) * fixedTime * rotSpeed * SA::Maths::DegToRad<float>;
+
+						oldMouseX = mouseX;
+						oldMouseY = mouseY;
+
+						dx = dx > SA::Maths::Pi<float> ?
+							dx - SA::Maths::Pi<float> :
+							dx < -SA::Maths::Pi<float> ? dx + SA::Maths::Pi<float> : dx;
+						dy = dy > SA::Maths::Pi<float> ?
+							dy - SA::Maths::Pi<float> :
+							dy < -SA::Maths::Pi<float> ? dy + SA::Maths::Pi<float> : dy;
+
+						cameraTr.rotation = SA::Quatf(cos(dx), 0, sin(dx), 0) * SA::Quatf(cos(dy), sin(dy), 0, 0);
+					}
 				}
 			}
 

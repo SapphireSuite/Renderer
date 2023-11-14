@@ -97,6 +97,8 @@ void Init()
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 		window = glfwCreateWindow(1200, 900, "Vulkan Prototype", nullptr, nullptr);
 		SA_ASSERT((Nullptr, window), SA.Render.Proto.GLFW, L"GLFW create window failed!");
+
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	}
 
 	// Render
@@ -462,13 +464,12 @@ int main()
 	float dx = 0.0f;
 	float dy = 0.0f;
 
-	float moveSpeed = 4.0f;
-	float rotSpeed = 16.0f;
+	const float moveSpeed = 4.0f;
+	const float rotSpeed = 16.0f;
 
 	glfwGetCursorPos(window, &oldMouseX, &oldMouseY);
-	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-	float fixedTime = 0.0025f;
+	const float fixedTime = 0.0025f;
 	float accumulateTime = 0.0f;
 	auto start = std::chrono::steady_clock::now();
 
@@ -481,6 +482,7 @@ int main()
 		accumulateTime += deltaTime;
 		start = end;
 
+		// Fixed Update
 		if (accumulateTime >= fixedTime)
 		{
 			accumulateTime -= fixedTime;
