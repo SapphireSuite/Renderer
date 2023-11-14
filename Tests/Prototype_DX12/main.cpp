@@ -237,7 +237,7 @@ void Init()
 				};
 
 				vsInfo.defines.push_back("SA_CAMERA_BUFFER_ID=0");
-				//vsInfo.defines.push_back("SA_OBJECT_BUFFER_ID=0");
+				vsInfo.defines.push_back("SA_OBJECT_BUFFER_ID=0");
 
 				quadRaw.vertices.AppendDefines(vsInfo.defines);
 
@@ -306,6 +306,16 @@ void Init()
 					.ShaderRegister = 0,
 					.RegisterSpace = 0,
 					.Flags = D3D12_ROOT_DESCRIPTOR_FLAG_DATA_STATIC_WHILE_SET_AT_EXECUTE,
+				},
+				.ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX,
+			});
+
+			params.push_back(D3D12_ROOT_PARAMETER1{
+				.ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV,
+				.Descriptor{
+					.ShaderRegister = 0,
+					.RegisterSpace = 1,
+					.Flags = D3D12_ROOT_DESCRIPTOR_FLAG_DATA_STATIC,
 				},
 				.ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX,
 			});
@@ -482,6 +492,7 @@ void Loop()
 	//cmd->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
 
 	cmd->SetGraphicsRootConstantBufferView(0, cameraBuffers[frameIndex]->GetGPUVirtualAddress());
+	cmd->SetGraphicsRootConstantBufferView(1, objectBuffer->GetGPUVirtualAddress());
 
 	quadMesh.Draw(cmd, 100u);
 
