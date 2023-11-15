@@ -16,6 +16,8 @@ namespace SA::RND::RHI
 			.TopLeftY = _viewport.y,
 			.Width = _viewport.width,
 			.Height = _viewport.height,
+			.MinDepth = 0.0f,
+			.MaxDepth = 1.0f,
 		};
 
 		const D3D12_RECT d12Scissor{

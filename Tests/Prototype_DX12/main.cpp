@@ -405,6 +405,8 @@ void Init()
 				.TopLeftY = 0,
 				.Width = float(swapchain.GetExtents().x),
 				.Height = float(swapchain.GetExtents().y),
+				.MinDepth = 0.0f,
+				.MaxDepth = 1.0f
 			};
 
 			d12Scissor = D3D12_RECT{
