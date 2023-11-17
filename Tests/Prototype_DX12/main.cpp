@@ -96,7 +96,7 @@ void Init()
 		glfwInit();
 
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-		window = glfwCreateWindow(1200, 900, "Vulkan Prototype", nullptr, nullptr);
+		window = glfwCreateWindow(1200, 900, "DX12 Prototype", nullptr, nullptr);
 		SA_ASSERT((Nullptr, window), SA.Render.Proto.GLFW, L"GLFW create window failed!");
 
 		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
