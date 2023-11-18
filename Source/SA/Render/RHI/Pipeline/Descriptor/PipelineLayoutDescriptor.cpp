@@ -35,4 +35,20 @@ namespace SA::RND::RHI
 			}
 		}
 	}
+
+#if SA_RENDER_LOWLEVEL_VULKAN_IMPL
+
+	std::vector<std::vector<VkDescriptorSetLayoutBinding>> PipelineLayoutDescriptor::API_Vulkan() const
+	{
+		std::vector<std::vector<VkDescriptorSetLayoutBinding>> result;
+
+		result.reserve(sets.size());
+
+		for (auto& set : sets)
+			result.emplace_back(set.API_Vulkan());
+
+		return result;
+	}
+
+#endif
 }

@@ -15,6 +15,12 @@ namespace SA::RND::RHI
 	{
 		/// List of registered binding for set.
 		std::vector<PipelineBindingDescriptor> bindings;
+
+#if SA_RENDER_LOWLEVEL_VULKAN_IMPL
+
+		std::vector<VkDescriptorSetLayoutBinding> API_Vulkan() const;
+
+#endif
 	};
 }
 
