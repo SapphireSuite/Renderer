@@ -4,7 +4,7 @@
 
 #include <SA/Maths/Transform/Transform.hpp>
 
-#include <SA/Render/LowLevel/Common/Camera/CameraUBO.hpp>
+#include <SA/Render/LowLevel/Common/Camera/Camera_GPU.hpp>
 #include <SA/Render/LowLevel/Common/Mesh/RawStaticMesh.hpp>
 #include <SA/Render/LowLevel/Vulkan/VkInstance.hpp>
 #include <SA/Render/LowLevel/Vulkan/Device/VkDevice.hpp>
@@ -354,7 +354,7 @@ void Init()
 
 			for (auto& cameraBuffer : cameraBuffers)
 			{
-				cameraBuffer.Create(device, sizeof(CameraUBO), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+				cameraBuffer.Create(device, sizeof(Camera_GPU), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 			}
 
 			// Pool.
@@ -641,13 +641,13 @@ void Loop()
 
 	// Update camera.
 	{
-		CameraUBO cameraUBO;
+		Camera_GPU cameraGPU;
 
-		cameraUBO.position = cameraTr.position;
-		cameraUBO.inverseView = cameraTr.Matrix().GetInversed();
-		cameraUBO.projection = SA::Mat4f::MakePerspective(90, 1200.0f / 900.0f, 0.1f, 1000.0f);
+		cameraGPU.position = cameraTr.position;
+		cameraGPU.inverseView = cameraTr.Matrix().GetInversed();
+		cameraGPU.projection = SA::Mat4f::MakePerspective(90, 1200.0f / 900.0f, 0.1f, 1000.0f);
 
-		cameraBuffers[frameIndex].UploadData(device, &cameraUBO, sizeof(CameraUBO));
+		cameraBuffers[frameIndex].UploadData(device, &cameraGPU, sizeof(Camera_GPU));
 	}
 
 	VK::CommandBuffer& cmd = cmdBuffers[frameIndex];

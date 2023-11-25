@@ -4,7 +4,7 @@
 
 #include <SA/Maths/Transform/Transform.hpp>
 
-#include <SA/Render/LowLevel/Common/Camera/CameraUBO.hpp>
+#include <SA/Render/LowLevel/Common/Camera/Camera_GPU.hpp>
 #include <SA/Render/LowLevel/Common/Mesh/RawStaticMesh.hpp>
 #include <SA/Render/LowLevel/DX12/D12Factory.hpp>
 #include <SA/Render/LowLevel/DX12/Device/D12Device.hpp>
@@ -276,7 +276,7 @@ void Init()
 
 			for (uint32_t i = 0; i < swapchain.GetImageNum(); ++i)
 			{
-				uint32_t bufferSize = sizeof(CameraUBO) + 116; // padding for 256 bytes alignment
+				uint32_t bufferSize = sizeof(Camera_GPU) + 116; // padding for 256 bytes alignment
 
 				auto& cameraBuffer = cameraBuffers[i];
 				cameraBuffer.Create(device, bufferSize, D3D12_RESOURCE_STATE_COMMON, D3D12_HEAP_TYPE_UPLOAD);
@@ -470,13 +470,13 @@ void Loop()
 
 	// Update camera.
 	{
-		CameraUBO cameraUBO;
+		Camera_GPU cameraGPU;
 
-		cameraUBO.position = cameraTr.position;
-		cameraUBO.inverseView = cameraTr.Matrix().GetInversed();
-		cameraUBO.projection = SA::Mat4f::MakePerspective(90, 1200.0f / 900.0f, 0.1f, 1000.0f);
+		cameraGPU.position = cameraTr.position;
+		cameraGPU.inverseView = cameraTr.Matrix().GetInversed();
+		cameraGPU.projection = SA::Mat4f::MakePerspective(90, 1200.0f / 900.0f, 0.1f, 1000.0f);
 
-		cameraBuffers[frameIndex].UploadData(&cameraUBO, sizeof(CameraUBO));
+		cameraBuffers[frameIndex].UploadData(&cameraGPU, sizeof(Camera_GPU));
 	}
 
 	DX12::CommandBuffer& cmd = cmdBuffers[frameIndex];

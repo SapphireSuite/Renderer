@@ -2,8 +2,8 @@
 
 #pragma once
 
-#ifndef SAPPHIRE_RENDER_CAMERA_UBO_GUARD
-#define SAPPHIRE_RENDER_CAMERA_UBO_GUARD
+#ifndef SAPPHIRE_RENDER_CAMERA_GPU_GUARD
+#define SAPPHIRE_RENDER_CAMERA_GPU_GUARD
 
 #include <SA/Maths/Space/Vector3.hpp>
 #include <SA/Maths/Matrix/Matrix4.hpp>
@@ -13,7 +13,7 @@ namespace SA::RND
 	/**
 	* Must match Camera cbuffer in Camera.hlsl.
 	*/
-	struct CameraUBO
+	struct Camera_GPU
 	{
 		/// Camera inverse transformation matrix.
 		Mat4f inverseView = Mat4f::Identity;
@@ -26,4 +26,4 @@ namespace SA::RND
 	};
 }
 
-#endif // SAPPHIRE_RENDER_CAMERA_UBO_GUARD
+#endif // SAPPHIRE_RENDER_CAMERA_GPU_GUARD
