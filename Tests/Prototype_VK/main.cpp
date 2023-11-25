@@ -197,24 +197,34 @@ void Init()
 		{
 			quadRaw.vertices.BuildVertexBuffer(
 				VertexComponent<SA::Vec3f>{
-				"POSITION",
-				{
-					{-0.5f, 0.5f, 0.0f},
-					{0.5f, 0.5f, 0.0},
-					{-0.5f, -0.5f, 0.0},
-					{0.5f, -0.5f, 0.0}
-				}
-			},
+					"POSITION",
+					{
+						{-0.5f, 0.5f, 0.0f},
+						{0.5f, 0.5f, 0.0f},
+						{-0.5f, -0.5f, 0.0f},
+						{0.5f, -0.5f, 0.0f}
+					}
+				},
+
+				VertexComponent<SA::Vec3f>{
+					"NORMAL",
+					{
+						{0.0f, 0.0f, 1.0f},
+						{0.0f, 0.0f, 1.0f},
+						{0.0f, 0.0f, 1.0f},
+						{0.0f, 0.0f, 1.0f}
+					}
+				},
 
 				VertexComponent<Color>{
-				"COLOR",
-				{
-					Color::red,
-					Color::green,
-					Color::blue,
-					Color::white
+					"COLOR",
+					{
+						Color::red,
+						Color::green,
+						Color::blue,
+						Color::white
+					}
 				}
-			}
 			);
 
 			quadRaw.indices.U16({ 0, 1, 2, 1, 3, 2 });

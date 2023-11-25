@@ -15,7 +15,14 @@ struct VertexOutput
 	/// Shader view position
 	float4 svPosition : SV_POSITION;
 	
-#if SA_VERTEX_HAS_COLOR
+#if SA_VERTEX_NORMAL
+
+	/// Vertex world normal
+	float3 normal : NORMAL;
+
+#endif
+
+#if SA_VERTEX_COLOR
 	
 	/// Vertex color
 	float4 color : COLOR;
@@ -35,6 +42,9 @@ VertexOutput mainVS(SA::VertexInputAssembly _input,
 	uint _instanceId : SV_InstanceID)
 {
 	VertexOutput output;
+
+
+	//---------- Position ----------
 
 #ifdef SA_OBJECT_BUFFER_ID
 
@@ -58,7 +68,27 @@ VertexOutput mainVS(SA::VertexInputAssembly _input,
 
 #endif
 
-#if SA_VERTEX_HAS_COLOR
+
+	//---------- Normal ----------
+
+#if SA_VERTEX_NORMAL
+
+	#ifdef SA_OBJECT_BUFFER_ID
+
+		output.normal = SA::ComputeObjectWorldNormal(_input.normal, _instanceId);
+
+	#else
+
+		output.normal = _input.normal;
+
+	#endif
+
+#endif
+
+
+	//---------- Color ----------
+
+#if SA_VERTEX_COLOR
 
 	output.color = _input.color;
 
@@ -76,7 +106,7 @@ struct PixelInput : VertexOutput
 
 float4 mainPS(PixelInput _input) : SV_TARGET
 {
-#if SA_VERTEX_HAS_COLOR
+#if SA_VERTEX_COLOR
 
 	const float4 color = _input.color;
 

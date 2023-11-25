@@ -10,31 +10,31 @@ namespace SA
 	{
 		float3 position : POSITION;
 
-	#if SA_VERTEX_HAS_NORMAL
+	#if SA_VERTEX_NORMAL
 
 		float3 normal : NORMAL;
 
 	#endif
 
-	#if SA_VERTEX_HAS_TANGENT
+	#if SA_VERTEX_TANGENT
 
 		float3 tangent : TANGENT;
 
 	#endif
 
-	#if SA_VERTEX_HAS_BITANGENT
+	#if SA_VERTEX_BITANGENT
 
 		float3 bitangent : BITANGENT;
 
 	#endif
 
-	#if SA_VERTEX_HAS_UV
+	#if SA_VERTEX_UV
 
 		float2 uv : TEXCOORD;
 
 	#endif
 
-	#if SA_VERTEX_HAS_COLOR
+	#if SA_VERTEX_COLOR
 
 		float4 color : COLOR;
 

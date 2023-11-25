@@ -32,6 +32,11 @@ namespace SA
 
 		return outPosition.xyz / outPosition.w;
 	}
+
+	float3 ComputeObjectWorldNormal(float3 _vertexNormal, uint _instanceId = 0)
+	{
+		return mul((float3x3)object[_instanceId].transform, _vertexNormal);
+	}
 }
 
 #endif // SA_OBJECT_BUFFER_ID
