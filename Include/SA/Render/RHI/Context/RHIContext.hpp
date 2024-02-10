@@ -25,12 +25,14 @@ namespace SA::RND::RHI
 
 	class Context
 	{
-		Device* mDevice = nullptr;
+		const Device* mDevice = nullptr;
 
 	public:
 		virtual ~Context() = default;
 
-		void Create(Device* _device);
+		const Device* GetDevice() const noexcept;
+
+		void Create(const Device* _device);
 		void Destroy();
 
 

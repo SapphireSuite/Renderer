@@ -168,6 +168,30 @@ if(SA_RENDER_RHI_OPT)
 endif()
 
 
+## Renderer
+option(SA_RENDER_RENDERER_OPT "Should compile Renderer" ON)
+
+if(SA_RENDER_RENDERER_OPT AND SA_RENDER_RHI_OPT)
+
+	add_library(SA_Render_Renderer STATIC)
+	SA_ConfigureTarget(SA_Render_Renderer)
+	SA_TargetSources(SA_Render_Renderer
+		PUBLIC_SRC_DIR "Include/SA/Render/Renderer"
+		PUBLIC_INCL_DIR "OFF"
+		PRIVATE_SRC_DIR "Source/SA/Render/Renderer"
+	)
+
+	### Link dependencies.
+	target_link_libraries(SA_Render_Renderer
+		PUBLIC SA_Render_RHI
+	)
+
+	### Link to main lib.
+	target_link_libraries(SA_Render INTERFACE SA_Render_Renderer)
+
+endif()
+
+
 ## ShaderCompiler
 option(SA_RENDER_SHADER_COMPILER_OPT "Should compile shader compiler" ON)
 

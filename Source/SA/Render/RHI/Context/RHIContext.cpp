@@ -8,7 +8,12 @@
 
 namespace SA::RND::RHI
 {
-	void Context::Create(Device* _device)
+	const Device* Context::GetDevice() const noexcept
+	{
+		return mDevice;
+	}
+
+	void Context::Create(const Device* _device)
 	{
 		SA_ASSERT((Nullptr, _device), SA.Render.RHI, L"Instantiate Context with nullptr device!");
 
