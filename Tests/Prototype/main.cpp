@@ -7,7 +7,7 @@
 #include <SA/Collections/Maths>
 
 #include <SA/Maths/Transform/Transform.hpp>
-#include <SA/Render/LowLevel/Common/Camera/CameraUBO.hpp>
+#include <SA/Render/LowLevel/Common/Camera/Camera_GPU.hpp>
 #include <SA/Render/RHI/RHIVkRenderInterface.hpp>
 #include <SA/Render/RHI/RHID12RenderInterface.hpp>
 #include <SA/Render/RHI/Compatibility/IRenderWindow.hpp>
@@ -365,7 +365,7 @@ public:
 			cameraBuffers.resize(swapchain->GetImageNum());
 
 			for (auto& cameraBuffer : cameraBuffers)
-				cameraBuffer = context->CreateBuffer(sizeof(CameraUBO), RHI::BufferUsageFlags::UniformBuffer | RHI::BufferUsageFlags::CPUUpload);
+				cameraBuffer = context->CreateBuffer(sizeof(Camera_GPU), RHI::BufferUsageFlags::UniformBuffer | RHI::BufferUsageFlags::CPUUpload);
 		}
 	}
 
@@ -481,13 +481,13 @@ public:
 
 			// Update camera.
 			{
-				CameraUBO cameraUBO;
+				Camera_GPU cameraGPU;
 
-				cameraUBO.position = cameraTr.position;
-				cameraUBO.inverseView = cameraTr.Matrix().GetInversed();
-				cameraUBO.projection = SA::Mat4f::MakePerspective(90, 960.0f / 540.0f);
+				cameraGPU.position = cameraTr.position;
+				cameraGPU.inverseView = cameraTr.Matrix().GetInversed();
+				cameraGPU.projection = SA::Mat4f::MakePerspective(90, 960.0f / 540.0f);
 
-				cameraBuffers[frameIndex]->UploadData(cameraUBO);
+				cameraBuffers[frameIndex]->UploadData(cameraGPU);
 			}
 
 			RHI::CommandBuffer* const cmd = cmdBuffers[frameIndex];
@@ -509,6 +509,8 @@ public:
 			cmd->End();
 
 			swapchain->End({ cmd });
+
+			SA_LOG_END_OF_FRAME();
 		}
 	}
 

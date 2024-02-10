@@ -582,6 +582,8 @@ int main()
 		}
 
 		Loop();
+
+		SA_LOG_END_OF_FRAME();
 	}
 
 	Uninit();
