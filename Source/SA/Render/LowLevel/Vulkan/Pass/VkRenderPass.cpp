@@ -161,7 +161,10 @@ namespace SA::RND::VK
 				{
 					// Last attachment added: current or resolved.
 					const uint32_t inputAttachIndex = static_cast<uint32_t>(attachmentDescs.size() - 1);
-					inputAttachmentRefs.emplace_back(VkAttachmentReference{ inputAttachIndex, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL });
+					inputAttachmentRefs.emplace_back(VkAttachmentReference{
+						inputAttachIndex,
+						attach.type == AttachmentType::Depth ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+					});
 				}
 			}
 

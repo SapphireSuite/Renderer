@@ -33,6 +33,8 @@ namespace SA::RND::VK
 		const Vec2ui& GetExtents() const;
 		const std::vector<VkClearValue>& GetClearValues() const;
 
+		const ImageBuffer& GetAttachment(uint32_t _index) const;
+
 		operator VkFramebuffer() const noexcept;
 	};
 }

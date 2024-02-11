@@ -130,6 +130,13 @@ namespace SA::RND::VK
 		return mClearValues;
 	}
 
+	const ImageBuffer& FrameBuffer::GetAttachment(uint32_t _index) const
+	{
+		SA_ASSERT((OutOfArrayRange, _index, mAttachments), SA.Render.Vulkan, L"Attachment index out of framebuffer attachments range");
+
+		return mAttachments[_index];
+	}
+
 	FrameBuffer::operator VkFramebuffer() const noexcept
 	{
 		return mHandle;

@@ -4,6 +4,7 @@
 #include <Common/Preprocessors.hlsl>
 #include <Common/Object.hlsl>
 #include <Common/Camera.hlsl>
+#include <Common/Depth.hlsl>
 
 //-------------------- Vertex Shader --------------------
 
@@ -106,6 +107,12 @@ struct PixelInput : VertexOutput
 
 float4 mainPS(PixelInput _input) : SV_TARGET
 {
+#if SA_DEPTH_ONLY_PREPASS
+
+	SA::ApplyDepthTesting(_input.svPosition);
+
+#endif
+
 #if SA_VERTEX_COLOR
 
 	const float4 color = _input.color;
