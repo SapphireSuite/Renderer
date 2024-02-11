@@ -1,10 +1,10 @@
 // Copyright (c) 2023 Sapphire's Suite. All Rights Reserved.
 
-#include <Pass/Info/RHIPassInfo.hpp>
+#include <Pass/Info/RHIRenderPassInfo.hpp>
 
 namespace SA::RND::RHI
 {
-	void PassInfo::SetAllSubpassesSampling(Sampling _sampling)
+	void RenderPassInfo::SetAllSubpassesSampling(Sampling _sampling)
 	{
 		for(auto& subpass : subpasses)
 			subpass.sampling = _sampling;
@@ -12,9 +12,9 @@ namespace SA::RND::RHI
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
-	VK::PassInfo PassInfo::API_Vulkan() const
+	VK::RenderPassInfo RenderPassInfo::API_Vulkan() const
 	{
-		VK::PassInfo vkInfo;
+		VK::RenderPassInfo vkInfo;
 
 		vkInfo.name = name;
 
@@ -32,9 +32,9 @@ namespace SA::RND::RHI
 
 #if SA_RENDER_LOWLEVEL_DX12_IMPL
 
-	DX12::PassInfo PassInfo::API_DirectX12() const
+	DX12::RenderPassInfo RenderPassInfo::API_DirectX12() const
 	{
-		DX12::PassInfo d12Info;
+		DX12::RenderPassInfo d12Info;
 
 		d12Info.name = name;
 

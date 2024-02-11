@@ -8,7 +8,7 @@
 
 namespace SA::RND::RHI
 {
-	void VkFrameBuffer::Create(const Device* _device, const Pass* _pass,
+	void VkFrameBuffer::Create(const Device* _device, const RenderPass* _pass,
 		std::shared_ptr<Swapchain::BackBufferHandle> _img)
 	{
 		mHandle.Create(_device->API_Vulkan(), _pass->API_Vulkan(), _pass->GetInfo().API_Vulkan(),

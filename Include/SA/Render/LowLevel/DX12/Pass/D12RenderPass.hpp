@@ -5,7 +5,7 @@
 #ifndef SAPPHIRE_RENDER_DX12_RENDER_PASS_GUARD
 #define SAPPHIRE_RENDER_DX12_RENDER_PASS_GUARD
 
-#include "Info/D12PassInfo.hpp"
+#include "Info/D12RenderPassInfo.hpp"
 
 namespace SA::RND::DX12
 {
@@ -15,13 +15,13 @@ namespace SA::RND::DX12
 
 	class RenderPass
 	{
-		PassInfo mPassInfo;
+		RenderPassInfo mPassInfo;
 
 		uint32_t mCurrSubpassIndex = 0u;
 		DX12::FrameBuffer* mCurrFrameBuffer = nullptr;
 
 	public:
-		void Create(const PassInfo& _info);
+		void Create(const RenderPassInfo& _info);
 		void Destroy();
 
 		void Begin(const CommandList& _cmd, FrameBuffer& _fBuff);

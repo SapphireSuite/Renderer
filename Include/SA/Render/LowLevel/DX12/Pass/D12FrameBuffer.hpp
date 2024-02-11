@@ -5,7 +5,7 @@
 #ifndef SAPPHIRE_RENDER_DX12_FRAME_BUFFER_GUARD
 #define SAPPHIRE_RENDER_DX12_FRAME_BUFFER_GUARD
 
-#include "Info/D12PassInfo.hpp"
+#include "Info/D12RenderPassInfo.hpp"
 
 namespace SA::RND::DX12
 {
@@ -41,7 +41,7 @@ namespace SA::RND::DX12
 		std::vector<SubpassFrame> mSubpassFrames;
 
 	public:
-		void Create(const Device& _device, const PassInfo& _info, MComPtr<ID3D12Resource> _presentImage = nullptr);
+		void Create(const Device& _device, const RenderPassInfo& _info, MComPtr<ID3D12Resource> _presentImage = nullptr);
 		void Destroy();
 
 		uint32_t GetRTVDescriptorIncrementSize() const;

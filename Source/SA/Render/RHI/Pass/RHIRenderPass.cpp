@@ -1,17 +1,17 @@
 // Copyright (c) 2023 Sapphire's Suite. All Rights Reserved.
 
-#include <Pass/RHIPass.hpp>
+#include <Pass/RHIRenderPass.hpp>
 
 #include <SA/Collections/Debug>
 
 namespace SA::RND::RHI
 {
-	const PassInfo& Pass::GetInfo() const
+	const RenderPassInfo& RenderPass::GetInfo() const
 	{
 		return mPassInfo;
 	}
 
-	void Pass::Create(const Device* _device, PassInfo _info)
+	void RenderPass::Create(const Device* _device, RenderPassInfo _info)
 	{
 		(void)_device;
 		
@@ -20,7 +20,7 @@ namespace SA::RND::RHI
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
-	const VK::RenderPass& Pass::API_Vulkan() const
+	const VK::RenderPass& RenderPass::API_Vulkan() const
 	{
 		SA_THROW((QueryBadAPIObject, Vulkan), SA.Render.RHI.Vulkan);
 	}

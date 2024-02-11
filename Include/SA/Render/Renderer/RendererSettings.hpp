@@ -26,7 +26,7 @@ namespace SA::RND
 			//bool vSync = true;
 		} swapchain;
 
-		struct PassSettings
+		struct RenderPassSettings
 		{
 			RHI::Sampling MSAA = RHI::Sampling::Sample4Bits;
 

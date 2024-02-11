@@ -40,16 +40,16 @@ namespace SA::RND
 		RHI::Context* mContext = nullptr;
 
 
-	//{ Pass
+	//{ RenderPass
 		
-		RHI::Pass* mMainPass = nullptr;
+		RHI::RenderPass* mMainPass = nullptr;
 
-		Vec2ui GetRenderExtents(const RendererSettings::PassSettings& _settings) const;
+		Vec2ui GetRenderExtents(const RendererSettings::RenderPassSettings& _settings) const;
 
-		virtual void MakeRenderPassInfo(const RendererSettings::PassSettings& _settings, RHI::PassInfo& _passInfo);
-		void AddDepthAttachment(const RendererSettings::PassSettings& _settings, RHI::SubpassInfo& _subpassInfo);
+		virtual void MakeRenderPassInfo(const RendererSettings::RenderPassSettings& _settings, RHI::RenderPassInfo& _passInfo);
+		void AddDepthAttachment(const RendererSettings::RenderPassSettings& _settings, RHI::SubpassInfo& _subpassInfo);
 
-		void CreateRenderPass(const RendererSettings::PassSettings& _settings);
+		void CreateRenderPass(const RendererSettings::RenderPassSettings& _settings);
 		void DestroyRenderPass();
 
 	//}

@@ -30,7 +30,6 @@ namespace SA::RND
 	namespace RHI
 	{
 		class Device;
-		class Pass;
 		class CommandBuffer;
 
 		class Pipeline

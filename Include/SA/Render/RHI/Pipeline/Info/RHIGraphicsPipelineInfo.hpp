@@ -31,7 +31,7 @@ namespace SA::RND
 
 	namespace RHI
 	{
-		class Pass;
+		class RenderPass;
 		class PipelineLayout;
 		class RenderViews;
 
@@ -44,7 +44,7 @@ namespace SA::RND
 
 			const PipelineLayout* layout = nullptr;
 
-			const Pass* pass = nullptr;
+			const RenderPass* pass = nullptr;
 			uint32_t subpassIndex = 0u;
 
 			const RenderViews* views = nullptr;

@@ -2,8 +2,8 @@
 
 #pragma once
 
-#ifndef SAPPHIRE_RENDER_PASS_INFO_BASE_GUARD
-#define SAPPHIRE_RENDER_PASS_INFO_BASE_GUARD
+#ifndef SAPPHIRE_RENDER_RENDER_PASS_INFO_BASE_GUARD
+#define SAPPHIRE_RENDER_RENDER_PASS_INFO_BASE_GUARD
 
 #include <string>
 #include <vector>
@@ -15,7 +15,7 @@
 namespace SA::RND
 {
 	template <typename SubpassT>
-	struct PassInfoBase
+	struct RenderPassInfoBase
 	{
 		std::string name;
 
@@ -76,4 +76,4 @@ namespace SA::RND
 	};
 }
 
-#endif // SAPPHIRE_RENDER_PASS_INFO_BASE_GUARD
+#endif // SAPPHIRE_RENDER_RENDER_PASS_INFO_BASE_GUARD

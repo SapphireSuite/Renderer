@@ -2,7 +2,7 @@
 
 #include <Pipeline/Info/RHIGraphicsPipelineInfo.hpp>
 
-#include <Pass/RHIPass.hpp>
+#include <Pass/RHIRenderPass.hpp>
 #include <Shader/RHIShader.hpp>
 #include <Pipeline/RHIRenderViews.hpp>
 #include <Pipeline/RHIPipelineLayout.hpp>

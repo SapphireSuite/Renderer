@@ -32,7 +32,7 @@ namespace SA::RND::RHI
 		DestroyAllPipelineLayouts();
 		DestroyAllShaders();
 		DestroyAllFrameBuffers();
-		DestroyAllPasses();
+		DestroyAllRenderPasses();
 
 		mDevice = nullptr;
 
@@ -40,48 +40,48 @@ namespace SA::RND::RHI
 	}
 
 	
-//{ Pass
+//{ RenderPass
 
-	void Context::DeletePassClass(Pass* _pass)
+	void Context::DeleteRenderPassClass(RenderPass* _pass)
 	{
 		SA_ASSERT((Nullptr, _pass), SA.Render.RHI);
 
 		delete _pass;
 	}
 
-	Pass* Context::CreatePass(PassInfo _info)
+	RenderPass* Context::CreateRenderPass(RenderPassInfo _info)
 	{
-		Pass* const pass = mPasses.emplace_front(InstantiatePassClass());
+		RenderPass* const pass = mRenderPasses.emplace_front(InstantiateRenderPassClass());
 
-		SA_ASSERT((Nullptr, pass), SA.Render.RHI, (L"Pass instantiate class failed!"));
+		SA_ASSERT((Nullptr, pass), SA.Render.RHI, (L"RenderPass instantiate class failed!"));
 
 		pass->Create(mDevice, std::move(_info));
 
 		return pass;
 	}
 	
-	void Context::DestroyPass(Pass* _pass)
+	void Context::DestroyRenderPass(RenderPass* _pass)
 	{
 		SA_ASSERT((Nullptr, _pass), SA.Render.RHI);
 
-		if(std::erase(mPasses, _pass))
+		if(std::erase(mRenderPasses, _pass))
 		{
 			_pass->Destroy(mDevice);
-			DeletePassClass(_pass);
+			DeleteRenderPassClass(_pass);
 		}
 		else
-			SA_LOG((L"Try destroy Pass [%1] that does not belong to this context!", _pass), Error, SA.Render.RHI);
+			SA_LOG((L"Try destroy RenderPass [%1] that does not belong to this context!", _pass), Error, SA.Render.RHI);
 	}
 
-	void Context::DestroyAllPasses()
+	void Context::DestroyAllRenderPasses()
 	{
-		for(auto pass : mPasses)
+		for(auto pass : mRenderPasses)
 		{
 			pass->Destroy(mDevice);
-			DeletePassClass(pass);
+			DeleteRenderPassClass(pass);
 		}
 
-		mPasses.clear();
+		mRenderPasses.clear();
 	}
 
 //}
@@ -96,7 +96,7 @@ namespace SA::RND::RHI
 		delete _frameBuffer;
 	}
 
-	FrameBuffer* Context::CreateFrameBuffer(const Pass* _pass, std::shared_ptr<Swapchain::BackBufferHandle> _img)
+	FrameBuffer* Context::CreateFrameBuffer(const RenderPass* _pass, std::shared_ptr<Swapchain::BackBufferHandle> _img)
 	{
 		SA_ASSERT((Nullptr, _pass), SA.Render.RHI);
 

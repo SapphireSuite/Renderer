@@ -87,7 +87,7 @@ namespace SA::RND::VK
 		}
 	}
 
-	void RenderPass::Create(const Device& _device, const PassInfo& _info)
+	void RenderPass::Create(const Device& _device, const RenderPassInfo& _info)
 	{
 		const uint32_t subpassNum = static_cast<uint32_t>(_info.subpasses.size());
 		const uint32_t attachmentNum = static_cast<uint32_t>(subpassNum * 8);

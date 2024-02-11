@@ -2,7 +2,7 @@
 
 #include <Context/RHIVkContext.hpp>
 
-#include <Pass/RHIVkPass.hpp>
+#include <Pass/RHIVkRenderPass.hpp>
 #include <Pass/RHIVkFrameBuffer.hpp>
 #include <Shader/RHIVkShader.hpp>
 #include <Pipeline/RHIVkPipelineLayout.hpp>
@@ -17,9 +17,9 @@
 
 namespace SA::RND::RHI
 {
-	Pass* VkContext::InstantiatePassClass()
+	RenderPass* VkContext::InstantiateRenderPassClass()
 	{
-		return new VkPass();
+		return new VkRenderPass();
 	}
 
 	FrameBuffer* VkContext::InstantiateFrameBufferClass()

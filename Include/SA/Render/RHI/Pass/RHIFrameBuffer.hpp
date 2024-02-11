@@ -30,14 +30,14 @@ namespace SA::RND
 	namespace RHI
 	{
 		class Device;
-		class Pass;
+		class RenderPass;
 
 		class FrameBuffer
 		{
 		public:
 			virtual ~FrameBuffer() = default;
 
-			virtual void Create(const Device* _device, const Pass* _pass,
+			virtual void Create(const Device* _device, const RenderPass* _pass,
 				std::shared_ptr<Swapchain::BackBufferHandle> _img) = 0;
 			virtual void Destroy(const Device* _device) = 0;
 

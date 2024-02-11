@@ -14,7 +14,7 @@ namespace SA::RND::RHI
 	class VkContext : public Context
 	{
 	protected:
-		Pass* InstantiatePassClass() override final;
+		RenderPass* InstantiateRenderPassClass() override final;
 		FrameBuffer* InstantiateFrameBufferClass() override final;
 		Shader* InstantiateShaderClass() override final;
 		RenderViews* InstantiateRenderViewsClass() override final;

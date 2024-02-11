@@ -5,7 +5,7 @@
 #ifndef SAPPHIRE_RENDER_VK_RENDER_PASS_GUARD
 #define SAPPHIRE_RENDER_VK_RENDER_PASS_GUARD
 
-#include "Info/VkPassInfo.hpp"
+#include "Info/VkRenderPassInfo.hpp"
 
 namespace SA::RND::VK
 {
@@ -18,7 +18,7 @@ namespace SA::RND::VK
 		VkRenderPass mHandle = VK_NULL_HANDLE;
 
 	public:
-		void Create(const Device& _device, const PassInfo& _info);
+		void Create(const Device& _device, const RenderPassInfo& _info);
 		void Create(const Device& _device, const VkRenderPassCreateInfo& _vkInfo);
 		void Destroy(const Device& _device);
 

@@ -33,7 +33,7 @@ DX12::WindowSurface winSurface;
 DX12::Device device;
 DX12::Swapchain swapchain;
 DX12::CommandPool cmdPool;
-DX12::PassInfo passInfo;
+DX12::RenderPassInfo passInfo;
 DX12::RenderPass renderPass;
 std::vector<DX12::FrameBuffer> frameBuffers;
 std::vector<DX12::CommandBuffer> cmdBuffers;

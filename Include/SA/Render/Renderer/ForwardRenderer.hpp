@@ -12,7 +12,7 @@ namespace SA::RND
 	class ForwardRenderer : public Renderer
 	{
 	protected:
-		void MakeRenderPassInfo(const RendererSettings::PassSettings& _settings, RHI::PassInfo& _passInfo) override final;
+		void MakeRenderPassInfo(const RendererSettings::RenderPassSettings& _settings, RHI::RenderPassInfo& _passInfo) override final;
 	};
 }
 

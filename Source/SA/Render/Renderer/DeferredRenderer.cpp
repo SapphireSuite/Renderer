@@ -4,7 +4,7 @@
 
 namespace SA::RND
 {
-	void DeferredRenderer::MakeRenderPassInfo(const RendererSettings::PassSettings& _settings, RHI::PassInfo& _passInfo)
+	void DeferredRenderer::MakeRenderPassInfo(const RendererSettings::RenderPassSettings& _settings, RHI::RenderPassInfo& _passInfo)
 	{
 		const Vec2ui extents = GetRenderExtents(_settings);
 		

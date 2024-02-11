@@ -94,7 +94,7 @@ public:
 	RHI::WindowSurface* winSurface = nullptr;
 	RHI::Swapchain* swapchain = nullptr;
 	RHI::Context* context = nullptr;
-	RHI::Pass* pass = nullptr;
+	RHI::RenderPass* pass = nullptr;
 	std::vector<RHI::FrameBuffer*> frameBuffers;
 	RHI::Shader* vertexShader = nullptr;
 	RHI::Shader* pixelShader = nullptr;
@@ -167,7 +167,7 @@ public:
 		// RenderPass
 		{
 			// Info
-			RHI::PassInfo passInfo;
+			RHI::RenderPassInfo passInfo;
 			{
 				constexpr bool bDepth = true;
 				constexpr bool bMSAA = true;
@@ -246,7 +246,7 @@ public:
 				}
 			}
 
-			pass = context->CreatePass(std::move(passInfo));
+			pass = context->CreateRenderPass(std::move(passInfo));
 		}
 
 		// FrameBuffers
@@ -386,7 +386,7 @@ public:
 			for(auto& frameBuffer : frameBuffers)
 				context->DestroyFrameBuffer(frameBuffer);
 
-			context->DestroyPass(pass);
+			context->DestroyRenderPass(pass);
 
 			device->DestroyContext(context);
 

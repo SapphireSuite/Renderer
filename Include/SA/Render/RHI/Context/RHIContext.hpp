@@ -7,7 +7,7 @@
 
 #include <forward_list>
 
-#include <SA/Render/RHI/Pass/RHIPass.hpp>
+#include <SA/Render/RHI/Pass/RHIRenderPass.hpp>
 #include <SA/Render/RHI/Pass/RHIFrameBuffer.hpp>
 #include <SA/Render/RHI/Surface/RHISwapchain.hpp>
 #include <SA/Render/RHI/Shader/RHIShader.hpp>
@@ -36,19 +36,19 @@ namespace SA::RND::RHI
 		void Destroy();
 
 
-//{ Pass
+//{ RenderPass
 
 	private:
-		std::forward_list<Pass*> mPasses;
+		std::forward_list<RenderPass*> mRenderPasses;
 
 	protected:
-		virtual Pass* InstantiatePassClass() = 0;
-		virtual void DeletePassClass(Pass* _pass);
+		virtual RenderPass* InstantiateRenderPassClass() = 0;
+		virtual void DeleteRenderPassClass(RenderPass* _pass);
 
 	public:
-		Pass* CreatePass(PassInfo _info);
-		void DestroyPass(Pass* _pass);
-		void DestroyAllPasses();
+		RenderPass* CreateRenderPass(RenderPassInfo _info);
+		void DestroyRenderPass(RenderPass* _pass);
+		void DestroyAllRenderPasses();
 
 //}
 
@@ -63,7 +63,7 @@ namespace SA::RND::RHI
 		virtual void DeleteFrameBufferClass(FrameBuffer* _frameBuffer);
 
 	public:
-		FrameBuffer* CreateFrameBuffer(const Pass* _pass, std::shared_ptr<Swapchain::BackBufferHandle> _img = nullptr);
+		FrameBuffer* CreateFrameBuffer(const RenderPass* _pass, std::shared_ptr<Swapchain::BackBufferHandle> _img = nullptr);
 		void DestroyFrameBuffer(FrameBuffer* _frameBuffer);
 		void DestroyAllFrameBuffers();
 

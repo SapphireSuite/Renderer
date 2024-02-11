@@ -32,7 +32,7 @@ VK::WindowSurface winSurface;
 VK::Device device;
 VK::Swapchain swapchain;
 VK::CommandPool cmdPool;
-VK::PassInfo passInfo;
+VK::RenderPassInfo passInfo;
 VK::RenderPass renderPass;
 std::vector<VK::FrameBuffer> frameBuffers;
 std::vector<VK::CommandBuffer> cmdBuffers;

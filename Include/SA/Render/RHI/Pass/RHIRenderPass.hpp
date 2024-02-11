@@ -2,10 +2,10 @@
 
 #pragma once
 
-#ifndef SAPPHIRE_RENDER_RHI_PASS_GUARD
-#define SAPPHIRE_RENDER_RHI_PASS_GUARD
+#ifndef SAPPHIRE_RENDER_RHI_RENDER_PASS_GUARD
+#define SAPPHIRE_RENDER_RHI_RENDER_PASS_GUARD
 
-#include "Info/RHIPassInfo.hpp"
+#include "Info/RHIRenderPassInfo.hpp"
 
 namespace SA::RND
 {
@@ -24,17 +24,17 @@ namespace SA::RND
 		class CommandBuffer;
 		class FrameBuffer;
 
-		class Pass
+		class RenderPass
 		{
 		protected:
-			PassInfo mPassInfo;
+			RenderPassInfo mPassInfo;
 
 		public:
-			virtual ~Pass() = default;
+			virtual ~RenderPass() = default;
 
-			const PassInfo& GetInfo() const;
+			const RenderPassInfo& GetInfo() const;
 
-			virtual void Create(const Device* _device, PassInfo _info);
+			virtual void Create(const Device* _device, RenderPassInfo _info);
 			virtual void Destroy(const Device* _device) = 0;
 
 			virtual void Begin(const CommandBuffer* _cmd, FrameBuffer* _fBuff) = 0;
@@ -50,4 +50,4 @@ namespace SA::RND
 	}
 }
 
-#endif // SAPPHIRE_RENDER_RHI_PASS_GUARD
+#endif // SAPPHIRE_RENDER_RHI_RENDER_PASS_GUARD

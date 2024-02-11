@@ -8,7 +8,7 @@
 
 namespace SA::RND::DX12
 {
-	void FrameBuffer::Create(const Device& _device, const PassInfo& _info, MComPtr<ID3D12Resource> _presentImage)
+	void FrameBuffer::Create(const Device& _device, const RenderPassInfo& _info, MComPtr<ID3D12Resource> _presentImage)
 	{
 		mSubpassFrames.reserve(_info.subpasses.size());
 

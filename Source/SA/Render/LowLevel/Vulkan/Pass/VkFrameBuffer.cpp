@@ -9,7 +9,7 @@ namespace SA::RND::VK
 {
 	void FrameBuffer::Create(const Device& _device,
 			const RenderPass& _pass,
-			const PassInfo& _info,
+			const RenderPassInfo& _info,
 			VkImage _presentImage)
 	{
 		mExtents = Vec2ui{INT_MAX, INT_MAX};

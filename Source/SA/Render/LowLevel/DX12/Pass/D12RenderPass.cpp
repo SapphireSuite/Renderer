@@ -7,7 +7,7 @@
 
 namespace SA::RND::DX12
 {
-	void RenderPass::Create(const PassInfo& _info)
+	void RenderPass::Create(const RenderPassInfo& _info)
 	{
 		mPassInfo = _info;
 	}

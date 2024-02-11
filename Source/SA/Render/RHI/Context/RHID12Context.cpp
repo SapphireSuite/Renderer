@@ -2,7 +2,7 @@
 
 #include <Context/RHID12Context.hpp>
 
-#include <Pass/RHID12Pass.hpp>
+#include <Pass/RHID12RenderPass.hpp>
 #include <Pass/RHID12FrameBuffer.hpp>
 #include <Shader/RHID12Shader.hpp>
 #include <Pipeline/RHID12PipelineLayout.hpp>
@@ -17,9 +17,9 @@
 
 namespace SA::RND::RHI
 {
-	Pass* D12Context::InstantiatePassClass()
+	RenderPass* D12Context::InstantiateRenderPassClass()
 	{
-		return new D12Pass();
+		return new D12RenderPass();
 	}
 	
 	FrameBuffer* D12Context::InstantiateFrameBufferClass()

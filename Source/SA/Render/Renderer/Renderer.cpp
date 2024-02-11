@@ -73,7 +73,7 @@ namespace SA::RND
 
 //{ RenderPass
 
-	Vec2ui Renderer::GetRenderExtents(const RendererSettings::PassSettings& _settings) const
+	Vec2ui Renderer::GetRenderExtents(const RendererSettings::RenderPassSettings& _settings) const
 	{
 		if (_settings.extents != Vec2ui(-1))
 			return _settings.extents;
@@ -83,7 +83,7 @@ namespace SA::RND
 		return mSwapchain->GetExtents();
 	}
 
-	void Renderer::MakeRenderPassInfo(const RendererSettings::PassSettings& _settings, RHI::PassInfo& _passInfo)
+	void Renderer::MakeRenderPassInfo(const RendererSettings::RenderPassSettings& _settings, RHI::RenderPassInfo& _passInfo)
 	{
 		const Vec2ui extents = GetRenderExtents(_settings);
 
@@ -97,7 +97,7 @@ namespace SA::RND
 		}
 	}
 	
-	void Renderer::AddDepthAttachment(const RendererSettings::PassSettings& _settings, RHI::SubpassInfo& _subpassInfo)
+	void Renderer::AddDepthAttachment(const RendererSettings::RenderPassSettings& _settings, RHI::SubpassInfo& _subpassInfo)
 	{
 		auto& depthRT = _subpassInfo.AddAttachment("Depth");
 		depthRT.format = _settings.depth.format;
@@ -114,17 +114,17 @@ namespace SA::RND
 		}
 	}
 
-	void Renderer::CreateRenderPass(const RendererSettings::PassSettings& _settings)
+	void Renderer::CreateRenderPass(const RendererSettings::RenderPassSettings& _settings)
 	{
-		RHI::PassInfo passInfo;
+		RHI::RenderPassInfo passInfo;
 		MakeRenderPassInfo(_settings, passInfo);
 
-		mMainPass = mContext->CreatePass(passInfo);
+		mMainPass = mContext->CreateRenderPass(passInfo);
 	}
 
 	void Renderer::DestroyRenderPass()
 	{
-		mContext->DestroyPass(mMainPass);
+		mContext->DestroyRenderPass(mMainPass);
 		mMainPass = nullptr;
 	}
 

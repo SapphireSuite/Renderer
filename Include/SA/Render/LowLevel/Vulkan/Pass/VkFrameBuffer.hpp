@@ -5,7 +5,7 @@
 #ifndef SAPPHIRE_RENDER_VK_FRAME_BUFFER_GUARD
 #define SAPPHIRE_RENDER_VK_FRAME_BUFFER_GUARD
 
-#include "Info/VkPassInfo.hpp"
+#include "Info/VkRenderPassInfo.hpp"
 
 #include <SA/Render/LowLevel/Vulkan/Buffers/VkImageBuffer.hpp>
 
@@ -26,7 +26,7 @@ namespace SA::RND::VK
 	public:
 		void Create(const Device& _device,
 			const RenderPass& _pass,
-			const PassInfo& _info,
+			const RenderPassInfo& _info,
 			VkImage _presentImage = VK_NULL_HANDLE);
 		void Destroy(const Device& _device);
 

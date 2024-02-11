@@ -2,10 +2,10 @@
 
 #pragma once
 
-#ifndef SAPPHIRE_RENDER_RHI_DX12_PASS_GUARD
-#define SAPPHIRE_RENDER_RHI_DX12_PASS_GUARD
+#ifndef SAPPHIRE_RENDER_RHI_DX12_RENDER_PASS_GUARD
+#define SAPPHIRE_RENDER_RHI_DX12_RENDER_PASS_GUARD
 
-#include "RHIPass.hpp"
+#include "RHIRenderPass.hpp"
 
 #if SA_RENDER_LOWLEVEL_DX12_IMPL
 
@@ -13,12 +13,12 @@
 
 namespace SA::RND::RHI
 {
-	class D12Pass : public Pass
+	class D12RenderPass : public RenderPass
 	{
 		DX12::RenderPass mHandle;
 
 	public:
-		void Create(const Device* _device, PassInfo _info) override final;
+		void Create(const Device* _device, RenderPassInfo _info) override final;
 		void Destroy(const Device* _device) override final;
 
 		void Begin(const CommandBuffer* _cmd, FrameBuffer* _fBuff) override final;
@@ -29,4 +29,4 @@ namespace SA::RND::RHI
 
 #endif // SA_RENDER_LOWLEVEL_DX12_IMPL
 
-#endif // SAPPHIRE_RENDER_RHI_DX12_PASS_GUARD
+#endif // SAPPHIRE_RENDER_RHI_DX12_RENDER_PASS_GUARD

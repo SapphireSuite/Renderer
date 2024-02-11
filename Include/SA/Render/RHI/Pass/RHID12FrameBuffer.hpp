@@ -18,7 +18,7 @@ namespace SA::RND::RHI
 		DX12::FrameBuffer mHandle;
 
 	public:
-		void Create(const Device* _device, const Pass* _pass,
+		void Create(const Device* _device, const RenderPass* _pass,
 			std::shared_ptr<Swapchain::BackBufferHandle> _img) override final;
 		void Destroy(const Device* _device) override final;
 
