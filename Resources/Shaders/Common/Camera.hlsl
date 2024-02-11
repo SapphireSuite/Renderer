@@ -17,10 +17,16 @@ namespace SA
 	struct Camera
 	{
 		/// Camera inverse transformation matrix.
-		float4x4 inverseView;
+		//float4x4 inverseView;
 
 		/// Camera projection matrix.
-		float4x4 projection;
+		//float4x4 projection;
+
+		/**
+		*	Camera inverse view projection matrix.
+		*	projection * inverseView.
+		*/
+		float4x4 invViewProj;
 
 		/// Camera raw position.
 		float3 position;
@@ -39,14 +45,9 @@ namespace SA
 		return camera.position;
 	}
 
-	float4x4 ComputeInvViewProj()
-	{
-		return mul(camera.projection, camera.inverseView);
-	}
-
 	float4 ComputeObjectViewPosition(float3 _worldPosition)
 	{
-		return mul(ComputeInvViewProj(), float4(_worldPosition, 1.0));
+		return mul(camera.invViewProj, float4(_worldPosition, 1.0));
 	}
 }
 

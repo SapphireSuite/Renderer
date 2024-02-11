@@ -472,9 +472,7 @@ void Loop()
 	{
 		Camera_GPU cameraGPU;
 
-		cameraGPU.position = cameraTr.position;
-		cameraGPU.inverseView = cameraTr.Matrix().GetInversed();
-		cameraGPU.projection = SA::Mat4f::MakePerspective(90, 1200.0f / 900.0f, 0.1f, 1000.0f);
+		cameraGPU.Update(cameraTr.Matrix(), SA::Mat4f::MakePerspective(90, 1200.0f / 900.0f, 0.1f, 1000.0f));
 
 		cameraBuffers[frameIndex].UploadData(&cameraGPU, sizeof(Camera_GPU));
 	}

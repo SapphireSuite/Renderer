@@ -16,13 +16,21 @@ namespace SA::RND
 	struct Camera_GPU
 	{
 		/// Camera inverse transformation matrix.
-		Mat4f inverseView = Mat4f::Identity;
+		//Mat4f inverseView = Mat4f::Identity;
 
 		/// Camera projection matrix.
-		Mat4f projection = Mat4f::Identity;
+		//Mat4f projection = Mat4f::Identity;
+
+		/**
+		*	Camera inverse view projection matrix.
+		*	projection * inverseView.
+		*/
+		Mat4f invViewProj = Mat4f::Identity;
 
 		/// Camera raw position.
 		Vec3f position;
+
+		void Update(const Mat4f& _view, const Mat4f& _proj);
 	};
 }
 
