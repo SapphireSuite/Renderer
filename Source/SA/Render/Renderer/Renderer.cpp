@@ -89,11 +89,12 @@ namespace SA::RND
 
 		if (_settings.depth.bEnabled && _settings.depth.bPrepass)
 		{
-			auto& depthPass = _passInfo.AddSubpass("Depth Prepass");
+			auto& depthPass = _passInfo.AddSubpass("Depth-Only Prepass");
 			depthPass.sampling = _settings.MSAA;
-			depthPass.SetAllAttachmentExtents(extents);
 
 			AddDepthAttachment(_settings, depthPass);
+
+			depthPass.SetAllAttachmentExtents(extents);
 		}
 	}
 	
