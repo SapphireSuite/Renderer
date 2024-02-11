@@ -7,6 +7,8 @@
 
 #ifdef SA_OBJECT_BUFFER_ID
 
+#define SA_OBJECT_BUFFER 1
+
 namespace SA
 {
 	/**
@@ -38,6 +40,10 @@ namespace SA
 		return mul((float3x3)object[_instanceId].transform, _vertexNormal);
 	}
 }
+
+#else // SA_OBJECT_BUFFER_ID
+
+#define SA_OBJECT_BUFFER 0
 
 #endif // SA_OBJECT_BUFFER_ID
 

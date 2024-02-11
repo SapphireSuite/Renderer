@@ -57,10 +57,10 @@ namespace SA
 	}
 }
 
-#else
+#else // SA_DEPTH_INPUT_ATTACH_ID
 
 #define SA_DEPTH_ONLY_PREPASS 0
 
-#endif
+#endif // SA_DEPTH_INPUT_ATTACH_ID
 
 #endif // SAPPHIRE_RENDER_SHADER_DEPTH_GUARD

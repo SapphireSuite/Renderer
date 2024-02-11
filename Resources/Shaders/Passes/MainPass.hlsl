@@ -30,7 +30,7 @@ struct VertexOutput
 	
 #endif
 
-#ifdef SA_CAMERA_BUFFER_ID
+#if SA_CAMERA_BUFFER
 
 	/// Camera view position.
 	float3 viewPosition : VIEW_POSITION;
@@ -47,7 +47,7 @@ VertexOutput mainVS(SA::VertexInputAssembly _input,
 
 	//---------- Position ----------
 
-#ifdef SA_OBJECT_BUFFER_ID
+#if SA_OBJECT_BUFFER
 
 	output.worldPosition = SA::ComputeObjectWorldPosition(_input.position, _instanceId);
 
@@ -57,7 +57,7 @@ VertexOutput mainVS(SA::VertexInputAssembly _input,
 
 #endif
 
-#ifdef SA_CAMERA_BUFFER_ID
+#if SA_CAMERA_BUFFER
 
 	output.svPosition = SA::ComputeObjectViewPosition(output.worldPosition);
 
@@ -74,7 +74,7 @@ VertexOutput mainVS(SA::VertexInputAssembly _input,
 
 #if SA_VERTEX_NORMAL
 
-	#ifdef SA_OBJECT_BUFFER_ID
+	#if SA_OBJECT_BUFFER
 
 		output.normal = SA::ComputeObjectWorldNormal(_input.normal, _instanceId);
 

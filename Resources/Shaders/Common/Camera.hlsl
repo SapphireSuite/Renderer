@@ -7,6 +7,8 @@
 
 #ifdef SA_CAMERA_BUFFER_ID
 
+#define SA_CAMERA_BUFFER 1
+
 namespace SA
 {
 	/**
@@ -47,6 +49,10 @@ namespace SA
 		return mul(ComputeInvViewProj(), float4(_worldPosition, 1.0));
 	}
 }
+
+#else // SA_CAMERA_BUFFER_ID
+
+#define SA_CAMERA_BUFFER 0
 
 #endif // SA_CAMERA_BUFFER_ID
 
