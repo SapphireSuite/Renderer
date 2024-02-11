@@ -143,7 +143,9 @@ namespace SA::RND::VK
 						const uint32_t resolvAttachIndex = static_cast<uint32_t>(attachmentDescs.size());
 						VkAttachmentDescription& resolveAttachDesc = attachmentDescs.emplace_back(Intl::CreateAttachment(attach.format, VK_SAMPLE_COUNT_1_BIT, VK_ATTACHMENT_LOAD_OP_DONT_CARE));
 
-						if (attach.usage == AttachmentUsage::Present)
+						if (attach.usage == AttachmentUsage::InputNext)
+							resolveAttachDesc.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+						else if (attach.usage == AttachmentUsage::Present)
 							resolveAttachDesc.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
 						resolveAttachRef.attachment = resolvAttachIndex;

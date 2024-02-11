@@ -105,26 +105,35 @@ struct PixelInput : VertexOutput
 {
 };
 
-float4 mainPS(PixelInput _input) : SV_TARGET
+struct PixelOutput
 {
+	float4 color  : SV_TARGET;
+};
+
+PixelOutput mainPS(
+	PixelInput _input,
+	int _sampleIndex : SV_SampleIndex)
+{
+	PixelOutput output;
+
 #if SA_DEPTH_ONLY_PREPASS
 
-	SA::ApplyDepthTesting(_input.svPosition);
+	SA::ApplyDepthTesting(_input.svPosition, _sampleIndex);
 
 #endif
 
 #if SA_VERTEX_COLOR
 
-	const float4 color = _input.color;
+	output.color = _input.color;
 
 #else
 
-	const float4 color = float4(1, 1, 1, 1);
+	output.color = float4(1, 1, 1, 1);
 
 #endif
 
-	if (color.a < 0.001)
+	if (output.color.a < 0.001)
 		discard;
 
-	return color;
+	return output;
 }

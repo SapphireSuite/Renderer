@@ -153,10 +153,10 @@ void Init()
 		}
 
 		// Render Pass
+		constexpr bool bDepth = true;
 		constexpr bool bDepthPrepass = true;
+		constexpr bool bMSAA = true;
 		{
-			constexpr bool bDepth = true;
-			constexpr bool bMSAA = false;
 
 			// Forward
 			if (true)
@@ -357,6 +357,9 @@ void Init()
 				};
 
 				psInfo.defines.push_back("SA_DEPTH_INPUT_ATTACH_ID=0");
+
+				if(bMSAA)
+					psInfo.defines.push_back("SA_MULTISAMPLED_DEPTH_BUFFER=1");
 
 				quadRaw.vertices.AppendDefines(psInfo.defines);
 

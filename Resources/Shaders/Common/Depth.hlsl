@@ -9,21 +9,41 @@
 
 namespace SA
 {
+#if SA_MULTISAMPLED_DEPTH_BUFFER
+
+	[[vk::input_attachment_index(0)]]
+	SubpassInputMS<float> depthTexture : SA_REG_SPACE(t, SA_DEPTH_INPUT_ATTACH_ID, 2);
+
+#else
+
 	[[vk::input_attachment_index(0)]]
 	SubpassInput<float> depthTexture : SA_REG_SPACE(t, SA_DEPTH_INPUT_ATTACH_ID, 2);
 
+#endif
+
 #if SA_DEPTH_INVERTED
-	static const float depthBias = -0.0001f;
+	static const float depthBias = -0.001f;
 #else
-	static const float depthBias = 0.0001f;
+	static const float depthBias = 0.001f;
 #endif
 
 	/**
 	*	Apply depth testing from Depth-Only prepass.
 	*/
-	void ApplyDepthTesting(float4 _svPosition)
+	void ApplyDepthTesting(float4 _svPosition, int _sampleIndex = 0)
 	{
-		const float sampledDepth = depthTexture.SubpassLoad() + depthBias; // Add depth bias to avoid Z-fighting.
+#if SA_MULTISAMPLED_DEPTH_BUFFER
+
+		float sampledDepth = depthTexture.SubpassLoad(_sampleIndex);
+
+#else
+
+		float sampledDepth = depthTexture.SubpassLoad();
+
+#endif
+
+		// Add depth bias to avoid Z-fighting.
+		sampledDepth += depthBias;
 
 	#if SA_DEPTH_INVERTED
 		if(_svPosition.z < sampledDepth)
