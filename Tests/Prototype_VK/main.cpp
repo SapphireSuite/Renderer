@@ -3,6 +3,7 @@
 #include <SA/Collections/Debug>
 
 #include <SA/Maths/Transform/Transform.hpp>
+#include <SA/Maths/Space/Vector4.hpp>
 
 #include <SA/Render/LowLevel/Common/Camera/Camera_GPU.hpp>
 #include <SA/Render/LowLevel/Common/Mesh/RawStaticMesh.hpp>
@@ -58,6 +59,10 @@ VK::DescriptorPool objectDescPool;
 VK::DescriptorSetLayout objectDescSetLayout;
 VK::DescriptorSet objectSet;
 
+constexpr bool bDepth = true;
+constexpr bool bDepthPrepass = true;
+constexpr bool bDepthInverted = true;
+constexpr bool bMSAA = true;
 
 void GLFWErrorCallback(int32_t error, const char* description)
 {
@@ -153,9 +158,6 @@ void Init()
 		}
 
 		// Render Pass
-		constexpr bool bDepth = true;
-		constexpr bool bDepthPrepass = true;
-		constexpr bool bMSAA = true;
 		{
 
 			// Forward
@@ -168,9 +170,14 @@ void Init()
 						depthPrepass.sampling = VK_SAMPLE_COUNT_8_BIT;
 
 					auto& depthRT = depthPrepass.AddAttachment("Depth");
-					depthRT.format = VK_FORMAT_D16_UNORM;
+					depthRT.format = bDepthInverted ? VK_FORMAT_D32_SFLOAT : VK_FORMAT_D16_UNORM;
 					depthRT.type = AttachmentType::Depth;
-					depthRT.clearColor = SA::RND::Color::white;
+
+					if(bDepthInverted)
+						depthRT.clearColor = SA::RND::Color::black;
+					else
+						depthRT.clearColor = SA::RND::Color::white;
+					
 					depthRT.usage = AttachmentUsage::InputNext;
 
 					depthPrepass.SetAllAttachmentExtents(swapchain.GetExtents());
@@ -189,9 +196,13 @@ void Init()
 				if(bDepth && !bDepthPrepass)
 				{
 					auto& depthRT = mainSubpass.AddAttachment("Depth");
-					depthRT.format = VK_FORMAT_D16_UNORM;
+					depthRT.format = bDepthInverted ? VK_FORMAT_D32_SFLOAT : VK_FORMAT_D16_UNORM;
 					depthRT.type = AttachmentType::Depth;
-					depthRT.clearColor = SA::RND::Color::white;
+
+					if (bDepthInverted)
+						depthRT.clearColor = SA::RND::Color::black;
+					else
+						depthRT.clearColor = SA::RND::Color::white;
 				}
 				
 				mainSubpass.SetAllAttachmentExtents(swapchain.GetExtents());
@@ -335,6 +346,9 @@ void Init()
 					.target = "vs_6_5",
 				};
 
+				if(bDepthInverted)
+					vsInfo.defines.push_back("SA_DEPTH_INVERTED=1");
+				
 				vsInfo.defines.push_back("SA_CAMERA_BUFFER_ID=0");
 				vsInfo.defines.push_back("SA_OBJECT_BUFFER_ID=0");
 
@@ -356,8 +370,14 @@ void Init()
 					.target = "ps_6_5",
 				};
 
-				psInfo.defines.push_back("SA_DEPTH_BUFFER_ID=0");
-				psInfo.defines.push_back("SA_DEPTH_INPUT_ATTACH_ID=0");
+				if (bDepthInverted)
+					psInfo.defines.push_back("SA_DEPTH_INVERTED=1");
+
+				if (bDepthPrepass)
+				{
+					psInfo.defines.push_back("SA_DEPTH_BUFFER_ID=0");
+					psInfo.defines.push_back("SA_DEPTH_INPUT_ATTACH_ID=0");
+				}
 
 				if(bMSAA)
 					psInfo.defines.push_back("SA_MULTISAMPLED_DEPTH_BUFFER=1");
@@ -504,14 +524,20 @@ void Init()
 				vkUpdateDescriptorSets(device, (uint32_t)writes.size(), writes.data(), 0, nullptr);
 			}
 		}
+		else
+		{
+			depthBufferSet.resize(swapchain.GetImageNum());
+		}
 
 		// Pipeline layout
 		{
 			std::vector<VkDescriptorSetLayout> setLayouts{
 				static_cast<VkDescriptorSetLayout>(cameraDescSetLayout),
 				static_cast<VkDescriptorSetLayout>(objectDescSetLayout),
-				static_cast<VkDescriptorSetLayout>(depthBufferDescSetLayout)
 			};
+
+			if (bDepthPrepass)
+				setLayouts.push_back(static_cast<VkDescriptorSetLayout>(depthBufferDescSetLayout));
 
 			VkPipelineLayoutCreateInfo info{};
 			info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
@@ -619,7 +645,7 @@ void Init()
 				.flags = 0u,
 				.depthTestEnable = VK_TRUE,
 				.depthWriteEnable = VK_TRUE,
-				.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL,
+				.depthCompareOp = bDepthInverted ? VK_COMPARE_OP_GREATER_OR_EQUAL : VK_COMPARE_OP_LESS_OR_EQUAL,
 				.depthBoundsTestEnable = VK_FALSE,
 				.stencilTestEnable = VK_FALSE,
 				.front = {},
@@ -760,7 +786,7 @@ void Loop()
 	{
 		Camera_GPU cameraGPU;
 
-		cameraGPU.Update(cameraTr.Matrix(), SA::Mat4f::MakePerspective(90, 1200.0f / 900.0f, 0.1f, 1000.0f));
+		cameraGPU.Update(cameraTr.Matrix(), SA::Mat4f::MakePerspective(90, 1200.0f / 900.0f, 0.1f, 1000.0f, bDepthInverted));
 
 		cameraBuffers[frameIndex].UploadData(device, &cameraGPU, sizeof(Camera_GPU));
 	}
@@ -799,8 +825,10 @@ void Loop()
 	std::vector<VkDescriptorSet> boundSets{
 		static_cast<VkDescriptorSet>(cameraSets[frameIndex]),
 		static_cast<VkDescriptorSet>(objectSet),
-		static_cast<VkDescriptorSet>(depthBufferSet[frameIndex])
 	};
+
+	if (depthBufferSet[frameIndex])
+		boundSets.push_back(static_cast<VkDescriptorSet>(depthBufferSet[frameIndex]));
 
 	vkCmdBindDescriptorSets(cmd,
 		VK_PIPELINE_BIND_POINT_GRAPHICS,

@@ -69,6 +69,11 @@ VertexOutput mainVS(SA::VertexInputAssembly _input,
 
 #endif
 
+#if SA_DEPTH_INVERTED
+
+	output.svPosition.z = 1.0f / output.svPosition.z;
+
+#endif // SA_DEPTH_INVERTED
 
 	//---------- Normal ----------
 
