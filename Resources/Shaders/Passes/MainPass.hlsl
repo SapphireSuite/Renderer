@@ -112,7 +112,7 @@ struct PixelOutput
 
 PixelOutput mainPS(
 	PixelInput _input,
-	int _sampleIndex : SV_SampleIndex)
+	uint _sampleIndex : SV_SampleIndex)
 {
 	PixelOutput output;
 

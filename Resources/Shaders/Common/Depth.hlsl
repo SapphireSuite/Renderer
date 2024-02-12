@@ -3,7 +3,7 @@
 #ifndef SAPPHIRE_RENDER_SHADER_DEPTH_GUARD
 #define SAPPHIRE_RENDER_SHADER_DEPTH_GUARD
 
-#ifdef SA_DEPTH_INPUT_ATTACH_ID
+#if defined(SA_DEPTH_INPUT_ATTACH_ID) && defined(SA_DEPTH_BUFFER_ID)
 
 #define SA_DEPTH_ONLY_PREPASS 1
 
@@ -11,13 +11,13 @@ namespace SA
 {
 #if SA_MULTISAMPLED_DEPTH_BUFFER
 
-	[[vk::input_attachment_index(0)]]
-	SubpassInputMS<float> depthTexture : SA_REG_SPACE(t, SA_DEPTH_INPUT_ATTACH_ID, 2);
+	[[vk::input_attachment_index(SA_DEPTH_INPUT_ATTACH_ID)]]
+	SubpassInputMS<float> depthTexture : SA_REG_SPACE(t, SA_DEPTH_BUFFER_ID, 2);
 
 #else
 
-	[[vk::input_attachment_index(0)]]
-	SubpassInput<float> depthTexture : SA_REG_SPACE(t, SA_DEPTH_INPUT_ATTACH_ID, 2);
+	[[vk::input_attachment_index(SA_DEPTH_INPUT_ATTACH_ID)]]
+	SubpassInput<float> depthTexture : SA_REG_SPACE(t, SA_DEPTH_BUFFER_ID, 2);
 
 #endif
 

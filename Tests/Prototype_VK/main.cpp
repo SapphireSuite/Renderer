@@ -356,6 +356,7 @@ void Init()
 					.target = "ps_6_5",
 				};
 
+				psInfo.defines.push_back("SA_DEPTH_BUFFER_ID=0");
 				psInfo.defines.push_back("SA_DEPTH_INPUT_ATTACH_ID=0");
 
 				if(bMSAA)
