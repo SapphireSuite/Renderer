@@ -12,6 +12,15 @@ namespace SA::RND::DX12
 		MComPtr<ID3DBlob> error;
 
 		SA_DX12_API(D3D12SerializeVersionedRootSignature(&_desc, &signature, &error));
+
+		if (error)
+		{
+			SA_LOG(L"Root Signature serialization failed.", Error, SA.Render.DX12,
+				(L"%1", std::string(static_cast<char*>(error->GetBufferPointer()), error->GetBufferSize())));
+
+			return;
+		}
+
 		SA_DX12_API(_device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(mHandle.GetAddressOf())));
 		
 		SA_LOG(L"Root Signature created.", Info, SA.Render.DX12, (L"Handle [%1]", mHandle.Get()));
