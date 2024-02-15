@@ -53,22 +53,13 @@ namespace SA
 #endif // SA_VULKAN_API
 
 #if SA_DX12_API
-
-		uint depthWidth = 0.0f;
-		uint depthHeight = 0.0f;
-
 #if SA_MULTISAMPLED_DEPTH_BUFFER
 
-		uint depthSampleLevel;
-		depthTexture.GetDimensions(depthWidth, depthHeight, depthSampleLevel);
-
-		const float sampledDepth = depthTexture.Load(uint2(_svPosition.x * depthWidth, _svPosition.y * depthHeight), _sampleIndex);
+		const float sampledDepth = depthTexture.Load(uint2(_svPosition.x, _svPosition.y), _sampleIndex);
 
 #else // SA_MULTISAMPLED_DEPTH_BUFFER
 
-		depthTexture.GetDimensions(depthWidth, depthHeight);
-
-		const float sampledDepth = depthTexture.Load(uint3(_svPosition.x * depthWidth, _svPosition.y * depthHeight, 0));
+		const float sampledDepth = depthTexture.Load(uint3(_svPosition.x, _svPosition.y, 0));
 
 #endif // SA_MULTISAMPLED_DEPTH_BUFFER
 #endif // SA_DX12_API

@@ -168,7 +168,8 @@ namespace SA::RND::DX12
 							if (attachInfo.usage != AttachmentUsage::InputNext)
 								continue;
 
-							barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_DEPTH_READ;
+							barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+							//barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_DEPTH_READ;
 							break;
 						}
 						default:

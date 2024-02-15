@@ -41,6 +41,7 @@ DX12::Shader vertexShader;
 DX12::Shader fragmentShader;
 DX12::RootSignature rootSign;
 DX12::GraphicsPipeline pipeline;
+DX12::GraphicsPipeline depthOnlyPipeline;
 RawStaticMesh quadRaw;
 DX12::StaticMesh quadMesh;
 RHI::ShaderDescriptor vsDesc;
@@ -49,7 +50,7 @@ std::vector<DX12::Buffer> cameraBuffers;
 SA::TransformPRSf cameraTr;
 D3D12_VIEWPORT d12Viewport;
 D3D12_RECT d12Scissor;
-std::vector<SA::MComPtr<ID3D12DescriptorHeap>> cameraCBVHeaps;
+//std::vector<SA::MComPtr<ID3D12DescriptorHeap>> cameraCBVHeaps;
 //DX12::DescriptorPool cameraDescPool;
 //DX12::DescriptorSetLayout cameraDescSetLayout;
 //std::vector<VK::DescriptorSet> cameraSets;
@@ -57,7 +58,12 @@ DX12::Buffer objectBuffer;
 //DX12::DescriptorPool objectDescPool;
 //DX12::DescriptorSetLayout objectDescSetLayout;
 //DX12::DescriptorSet objectSet;
+std::vector<SA::MComPtr<ID3D12DescriptorHeap>> depthHeaps;
 
+constexpr bool bDepth = true;
+constexpr bool bDepthPrepass = true;
+constexpr bool bDepthInverted = true;
+constexpr bool bMSAA = true;
 
 void GLFWErrorCallback(int32_t error, const char* description)
 {
@@ -131,28 +137,50 @@ void Init()
 
 		// Render Pass
 		{
-			constexpr bool bDepth = true;
-			constexpr bool bMSAA = true;
-
 			// Forward
 			if (true)
 			{
+				if (bDepth && bDepthPrepass)
+				{
+					auto& depthPrepass = passInfo.AddSubpass("Depth-Only Prepass");
+
+					if (bMSAA)
+						depthPrepass.sampling = 8;
+
+					auto& depthRT = depthPrepass.AddAttachment("Depth");
+					depthRT.format = DXGI_FORMAT_D16_UNORM;
+					depthRT.type = AttachmentType::Depth;
+
+					if (bDepthInverted)
+						depthRT.clearColor = SA::RND::Color::black;
+					else
+						depthRT.clearColor = SA::RND::Color::white;
+
+					depthRT.usage = AttachmentUsage::InputNext;
+
+					depthPrepass.SetAllAttachmentExtents(swapchain.GetExtents());
+				}
+
 				auto& mainSubpass = passInfo.AddSubpass("Main");
 
 				if (bMSAA)
-					mainSubpass.sampling = VK_SAMPLE_COUNT_8_BIT;
+					mainSubpass.sampling = 8;
 
 				// Color and present attachment.
 				auto& colorRT = mainSubpass.AddAttachment("Color");
 				colorRT.format = swapchain.GetFormat();
 				colorRT.usage = AttachmentUsage::Present;
 
-				if (bDepth)
+				if (bDepth && !bDepthPrepass)
 				{
 					auto& depthRT = mainSubpass.AddAttachment("Depth");
 					depthRT.format = DXGI_FORMAT_D16_UNORM;
 					depthRT.type = AttachmentType::Depth;
-					depthRT.clearColor = SA::RND::Color::white;
+
+					if (bDepthInverted)
+						depthRT.clearColor = SA::RND::Color::black;
+					else
+						depthRT.clearColor = SA::RND::Color::white;
 				}
 
 				mainSubpass.SetAllAttachmentExtents(swapchain.GetExtents());
@@ -236,6 +264,9 @@ void Init()
 					.target = "vs_6_5",
 				};
 
+				if (bDepthInverted)
+					vsInfo.defines.push_back("SA_DEPTH_INVERTED=1");
+
 				vsInfo.defines.push_back("SA_CAMERA_BUFFER_ID=0");
 				vsInfo.defines.push_back("SA_OBJECT_BUFFER_ID=0");
 
@@ -259,6 +290,17 @@ void Init()
 
 				quadRaw.vertices.AppendDefines(psInfo.defines);
 
+				psInfo.defines.push_back("SA_DX12_API=1");
+
+				if (bDepthInverted)
+					psInfo.defines.push_back("SA_DEPTH_INVERTED=1");
+
+				if (bDepthPrepass)
+					psInfo.defines.push_back("SA_DEPTH_BUFFER_ID=0");
+
+				if (bMSAA)
+					psInfo.defines.push_back("SA_MULTISAMPLED_DEPTH_BUFFER=1");
+
 				ShaderCompileResult psShaderRes = compiler.CompileDX(psInfo);
 				fsDesc = psShaderRes.desc;
 
@@ -272,7 +314,7 @@ void Init()
 		// Camera
 		{
 			cameraBuffers.resize(swapchain.GetImageNum());
-			cameraCBVHeaps.resize(swapchain.GetImageNum());
+			//cameraCBVHeaps.resize(swapchain.GetImageNum());
 
 			for (uint32_t i = 0; i < swapchain.GetImageNum(); ++i)
 			{
@@ -293,6 +335,29 @@ void Init()
 				//cbvDesc.BufferLocation = cameraBuffer->GetGPUVirtualAddress();
 				//cbvDesc.SizeInBytes = bufferSize;
 				//SA_DX12_API(device->CreateConstantBufferView(&cbvDesc, cameraCBVHeap->GetCPUDescriptorHandleForHeapStart()));
+			}
+		}
+
+		// Depth Buffer
+		if(bDepthPrepass)
+		{
+			depthHeaps.resize(swapchain.GetImageNum());
+
+			for (uint32_t i = 0; i < swapchain.GetImageNum(); ++i)
+			{
+				D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc = {};
+				srvHeapDesc.NumDescriptors = 1;
+				srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+				srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+				SA_DX12_API(device->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(&depthHeaps[i])));
+
+				// Describe and create a SRV for the texture.
+				D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+				srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+				srvDesc.Format = DXGI_FORMAT_R16_UNORM;
+				srvDesc.ViewDimension = bMSAA ? D3D12_SRV_DIMENSION_TEXTURE2DMS : D3D12_SRV_DIMENSION_TEXTURE2D;
+				srvDesc.Texture2D.MipLevels = 1;
+				device->CreateShaderResourceView(frameBuffers[i].GetSubpassFrame(0).depthAttachment.imageBuffer.Get(), &srvDesc, depthHeaps[i]->GetCPUDescriptorHandleForHeapStart());
 			}
 		}
 
@@ -318,6 +383,24 @@ void Init()
 					.Flags = D3D12_ROOT_DESCRIPTOR_FLAG_DATA_STATIC,
 				},
 				.ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX,
+			});
+
+			D3D12_DESCRIPTOR_RANGE1 depthRangeDesc{
+				.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
+				.NumDescriptors = 1,
+				.BaseShaderRegister = 0,
+				.RegisterSpace = 2,
+				.Flags = D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC_WHILE_SET_AT_EXECUTE,
+				.OffsetInDescriptorsFromTableStart = 0
+			};
+
+			params.push_back(D3D12_ROOT_PARAMETER1{
+				.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE,
+				.DescriptorTable{
+					.NumDescriptorRanges = 1,
+					.pDescriptorRanges = &depthRangeDesc
+				},
+				.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL,
 			});
 
 			D3D12_VERSIONED_ROOT_SIGNATURE_DESC info{
@@ -364,9 +447,9 @@ void Init()
 
 				.depthStencil
 				{
-					.DepthEnable = TRUE,
+					.DepthEnable = bDepthPrepass ? FALSE : TRUE,
 					.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL,
-					.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL,
+					.DepthFunc = bDepthInverted ? D3D12_COMPARISON_FUNC_GREATER_EQUAL : D3D12_COMPARISON_FUNC_LESS_EQUAL,
 					.StencilEnable = FALSE,
 					.StencilReadMask = D3D12_DEFAULT_STENCIL_READ_MASK,
 					.StencilWriteMask = D3D12_DEFAULT_STENCIL_WRITE_MASK,
@@ -389,13 +472,23 @@ void Init()
 				.vertexInputElements = vsDesc.MakeDX12VertexInputElementDescsSingleVertexBuffer(),
 
 				.rtvFormats = { swapchain.GetFormat() },
-				.dsvFormat = DXGI_FORMAT_D16_UNORM,
+				.dsvFormat = bDepthPrepass ? DXGI_FORMAT_UNKNOWN : DXGI_FORMAT_D16_UNORM,
 
 				.sampling = passInfo.subpasses[0].sampling,
 			};
 
 
 			pipeline.Create(device, info);
+
+			if (bDepthPrepass)
+			{
+				info.shaderStages.ps.BytecodeLength = 0u;
+				info.shaderStages.ps.pShaderBytecode = nullptr;
+				info.depthStencil.DepthEnable = TRUE;
+				info.dsvFormat = DXGI_FORMAT_D16_UNORM;
+
+				depthOnlyPipeline.Create(device, info);
+			}
 		}
 
 		// Viewport
@@ -426,6 +519,7 @@ void Uninit()
 		device.WaitIdle();
 
 		pipeline.Destroy();
+		depthOnlyPipeline.Destroy();
 		rootSign.Destroy();
 
 		fragmentShader.Destroy();
@@ -438,6 +532,9 @@ void Uninit()
 
 		//for (auto& cameraCBVHeap : cameraCBVHeaps)
 		//	cameraCBVHeap.Reset();
+
+		for (auto& depthHeap : depthHeaps)
+			depthHeap.Reset();
 
 		objectBuffer.Destroy();
 
@@ -486,10 +583,32 @@ void Loop()
 
 	cmd->RSSetViewports(1, &d12Viewport);
 	cmd->RSSetScissorRects(1, &d12Scissor);
+
+
+	if (bDepthPrepass)
+	{
+		depthOnlyPipeline.Bind(cmd);
+
+		cmd->SetGraphicsRootConstantBufferView(0, cameraBuffers[frameIndex]->GetGPUVirtualAddress());
+		cmd->SetGraphicsRootConstantBufferView(1, objectBuffer->GetGPUVirtualAddress());
+
+		quadMesh.Draw(cmd, 100u);
+
+		renderPass.NextSubpass(cmd);
+	}
+
 	pipeline.Bind(cmd);
 
 	//ID3D12DescriptorHeap* ppHeaps[] = { cameraCBVHeaps[frameIndex].Get() };
 	//cmd->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
+
+	if (bDepthPrepass)
+	{
+		ID3D12DescriptorHeap* ppHeaps[] = { depthHeaps[frameIndex].Get() };
+		cmd->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
+
+		cmd->SetGraphicsRootDescriptorTable(2, depthHeaps[frameIndex]->GetGPUDescriptorHandleForHeapStart());
+	}
 
 	cmd->SetGraphicsRootConstantBufferView(0, cameraBuffers[frameIndex]->GetGPUVirtualAddress());
 	cmd->SetGraphicsRootConstantBufferView(1, objectBuffer->GetGPUVirtualAddress());
