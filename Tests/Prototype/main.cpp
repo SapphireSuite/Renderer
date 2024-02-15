@@ -183,13 +183,13 @@ public:
 					// Color and present attachment.
 					auto& colorRT = mainSubpass.AddAttachment("Color");
 					colorRT.format = swapchain->GetFormat();
-					colorRT.usage = AttachmentUsage::Present;
+					colorRT.usage = RHI::AttachmentUsage::Present;
 
 					if(bDepth)
 					{
 						auto& depthRT = mainSubpass.AddAttachment("Depth");
 						depthRT.format = RHI::Format::D16_UNORM;
-						depthRT.type = AttachmentType::Depth;
+						depthRT.type = RHI::AttachmentType::Depth;
 					}
 
 					mainSubpass.SetAllAttachmentExtents(swapchain->GetExtents());
@@ -223,7 +223,7 @@ public:
 							{
 								auto& pbrDepthRT = GBufferSubpass.AddAttachment("Depth");
 								pbrDepthRT.format = RHI::Format::D16_UNORM;
-								pbrDepthRT.type = AttachmentType::Depth;
+								pbrDepthRT.type = RHI::AttachmentType::Depth;
 							}
 						}
 
@@ -239,7 +239,7 @@ public:
 
 						auto& presentRT = presentSubpass.AddAttachment("Color");
 						presentRT.format = swapchain->GetFormat();
-						presentRT.usage = AttachmentUsage::Present;
+						presentRT.usage = RHI::AttachmentUsage::Present;
 
 						presentSubpass.SetAllAttachmentExtents(swapchain->GetExtents());
 					}

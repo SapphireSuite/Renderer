@@ -25,6 +25,9 @@
 
 namespace SA::RND::RHI
 {
+	using AttachmentType = SA::RND::AttachmentType;
+	using AttachmentUsage = SA::RND::AttachmentUsage;
+
 	struct AttachmentInfo : public AttachmentInfoBase
 	{
 		Format format = Format::R8G8B8A8_UNORM;
