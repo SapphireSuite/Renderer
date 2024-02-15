@@ -14,7 +14,7 @@ struct VertexOutput
 	float3 worldPosition : POSITION;
 	
 	/// Shader view position
-	float4 svPosition : SV_POSITION;
+	precise float4 svPosition : SV_POSITION;
 	
 #if SA_VERTEX_NORMAL
 
@@ -71,7 +71,7 @@ VertexOutput mainVS(SA::VertexInputAssembly _input,
 
 #if SA_DEPTH_INVERTED
 
-	output.svPosition.z = 1.0f / output.svPosition.z;
+	output.svPosition.z = 1.0f - output.svPosition.z / output.svPosition.w;
 
 #endif // SA_DEPTH_INVERTED
 

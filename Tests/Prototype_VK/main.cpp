@@ -159,18 +159,18 @@ void Init()
 
 		// Render Pass
 		{
-
 			// Forward
 			if (true)
 			{
 				if (bDepth && bDepthPrepass)
 				{
 					auto& depthPrepass = passInfo.AddSubpass("Depth-Only Prepass");
+
 					if (bMSAA)
 						depthPrepass.sampling = VK_SAMPLE_COUNT_8_BIT;
 
 					auto& depthRT = depthPrepass.AddAttachment("Depth");
-					depthRT.format = bDepthInverted ? VK_FORMAT_D32_SFLOAT : VK_FORMAT_D16_UNORM;
+					depthRT.format = VK_FORMAT_D16_UNORM;
 					depthRT.type = AttachmentType::Depth;
 
 					if(bDepthInverted)
@@ -196,7 +196,7 @@ void Init()
 				if(bDepth && !bDepthPrepass)
 				{
 					auto& depthRT = mainSubpass.AddAttachment("Depth");
-					depthRT.format = bDepthInverted ? VK_FORMAT_D32_SFLOAT : VK_FORMAT_D16_UNORM;
+					depthRT.format = VK_FORMAT_D16_UNORM;
 					depthRT.type = AttachmentType::Depth;
 
 					if (bDepthInverted)
@@ -369,6 +369,8 @@ void Init()
 					.entrypoint = "mainPS",
 					.target = "ps_6_5",
 				};
+
+				psInfo.defines.push_back("SA_VULKAN_API=1");
 
 				if (bDepthInverted)
 					psInfo.defines.push_back("SA_DEPTH_INVERTED=1");
