@@ -669,9 +669,9 @@ int main()
 				if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
 					cameraTr.position += fixedTime * moveSpeed * cameraTr.Up();
 				if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-					cameraTr.position -= fixedTime * moveSpeed * cameraTr.Forward();
-				if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
 					cameraTr.position += fixedTime * moveSpeed * cameraTr.Forward();
+				if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+					cameraTr.position -= fixedTime * moveSpeed * cameraTr.Forward();
 
 				double mouseX = 0.0f;
 				double mouseY = 0.0f;
@@ -680,8 +680,8 @@ int main()
 
 				if (mouseX != oldMouseX || mouseY != oldMouseY)
 				{
-					dx -= static_cast<float>(mouseX - oldMouseX) * fixedTime * rotSpeed * SA::Maths::DegToRad<float>;
-					dy -= static_cast<float>(mouseY - oldMouseY) * fixedTime * rotSpeed * SA::Maths::DegToRad<float>;
+					dx += static_cast<float>(mouseX - oldMouseX) * fixedTime * rotSpeed * SA::Maths::DegToRad<float>;
+					dy += static_cast<float>(mouseY - oldMouseY) * fixedTime * rotSpeed * SA::Maths::DegToRad<float>;
 
 					oldMouseX = mouseX;
 					oldMouseY = mouseY;
