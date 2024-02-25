@@ -69,9 +69,22 @@ VertexOutput mainVS(SA::VertexInputAssembly _input,
 
 #endif
 
+#if SA_DEPTH_ONLY
+	
+	// Slightly displace all the geometry away from the camera to avoid z-fighting.
+    output.svPosition.z += SA::depthBias;
+	
+#endif
+	
 #if SA_DEPTH_INVERTED
 
-	output.svPosition.z = 1.0f - output.svPosition.z / output.svPosition.w;
+	/**
+	*	z = w - z
+	*	Shader normalization: divide each component by w
+	*	z/w = (w - z)/w
+	*	z/w = 1 - z/w.
+	*/
+	output.svPosition.z = output.svPosition.w - output.svPosition.z;
 
 #endif // SA_DEPTH_INVERTED
 
@@ -121,7 +134,7 @@ PixelOutput mainPS(
 {
 	PixelOutput output;
 
-#if SA_DEPTH_ONLY_PREPASS
+#if SA_HAS_DEPTH_ONLY_PREPASS
 
 	SA::ApplyDepthTesting(_input.svPosition, _sampleIndex);
 

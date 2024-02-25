@@ -38,6 +38,7 @@ VK::RenderPass renderPass;
 std::vector<VK::FrameBuffer> frameBuffers;
 std::vector<VK::CommandBuffer> cmdBuffers;
 VK::Shader vertexShader;
+VK::Shader depthOnlyVertexShader;
 VK::Shader fragmentShader;
 VK::PipelineLayout pipLayout;
 VK::Pipeline depthPrepassPipeline;
@@ -360,6 +361,30 @@ void Init()
 				vertexShader.Create(device, vsShaderRes.rawSPIRV);
 			}
 
+			// DepthOnly Vertex
+			{
+				ShaderCompileInfo vsInfo
+				{
+					.path = L"Resources/Shaders/Passes/MainPass.hlsl",
+					.entrypoint = "mainVS",
+					.target = "vs_6_5",
+				};
+
+				vsInfo.defines.push_back("SA_DEPTH_ONLY=1");
+
+				if (bDepthInverted)
+					vsInfo.defines.push_back("SA_DEPTH_INVERTED=1");
+
+				vsInfo.defines.push_back("SA_CAMERA_BUFFER_ID=0");
+				vsInfo.defines.push_back("SA_OBJECT_BUFFER_ID=0");
+
+				quadRaw.vertices.AppendDefines(vsInfo.defines);
+
+				ShaderCompileResult vsShaderRes = compiler.CompileSPIRV(vsInfo);
+				vsDesc = vsShaderRes.desc;
+
+				depthOnlyVertexShader.Create(device, vsShaderRes.rawSPIRV);
+			}
 
 			// Fragment
 			{
@@ -705,6 +730,8 @@ void Init()
 
 			if (bDepthPrepass)
 			{
+				shaderStages[0].module = depthOnlyVertexShader;
+
 				VkGraphicsPipelineCreateInfo depthPrepassPipelineCreateInfo{
 					.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
 					.pNext = nullptr,
@@ -745,6 +772,7 @@ void Uninit()
 
 		fragmentShader.Destroy(device);
 		vertexShader.Destroy(device);
+		depthOnlyVertexShader.Destroy(device);
 
 		quadMesh.Destroy(device);
 
@@ -788,7 +816,7 @@ void Loop()
 	{
 		Camera_GPU cameraGPU;
 
-		cameraGPU.Update(cameraTr.Matrix(), SA::Mat4f::MakePerspective(90, 1200.0f / 900.0f, 0.1f, 1000.0f, bDepthInverted));
+		cameraGPU.Update(cameraTr.Matrix(), SA::Mat4f::MakePerspective(90, 1200.0f / 900.0f, 0.1f, 1000.0f));
 
 		cameraBuffers[frameIndex].UploadData(device, &cameraGPU, sizeof(Camera_GPU));
 	}

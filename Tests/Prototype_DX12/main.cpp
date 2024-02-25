@@ -38,6 +38,7 @@ DX12::RenderPass renderPass;
 std::vector<DX12::FrameBuffer> frameBuffers;
 std::vector<DX12::CommandBuffer> cmdBuffers;
 DX12::Shader vertexShader;
+DX12::Shader depthOnlyVertexShader;
 DX12::Shader fragmentShader;
 DX12::RootSignature rootSign;
 DX12::GraphicsPipeline pipeline;
@@ -278,6 +279,31 @@ void Init()
 				vertexShader.Create(vsShaderRes.dxShader);
 			}
 
+			// Depth-Only Vertex
+			{
+				ShaderCompileInfo vsInfo
+				{
+					.path = L"Resources/Shaders/Passes/MainPass.hlsl",
+					.entrypoint = "mainVS",
+					.target = "vs_6_5",
+				};
+
+				vsInfo.defines.push_back("SA_DEPTH_ONLY=1");
+
+				if (bDepthInverted)
+					vsInfo.defines.push_back("SA_DEPTH_INVERTED=1");
+
+				vsInfo.defines.push_back("SA_CAMERA_BUFFER_ID=0");
+				vsInfo.defines.push_back("SA_OBJECT_BUFFER_ID=0");
+
+				quadRaw.vertices.AppendDefines(vsInfo.defines);
+
+				ShaderCompileResult vsShaderRes = compiler.CompileDX(vsInfo);
+				vsDesc = vsShaderRes.desc;
+
+				depthOnlyVertexShader.Create(vsShaderRes.dxShader);
+			}
+
 
 			// Fragment
 			{
@@ -482,8 +508,12 @@ void Init()
 
 			if (bDepthPrepass)
 			{
+				info.shaderStages.vs.BytecodeLength = depthOnlyVertexShader->GetBufferSize();
+				info.shaderStages.vs.pShaderBytecode = depthOnlyVertexShader->GetBufferPointer();
+
 				info.shaderStages.ps.BytecodeLength = 0u;
 				info.shaderStages.ps.pShaderBytecode = nullptr;
+
 				info.depthStencil.DepthEnable = TRUE;
 				info.dsvFormat = DXGI_FORMAT_D16_UNORM;
 
@@ -524,6 +554,7 @@ void Uninit()
 
 		fragmentShader.Destroy();
 		vertexShader.Destroy();
+		depthOnlyVertexShader.Destroy();
 
 		quadMesh.Destroy();
 
