@@ -58,7 +58,7 @@ namespace SA::RND::VK
 
 		// Copy data to GPU
 		{
-			// Transition Under to Dst
+			// Transition Undef to Copy-Dst
 			{
 				const VkImageMemoryBarrier undefToDstBarrier
 				{
@@ -127,7 +127,7 @@ namespace SA::RND::VK
 			}
 
 
-			// Transition Dst to Read-Only
+			// Transition Copy-Dst to Read-Only
 			{
 				const VkImageMemoryBarrier dstToReadOnlyBarrier
 				{
