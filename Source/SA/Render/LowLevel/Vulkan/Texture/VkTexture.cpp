@@ -13,7 +13,7 @@ namespace SA::RND::VK
 	{
 		// Image
 		{
-			VkImageCreateInfo infos{
+			const VkImageCreateInfo infos{
 				.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
 				.pNext = nullptr,
 				.flags = 0u,
@@ -42,11 +42,12 @@ namespace SA::RND::VK
 
 			const uint32_t memoryTypeIndex = BufferBase::FindMemoryType(_device, memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-			VkMemoryAllocateInfo memoryAllocInfo{};
-			memoryAllocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-			memoryAllocInfo.pNext = nullptr;
-			memoryAllocInfo.allocationSize = memRequirements.size;
-			memoryAllocInfo.memoryTypeIndex = memoryTypeIndex;
+			const VkMemoryAllocateInfo memoryAllocInfo{
+				.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+				.pNext = nullptr,
+				.allocationSize = memRequirements.size,
+				.memoryTypeIndex = memoryTypeIndex,
+			};
 
 			SA_VK_API(vkAllocateMemory(_device, &memoryAllocInfo, nullptr, &mMemory), L"Failed to allocate texture memory!");
 			SA_LOG(L"Texture memory created.", Info, SA.Render.Vulkan, (L"Handle [%1]", mMemory));
@@ -59,7 +60,7 @@ namespace SA::RND::VK
 		{
 			// Transition Under to Dst
 			{
-				VkImageMemoryBarrier undefToDstBarrier
+				const VkImageMemoryBarrier undefToDstBarrier
 				{
 					.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
 					.pNext = nullptr,
@@ -89,7 +90,7 @@ namespace SA::RND::VK
 
 				uint64_t offset = 0u;
 				VkExtent3D vkExtents{ _raw.extents.x, _raw.extents.y, 1 };
-				uint32_t channelNum = API_GetChannelNum(_raw.format);
+				const uint32_t channelNum = API_GetChannelNum(_raw.format);
 
 				std::vector<VkBufferImageCopy> bufferImageCopies;
 
@@ -128,7 +129,7 @@ namespace SA::RND::VK
 
 			// Transition Dst to Read-Only
 			{
-				VkImageMemoryBarrier dstToReadOnlyBarrier
+				const VkImageMemoryBarrier dstToReadOnlyBarrier
 				{
 					.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
 					.pNext = nullptr,
