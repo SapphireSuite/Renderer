@@ -2,6 +2,8 @@
 
 #include <Mesh/RHIVkStaticMesh.hpp>
 
+#if SA_RENDER_LOWLEVEL_VULKAN_IMPL
+
 #include <Device/RHIDevice.hpp>
 
 namespace SA::RND::RHI
@@ -26,3 +28,5 @@ namespace SA::RND::RHI
 		return mHandle;
 	}
 }
+
+#endif

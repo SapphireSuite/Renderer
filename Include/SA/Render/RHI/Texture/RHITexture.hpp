@@ -33,6 +33,7 @@ namespace SA::RND
 		public:
 			virtual ~Texture() = default;
 
+			/// Create texture from raw input texture.
 			virtual void Create(const Device* _device, ResourceInitializer* _init, const SA::RND::RawTexture& _raw) = 0;
 			virtual void Destroy(const Device* _device) = 0;
 
