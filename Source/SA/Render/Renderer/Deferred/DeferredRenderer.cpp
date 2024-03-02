@@ -1,6 +1,6 @@
 // Copyright (c) 2023 Sapphire's Suite. All Rights Reserved.
 
-#include <DeferredRenderer.hpp>
+#include <Deferred/DeferredRenderer.hpp>
 
 namespace SA::RND
 {

@@ -5,7 +5,7 @@
 #ifndef SAPPHIRE_RENDER_FORWARD_RENDERER_GUARD
 #define SAPPHIRE_RENDER_FORWARD_RENDERER_GUARD
 
-#include "Renderer.hpp"
+#include <SA/Render/Renderer/Base/Renderer.hpp>
 
 namespace SA::RND
 {
