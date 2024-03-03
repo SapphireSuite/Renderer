@@ -161,7 +161,7 @@ namespace SA::RND::DX12
 		}
 	}
 	
-	void Cubemap::Destroy(const Device& _device)
+	void Cubemap::Destroy()
 	{
 		// Texture
 		{

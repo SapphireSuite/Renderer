@@ -22,7 +22,7 @@ namespace SA::RND::DX12
 	public:
 		/// Create Cubemap from raw cubemap input.
 		void Create(const Device& _device, ResourceInitializer& _init, const RawCubemap& _raw);
-		void Destroy(const Device& _device);
+		void Destroy();
 	};
 }
 
