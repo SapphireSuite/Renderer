@@ -8,6 +8,35 @@
 
 namespace SA::RND::DX12
 {
+	void Texture::Create(const Device& _device, const TextureDescriptor& _desc)
+	{
+		const D3D12_RESOURCE_DESC desc{
+			.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D,
+			.Alignment = 0u,
+			.Width = _desc.extents.x,
+			.Height = _desc.extents.y,
+			.DepthOrArraySize = 1,
+			.MipLevels = static_cast<UINT16>(_desc.mipLevels),
+			.Format = API_GetFormat(_desc.format),
+			.SampleDesc = DXGI_SAMPLE_DESC{
+				.Count = API_GetSampling(_desc.sampling),
+				.Quality = 0,
+			},
+			.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN,
+			.Flags = D3D12_RESOURCE_FLAG_NONE,
+		};
+
+		const D3D12_HEAP_PROPERTIES heap{
+			.Type = D3D12_HEAP_TYPE_DEFAULT,
+			.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN,
+			.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN,
+			.CreationNodeMask = 1,
+			.VisibleNodeMask = 1,
+		};
+
+		SA_DX12_API(_device->CreateCommittedResource(&heap, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&mHandle)));
+	}
+
 	void Texture::Create(const Device& _device, ResourceInitializer& _init, const RawTexture& _raw)
 	{
 		const DXGI_FORMAT dxFormat = API_GetFormat(_raw.format);

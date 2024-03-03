@@ -8,6 +8,11 @@
 
 namespace SA::RND::RHI
 {
+	void VkTexture::Create(const Device* _device, const SA::RND::TextureDescriptor& _desc)
+	{
+		mHandle.Create(_device->API_Vulkan(), _desc);
+	}
+
 	void VkTexture::Create(const Device* _device, ResourceInitializer* _init, const SA::RND::RawTexture& _raw)
 	{
 		mHandle.Create(_device->API_Vulkan(), _init->API_Vulkan(), _raw);

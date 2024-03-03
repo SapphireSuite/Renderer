@@ -8,6 +8,11 @@
 
 namespace SA::RND::RHI
 {
+	void D12Texture::Create(const Device* _device, const SA::RND::TextureDescriptor& _desc)
+	{
+		mHandle.Create(_device->API_DirectX12(), _desc);
+	}
+
 	void D12Texture::Create(const Device* _device, ResourceInitializer* _init, const SA::RND::RawTexture& _raw)
 	{
 		mHandle.Create(_device->API_DirectX12(), _init->API_DirectX12(), _raw);

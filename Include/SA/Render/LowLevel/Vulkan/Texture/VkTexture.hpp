@@ -8,6 +8,7 @@
 #include <SA/Render/LowLevel/Vulkan/VulkanAPI.hpp>
 
 #include <SA/Render/LowLevel/Common/Texture/RawTexture.hpp>
+#include <SA/Render/LowLevel/Common/Texture/TextureDescriptor.hpp>
 
 namespace SA::RND::VK
 {
@@ -20,7 +21,15 @@ namespace SA::RND::VK
 		VkDeviceMemory mMemory = VK_NULL_HANDLE;
 
 	public:
-		/// Create Texture from raw texture input.
+		/**
+		* Create Texture from descriptor
+		* Used as framebuffer attachment.
+		*/
+		void Create(const Device& _device, const TextureDescriptor& _desc);
+		/**
+		* Create Texture from raw texture input.
+		* Used as input texture for sampling.
+		*/
 		void Create(const Device& _device, ResourceInitializer& _init, const RawTexture& _raw);
 		void Destroy(const Device& _device);
 	};
