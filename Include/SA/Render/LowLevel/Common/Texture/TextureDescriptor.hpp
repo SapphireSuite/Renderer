@@ -9,6 +9,7 @@
 
 #include <SA/Render/LowLevel/Common/Misc/Format.hpp>
 #include <SA/Render/LowLevel/Common/Misc/Sampling.hpp>
+#include <SA/Render/LowLevel/Common/Texture/TextureUsage.hpp>
 
 namespace SA::RND
 {
@@ -21,6 +22,8 @@ namespace SA::RND
 		Format format = Format::R8G8B8A8_UNORM;
 
 		Sampling sampling = Sampling::S1Bit;
+
+		uint8_t usage = TextureUsage::RenderTarget;
 	};
 }
 

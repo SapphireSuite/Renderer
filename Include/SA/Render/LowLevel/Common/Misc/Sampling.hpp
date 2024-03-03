@@ -15,7 +15,7 @@
 
 namespace SA::RND
 {
-	enum class Sampling : uint32_t
+	enum class Sampling : uint8_t
 	{
 		/// no multisampling.
 		S1Bit = (1 << 0),

@@ -24,7 +24,7 @@ namespace SA::RND::VK
 				.arrayLayers = 1u,
 				.samples = API_GetSampling(_desc.sampling),
 				.tiling = VK_IMAGE_TILING_OPTIMAL,
-				.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+				.usage = API_GetTextureUsage(_desc.usage),
 				.sharingMode = VK_SHARING_MODE_EXCLUSIVE,
 				.queueFamilyIndexCount = 0u,
 				.pQueueFamilyIndices = nullptr,

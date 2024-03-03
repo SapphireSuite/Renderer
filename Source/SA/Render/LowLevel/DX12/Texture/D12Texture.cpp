@@ -23,7 +23,7 @@ namespace SA::RND::DX12
 				.Quality = 0,
 			},
 			.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN,
-			.Flags = D3D12_RESOURCE_FLAG_NONE,
+			.Flags = API_GetTextureUsage(_desc.usage),
 		};
 
 		const D3D12_HEAP_PROPERTIES heap{
