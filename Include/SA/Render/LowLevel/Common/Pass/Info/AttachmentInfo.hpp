@@ -7,6 +7,8 @@
 
 #include <string>
 
+#include "AttachmentLoadMode.hpp"
+
 #include <SA/Render/LowLevel/Common/Misc/Color.hpp>
 
 namespace SA::RND
@@ -16,9 +18,11 @@ namespace SA::RND
 	{
 		std::string name;
 
+		TextureT* texture = nullptr;
+
 		Color clearColor = Color{ 0.0f, 0.0f, 0.015f, 0.0f };
 
-		TextureT* texture = nullptr;
+		AttachmentLoadMode loadMode = AttachmentLoadMode::Clear;
 	};
 }
 

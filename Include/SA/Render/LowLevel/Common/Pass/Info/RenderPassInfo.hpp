@@ -39,36 +39,6 @@ namespace SA::RND
 
 			return false;
 		}
-
-		bool Validate() const
-		{
-			// Check valid input attachments
-			if(subpasses.size() >= 2u)
-			{
-				auto prevSubpassIt = subpasses.begin();
-				for (auto subpassIt = subpasses.begin() + 1; subpassIt != subpasses.end(); ++subpassIt)
-				{
-					bool bFound = false;
-
-					for (auto input : subpassIt->inputs && !bFound)
-					{
-						for (auto& prevSubpassAttach : prevSubpassIt->attachments)
-						{
-							if (input == prevSubpassAttach.texture)
-							{
-								bFound = true;
-								break;
-							}
-						}
-					}
-
-					if (!bFound)
-						return false;
-
-					prevSubpassIt = subpassIt;
-				}
-			}
-		}
 	};
 }
 
