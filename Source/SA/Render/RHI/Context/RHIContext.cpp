@@ -511,4 +511,62 @@ namespace SA::RND::RHI
 	}
 
 //}
+
+
+//{ Textures
+
+	void Context::DeleteTextureClass(Texture* _texture)
+	{
+		SA_ASSERT((Nullptr, _texture), SA.Render.RHI);
+
+		delete _texture;
+	}
+
+	Texture* Context::CreateTexture(const TextureDescriptor& _desc)
+	{
+		Texture* const texture = mTextures.emplace_front(InstantiateTextureClass());
+
+		SA_ASSERT((Nullptr, texture), SA.Render.RHI, (L"Texture instantiate class failed!"));
+
+		texture->Create(mDevice, _desc);
+
+		return texture;
+	}
+
+	Texture* Context::CreateTexture(ResourceInitializer* _init, const RawTexture& _raw)
+	{
+		Texture* const texture = mTextures.emplace_front(InstantiateTextureClass());
+
+		SA_ASSERT((Nullptr, texture), SA.Render.RHI, (L"Texture instantiate class failed!"));
+
+		texture->Create(mDevice, _init, _raw);
+
+		return texture;
+	}
+
+	void Context::DestroyTexture(Texture* _texture)
+	{
+		SA_ASSERT((Nullptr, _texture), SA.Render.RHI);
+
+		if (std::erase(mTextures, _texture))
+		{
+			_texture->Destroy(mDevice);
+			DeleteTextureClass(_texture);
+		}
+		else
+			SA_LOG((L"Try destroy Texture [%1] that does not belong to this context!", _texture), Error, SA.Render.RHI);
+	}
+
+	void Context::DestroyAllTextures()
+	{
+		for (auto texture: mTextures)
+		{
+			texture->Destroy(mDevice);
+			DeleteTextureClass(texture);
+		}
+
+		mTextures.clear();
+	}
+
+//}
 }

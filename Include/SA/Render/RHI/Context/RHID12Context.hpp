@@ -24,6 +24,7 @@ namespace SA::RND::RHI
 		Buffer* InstantiateBufferClass() override final;
 		ResourceInitializer* InstantiateResourceInitializerClass() override final;
 		StaticMesh* InstantiateStaticMeshClass() override final;
+		Texture* InstantiateTextureClass() override final;
 	};
 }
 

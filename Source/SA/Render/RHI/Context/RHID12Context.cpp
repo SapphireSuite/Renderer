@@ -12,6 +12,7 @@
 #include <Buffer/RHID12Buffer.hpp>
 #include <RHID12ResourceInitializer.hpp>
 #include <Mesh/RHID12StaticMesh.hpp>
+#include <Texture/RHID12Texture.hpp>
 
 #if SA_RENDER_LOWLEVEL_DX12_IMPL
 
@@ -65,6 +66,11 @@ namespace SA::RND::RHI
 	StaticMesh* D12Context::InstantiateStaticMeshClass()
 	{
 		return new D12StaticMesh();
+	}
+
+	Texture* D12Context::InstantiateTextureClass()
+	{
+		return new D12Texture();
 	}
 }
 

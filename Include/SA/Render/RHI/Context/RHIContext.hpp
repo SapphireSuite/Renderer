@@ -18,6 +18,7 @@
 #include <SA/Render/RHI/Buffer/RHIBuffer.hpp>
 #include <SA/Render/RHI/RHIResourceInitializer.hpp>
 #include <SA/Render/RHI/Mesh/RHIStaticMesh.hpp>
+#include <SA/Render/RHI/Texture/RHITexture.hpp>
 
 namespace SA::RND::RHI
 {
@@ -202,6 +203,24 @@ namespace SA::RND::RHI
 		StaticMesh* CreateStaticMesh(ResourceInitializer* _init, const RawStaticMesh& _raw);
 		void DestroyStaticMesh(StaticMesh* _mesh);
 		void DestroyAllStaticMeshes();
+
+//}
+
+
+//{ Texture
+
+	private:
+		std::forward_list<Texture*> mTextures;
+
+	protected:
+		virtual Texture* InstantiateTextureClass() = 0;
+		virtual void DeleteTextureClass(Texture* _texture);
+
+	public:
+		Texture* CreateTexture(const TextureDescriptor& _desc);
+		Texture* CreateTexture(ResourceInitializer* _init, const RawTexture& _texture);
+		void DestroyTexture(Texture* _texture);
+		void DestroyAllTextures();
 
 //}
 	};

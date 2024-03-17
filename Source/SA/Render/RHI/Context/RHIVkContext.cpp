@@ -12,6 +12,7 @@
 #include <Buffer/RHIVkBuffer.hpp>
 #include <RHIVkResourceInitializer.hpp>
 #include <Mesh/RHIVkStaticMesh.hpp>
+#include <Texture/RHIVkTexture.hpp>
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
@@ -65,6 +66,11 @@ namespace SA::RND::RHI
 	StaticMesh* VkContext::InstantiateStaticMeshClass()
 	{
 		return new VkStaticMesh();
+	}
+
+	Texture* VkContext::InstantiateTextureClass()
+	{
+		return new VkTexture();
 	}
 }
 
