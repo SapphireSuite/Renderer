@@ -4,6 +4,59 @@
 
 namespace SA::RND
 {
+//{ Scene Textures
+
+	SceneTextures& DeferredRenderer::GetSceneTextures()
+	{
+		return mSceneTextures;
+	}
+
+	void DeferredRenderer::CreateSceneTextures(const RendererSettings::RenderPassSettings& _settings)
+	{
+		Renderer::CreateSceneTextures(_settings);
+
+		// GBuffer
+		{
+			SA::RND::TextureDescriptor desc
+			{
+				.extents = mSwapchain->GetExtents(),
+				.mipLevels = 1u,
+				.format = Format::R8G8B8A8_UNORM,
+				.sampling = _settings.MSAA,
+				.usage = TextureUsage::RenderTarget,
+			};
+
+			mSceneTextures.gbuffer.position = mContext->CreateTexture(desc);
+			mSceneTextures.gbuffer.normal = mContext->CreateTexture(desc);
+
+			desc.format = mSwapchain->GetFormat();
+			mSceneTextures.gbuffer.color = mContext->CreateTexture(desc);
+
+			desc.format = Format::R8G8_UNORM;
+			mSceneTextures.gbuffer.metallicRoughness = mContext->CreateTexture(desc);
+
+			desc.format = Format::R8_UNORM;
+			mSceneTextures.gbuffer.ao = mContext->CreateTexture(desc);
+		}
+	}
+	
+	void DeferredRenderer::DestroySceneTextures()
+	{
+		Renderer::DestroySceneTextures();
+
+		// GBuffer
+		{
+			mContext->DestroyTexture(mSceneTextures.gbuffer.position);
+			mContext->DestroyTexture(mSceneTextures.gbuffer.normal);
+			mContext->DestroyTexture(mSceneTextures.gbuffer.color);
+			mContext->DestroyTexture(mSceneTextures.gbuffer.metallicRoughness);
+			mContext->DestroyTexture(mSceneTextures.gbuffer.ao);
+		}
+	}
+
+//}
+
+
 	void DeferredRenderer::MakeRenderPassInfo(const RendererSettings::RenderPassSettings& _settings, RHI::RenderPassInfo& _passInfo)
 	{
 		const Vec2ui extents = GetRenderExtents(_settings);

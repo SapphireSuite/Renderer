@@ -9,7 +9,7 @@
 
 namespace SA::RND
 {
-	class DeferredSceneTextures : public SceneTextures
+	struct DeferredSceneTextures : public SceneTextures
 	{
 		struct GBufferTextures
 		{

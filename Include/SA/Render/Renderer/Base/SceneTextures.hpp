@@ -9,7 +9,7 @@
 
 namespace SA::RND
 {
-	class SceneTextures
+	struct SceneTextures
 	{
 		struct DepthTextures
 		{

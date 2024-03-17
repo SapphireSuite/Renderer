@@ -43,6 +43,7 @@ namespace SA::RND
 
 		mContext = mDevice->CreateContext();
 
+		CreateSceneTextures(_settings.pass);
 		CreateRenderPass(_settings.pass);
 		
 		mFrameBuffers.resize(mSwapchain ? mSwapchain->GetImageNum() : _settings.swapchain.bufferingCount);
@@ -70,6 +71,45 @@ namespace SA::RND
 	{
 		return RHI::DeviceRequirements();
 	}
+
+//{ Scene Textures
+
+	void Renderer::CreateSceneTextures(const RendererSettings::RenderPassSettings& _settings)
+	{
+		SceneTextures& sceneTextures = GetSceneTextures();
+
+		// Depth
+		{
+			SA::RND::TextureDescriptor desc
+			{
+				.extents = mSwapchain->GetExtents(),
+				.mipLevels = 1u,
+				.format = _settings.depth.format,
+				.sampling = _settings.MSAA,
+				.usage = TextureUsage::RenderTarget,
+			};
+
+			sceneTextures.depth.texture = mContext->CreateTexture(desc);
+
+			if (_settings.MSAA != RHI::Sampling::S1Bit)
+			{
+				desc.sampling = Sampling::S1Bit;
+				sceneTextures.depth.resolved = mContext->CreateTexture(desc);
+			}
+		}
+	}
+	
+	void Renderer::DestroySceneTextures()
+	{
+		SceneTextures& sceneTextures = GetSceneTextures();
+
+		mContext->DestroyTexture(sceneTextures.depth.texture);
+
+		if (sceneTextures.depth.resolved)
+			mContext->DestroyTexture(sceneTextures.depth.resolved);
+	}
+
+//}
 
 //{ RenderPass
 

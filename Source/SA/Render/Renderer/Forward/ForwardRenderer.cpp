@@ -4,6 +4,44 @@
 
 namespace SA::RND
 {
+//{ Scene Textures
+
+	SceneTextures& ForwardRenderer::GetSceneTextures()
+	{
+		return mSceneTextures;
+	}
+
+	void ForwardRenderer::CreateSceneTextures(const RendererSettings::RenderPassSettings& _settings)
+	{
+		Renderer::CreateSceneTextures(_settings);
+
+		// Color
+		{
+			SA::RND::TextureDescriptor desc
+			{
+				.extents = mSwapchain->GetExtents(),
+				.mipLevels = 1u,
+				.format = mSwapchain->GetFormat(),
+				.sampling = _settings.MSAA,
+				.usage = TextureUsage::RenderTarget,
+			};
+
+			mSceneTextures.color = mContext->CreateTexture(desc);
+		}
+	}
+
+	void ForwardRenderer::DestroySceneTextures()
+	{
+		Renderer::DestroySceneTextures();
+
+		// Color
+		{
+			mContext->DestroyTexture(mSceneTextures.color);
+		}
+	}
+
+//}
+
 	void ForwardRenderer::MakeRenderPassInfo(const RendererSettings::RenderPassSettings& _settings, RHI::RenderPassInfo& _passInfo)
 	{
 		const Vec2ui extents = GetRenderExtents(_settings);

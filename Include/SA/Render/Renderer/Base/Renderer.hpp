@@ -8,6 +8,7 @@
 //#include <SA/Render/RHI/Context/RHIContext.hpp>
 
 #include "RendererSettings.hpp"
+#include "SceneTextures.hpp"
 
 namespace SA::RND
 {
@@ -38,6 +39,16 @@ namespace SA::RND
 
 
 		RHI::Context* mContext = nullptr;
+
+
+	//{ Scene Textures
+
+		virtual SceneTextures& GetSceneTextures() = 0;
+
+		virtual void CreateSceneTextures(const RendererSettings::RenderPassSettings& _settings);
+		virtual void DestroySceneTextures();
+
+	//}
 
 
 	//{ RenderPass

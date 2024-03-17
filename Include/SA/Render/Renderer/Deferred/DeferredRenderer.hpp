@@ -7,11 +7,24 @@
 
 #include <SA/Render/Renderer/Base/Renderer.hpp>
 
+#include "DeferredSceneTextures.hpp"
+
 namespace SA::RND
 {
 	class DeferredRenderer : public Renderer
 	{
 	protected:
+	//{ Scene Textures
+
+		DeferredSceneTextures mSceneTextures;
+
+		SceneTextures& GetSceneTextures() override final;
+
+		void CreateSceneTextures(const RendererSettings::RenderPassSettings& _settings) override final;
+		void DestroySceneTextures() override final;
+
+	//}
+
 		void MakeRenderPassInfo(const RendererSettings::RenderPassSettings& _settings, RHI::RenderPassInfo& _passInfo) override final;
 	};
 }

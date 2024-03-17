@@ -7,11 +7,24 @@
 
 #include <SA/Render/Renderer/Base/Renderer.hpp>
 
+#include "ForwardSceneTextures.hpp"
+
 namespace SA::RND
 {
 	class ForwardRenderer : public Renderer
 	{
 	protected:
+	//{ Scene Textures
+
+		ForwardSceneTextures mSceneTextures;
+
+		SceneTextures& GetSceneTextures() override final;
+
+		void CreateSceneTextures(const RendererSettings::RenderPassSettings& _settings) override final;
+		void DestroySceneTextures() override final;
+
+	//}
+
 		void MakeRenderPassInfo(const RendererSettings::RenderPassSettings& _settings, RHI::RenderPassInfo& _passInfo) override final;
 	};
 }
