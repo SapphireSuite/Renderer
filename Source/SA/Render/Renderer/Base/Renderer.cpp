@@ -86,7 +86,7 @@ namespace SA::RND
 				.mipLevels = 1u,
 				.format = _settings.depth.format,
 				.sampling = _settings.MSAA,
-				.usage = TextureUsage::RenderTarget,
+				.usage = TextureUsage::RenderTarget | TextureUsage::Depth,
 			};
 
 			sceneTextures.depth.texture = mContext->CreateTexture(desc);

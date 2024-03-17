@@ -174,6 +174,7 @@ void Init()
 			colorTexture.Create(device, desc);
 
 			desc.format = Format::D16_UNORM;
+			desc.usage |= TextureUsage::Depth;
 			depthTexture.Create(device, desc);
 		}
 
