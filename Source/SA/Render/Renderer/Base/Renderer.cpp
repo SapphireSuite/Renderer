@@ -89,6 +89,9 @@ namespace SA::RND
 				.usage = TextureUsage::RenderTarget | TextureUsage::Depth,
 			};
 
+			if(_settings.depth.bPrepass)
+				desc.usage |= TextureUsage::Input;
+
 			sceneTextures.depth.texture = mContext->CreateTexture(desc);
 
 			if (_settings.MSAA != RHI::Sampling::S1Bit)

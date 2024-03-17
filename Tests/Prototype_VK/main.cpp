@@ -175,6 +175,9 @@ void Init()
 
 			desc.format = Format::D16_UNORM;
 			desc.usage |= TextureUsage::Depth;
+			if(bDepthPrepass)
+				desc.usage |= TextureUsage::Input;
+
 			depthTexture.Create(device, desc);
 		}
 

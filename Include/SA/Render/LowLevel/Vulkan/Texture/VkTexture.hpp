@@ -20,7 +20,11 @@ namespace SA::RND::VK
 		VkImage mImage = VK_NULL_HANDLE;
 		VkDeviceMemory mMemory = VK_NULL_HANDLE;
 
+		TextureDescriptor mDescriptor;
+
 	public:
+		const TextureDescriptor& GetDescriptor() const noexcept;
+
 		/**
 		* Create Texture from descriptor
 		* Used as framebuffer attachment.

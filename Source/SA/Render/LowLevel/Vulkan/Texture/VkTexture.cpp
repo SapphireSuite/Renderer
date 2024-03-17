@@ -9,8 +9,15 @@
 
 namespace SA::RND::VK
 {
+	const TextureDescriptor& Texture::GetDescriptor() const noexcept
+	{
+		return mDescriptor;
+	}
+
 	void Texture::Create(const Device& _device, const TextureDescriptor& _desc)
 	{
+		mDescriptor = _desc;
+
 		// Image
 		{
 			const VkImageCreateInfo infos{
@@ -58,6 +65,12 @@ namespace SA::RND::VK
 
 	void Texture::Create(const Device& _device, ResourceInitializer& _init, const RawTexture& _raw)
 	{
+		mDescriptor.extents = _raw.extents;
+		mDescriptor.mipLevels = _raw.mipLevels;
+		mDescriptor.format = _raw.format;
+		mDescriptor.sampling = Sampling::S1Bit;
+		mDescriptor.usage = TextureUsage::SRV;
+
 		// Image
 		{
 			const VkImageCreateInfo infos{

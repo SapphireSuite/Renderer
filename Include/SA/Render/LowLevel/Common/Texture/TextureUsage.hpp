@@ -34,8 +34,11 @@ namespace SA::RND
 		/// Texture used as input attachment in next subpass.
 		Input = (1 << 2),
 
+		/// TExture used as Shader Resource.
+		SRV = (1 << 3),
+
 		/// Texture used as Unordered Access.
-		UAV = (1 << 3),
+		UAV = (1 << 4),
 	};
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
