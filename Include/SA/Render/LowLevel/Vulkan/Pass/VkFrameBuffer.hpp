@@ -5,9 +5,7 @@
 #ifndef SAPPHIRE_RENDER_VK_FRAME_BUFFER_GUARD
 #define SAPPHIRE_RENDER_VK_FRAME_BUFFER_GUARD
 
-#include "Info/VkRenderPassInfo.hpp"
-
-#include <SA/Render/LowLevel/Vulkan/Buffers/VkImageBuffer.hpp>
+#include "VkRenderPassInfo.hpp"
 
 namespace SA::RND::VK
 {

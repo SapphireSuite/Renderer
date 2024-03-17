@@ -5,7 +5,7 @@
 #ifndef SAPPHIRE_RENDER_VK_RENDER_PASS_GUARD
 #define SAPPHIRE_RENDER_VK_RENDER_PASS_GUARD
 
-#include "Info/VkRenderPassInfo.hpp"
+#include "VkRenderPassInfo.hpp"
 
 namespace SA::RND::VK
 {

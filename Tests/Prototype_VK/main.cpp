@@ -59,6 +59,8 @@ VK::Buffer objectBuffer;
 VK::DescriptorPool objectDescPool;
 VK::DescriptorSetLayout objectDescSetLayout;
 VK::DescriptorSet objectSet;
+VK::Texture colorTexture;
+VK::Texture depthTexture;
 
 constexpr bool bDepth = true;
 constexpr bool bDepthPrepass = true;
@@ -158,6 +160,23 @@ void Init()
 			cmdBuffers = cmdPool.AllocateMultiple(device, swapchain.GetImageNum());
 		}
 
+		// Scene Textures
+		{
+			SA::RND::TextureDescriptor desc
+			{
+				.extents = swapchain.GetExtents(),
+				.mipLevels = 1u,
+				.format = VK::API_GetFormat(swapchain.GetFormat()),
+				.sampling = bMSAA ? Sampling::S8Bits : Sampling::S1Bit,
+				.usage = TextureUsage::RenderTarget,
+			};
+
+			colorTexture.Create(device, desc);
+
+			desc.format = Format::D16_UNORM;
+			depthTexture.Create(device, desc);
+		}
+
 		// Render Pass
 		{
 			// Forward
@@ -167,46 +186,35 @@ void Init()
 				{
 					auto& depthPrepass = passInfo.AddSubpass("Depth-Only Prepass");
 
-					if (bMSAA)
-						depthPrepass.sampling = VK_SAMPLE_COUNT_8_BIT;
-
-					auto& depthRT = depthPrepass.AddAttachment("Depth");
-					depthRT.format = VK_FORMAT_D16_UNORM;
-					depthRT.type = AttachmentType::Depth;
+					auto& depthRT = depthPrepass.AddAttachment("Depth", &depthTexture);
 
 					if(bDepthInverted)
 						depthRT.clearColor = SA::RND::Color::black;
 					else
 						depthRT.clearColor = SA::RND::Color::white;
-					
-					depthRT.usage = AttachmentUsage::InputNext;
-
-					depthPrepass.SetAllAttachmentExtents(swapchain.GetExtents());
 				}
 
 				auto& mainSubpass = passInfo.AddSubpass("Main");
 
-				if(bMSAA)
-					mainSubpass.sampling = VK_SAMPLE_COUNT_8_BIT;
-
 				// Color and present attachment.
-				auto& colorRT = mainSubpass.AddAttachment("Color");
-				colorRT.format = swapchain.GetFormat();
-				colorRT.usage = AttachmentUsage::Present;
+				auto& colorRT = mainSubpass.AddAttachment("Color", &colorTexture);
 
-				if(bDepth && !bDepthPrepass)
+				if (bDepth)
 				{
-					auto& depthRT = mainSubpass.AddAttachment("Depth");
-					depthRT.format = VK_FORMAT_D16_UNORM;
-					depthRT.type = AttachmentType::Depth;
-
-					if (bDepthInverted)
-						depthRT.clearColor = SA::RND::Color::black;
+					if (bDepthPrepass)
+					{
+						mainSubpass.AddInputAttachments({ &depthTexture });
+					}
 					else
-						depthRT.clearColor = SA::RND::Color::white;
+					{
+						auto& depthRT = mainSubpass.AddAttachment("Depth", &depthTexture);
+
+						if (bDepthInverted)
+							depthRT.clearColor = SA::RND::Color::black;
+						else
+							depthRT.clearColor = SA::RND::Color::white;
+					}
 				}
-				
-				mainSubpass.SetAllAttachmentExtents(swapchain.GetExtents());
 			}
 
 			renderPass.Create(device, passInfo);
