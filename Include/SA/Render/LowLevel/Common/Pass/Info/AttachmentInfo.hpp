@@ -19,6 +19,7 @@ namespace SA::RND
 		std::string name;
 
 		TextureT* texture = nullptr;
+		TextureT* resolved = nullptr;
 
 		Color clearColor = Color{ 0.0f, 0.0f, 0.015f, 0.0f };
 

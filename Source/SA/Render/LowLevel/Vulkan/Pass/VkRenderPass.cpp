@@ -10,28 +10,6 @@ namespace SA::RND::VK
 {
 	namespace Intl
 	{
-		VkSubpassDescription CreateSubpassDesc()
-		{
-			VkSubpassDescription subpass{};
-
-			subpass.flags = 0u;
-			subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-
-			subpass.inputAttachmentCount = 0u;
-			subpass.pInputAttachments = nullptr;
-
-			subpass.colorAttachmentCount = 0u;
-			subpass.pColorAttachments = nullptr;
-			subpass.pResolveAttachments = nullptr;
-
-			subpass.pDepthStencilAttachment = nullptr;
-
-			subpass.preserveAttachmentCount = 0u;
-			subpass.pPreserveAttachments = nullptr;
-
-			return subpass;
-		}
-		
 		VkSubpassDependency CreateSubpassDependency(uint32_t _currIndex, uint32_t _subpassNum)
 		{
 			VkSubpassDependency subpassDependency{};
@@ -68,23 +46,6 @@ namespace SA::RND::VK
 
 			return subpassDependency;
 		}
-
-
-		VkAttachmentDescription CreateAttachment(VkFormat _format, VkSampleCountFlagBits _sampling, VkAttachmentLoadOp _loadOp)
-		{
-			VkAttachmentDescription attachment{};
-			attachment.flags = 0u;
-			attachment.format = _format;
-			attachment.samples = _sampling;
-			attachment.loadOp = _loadOp;
-			attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-			attachment.stencilLoadOp = _loadOp;
-			attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_STORE;
-			attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-			attachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-			return attachment;
-		}
 	}
 
 	void RenderPass::Create(const Device& _device, const RenderPassInfo& _info)
@@ -108,84 +69,131 @@ namespace SA::RND::VK
 		std::vector<std::vector<VkAttachmentReference>> subpassInputAttachmentRefs;
 		subpassInputAttachmentRefs.reserve(subpassNum);
 
-		for(auto& subpass : _info.subpasses)
+		std::unordered_map<Texture*, uint32_t> textureToAttachIndexMap;
+
+		//for(auto& subpass : _info.subpasses)
+		for (auto subpassIt = _info.subpasses.begin(); subpassIt != _info.subpasses.end(); ++subpassIt)
 		{
+			auto& subpass = *subpassIt;
+		
 			// Per-Subpass attachment refs.
 			std::vector<VkAttachmentReference>& colorAttachmentRefs = subpassColorAttachmentRefs.emplace_back();
-			colorAttachmentRefs.reserve(attachmentNum);
+			colorAttachmentRefs.reserve(subpass.attachments.size());
 
 			std::vector<VkAttachmentReference>& resolveAttachmentRefs = subpassResolveAttachmentRefs.emplace_back();
-			resolveAttachmentRefs.reserve(attachmentNum);
+			resolveAttachmentRefs.reserve(subpass.attachments.size());
 			
 			std::vector<VkAttachmentReference>& inputAttachmentRefs = subpassInputAttachmentRefs.emplace_back();
-			inputAttachmentRefs.reserve(attachmentNum);
+			inputAttachmentRefs.reserve(subpass.inputs.size());
 
 			VkAttachmentReference& depthAttachRef = depthAttachmentRefs.emplace_back(VkAttachmentReference{ VK_ATTACHMENT_UNUSED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL });
 			//
 
 			for(auto& attach: subpass.attachments)
 			{
+				const TextureDescriptor& desc = attach.texture->GetDescriptor();
+
 				const uint32_t attachIndex = static_cast<uint32_t>(attachmentDescs.size());
-				VkAttachmentDescription& attachDesc =
-					attachmentDescs.emplace_back(Intl::CreateAttachment(attach.format,
-						subpass.sampling, attach.loadMode));
-
-				if(attach.type == AttachmentType::Color)
-				{
-					/*VkAttachmentReference& colorAttachRef =*/ colorAttachmentRefs.emplace_back(VkAttachmentReference{ attachIndex, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL });
-					VkAttachmentReference& resolveAttachRef = resolveAttachmentRefs.emplace_back(VkAttachmentReference{ VK_ATTACHMENT_UNUSED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL });
+				textureToAttachIndexMap[attach.texture] = attachIndex;
+				VkAttachmentDescription& attachDesc = attachmentDescs.emplace_back(VkAttachmentDescription{
+					.flags = 0u,
+					.format = VK::API_GetFormat(desc.format),
+					.samples = VK::API_GetSampling(desc.sampling),
+					.loadOp = VK::API_GetAttachmentLoadOp(attach.loadMode),
+					.storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+					.stencilLoadOp = VK::API_GetAttachmentLoadOp(attach.loadMode),
+					.stencilStoreOp = VK_ATTACHMENT_STORE_OP_STORE,
+					.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+					.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+				});
+				VkAttachmentReference& resolveAttachRef = resolveAttachmentRefs.emplace_back(VkAttachmentReference{ VK_ATTACHMENT_UNUSED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL });
 				
-				
-					if(subpass.sampling != VK_SAMPLE_COUNT_1_BIT)
-					{
-						// Color attachment multisampling resolution.
-
-						const uint32_t resolvAttachIndex = static_cast<uint32_t>(attachmentDescs.size());
-						VkAttachmentDescription& resolveAttachDesc = attachmentDescs.emplace_back(Intl::CreateAttachment(attach.format, VK_SAMPLE_COUNT_1_BIT, VK_ATTACHMENT_LOAD_OP_DONT_CARE));
-
-						if (attach.usage == AttachmentUsage::InputNext)
-							resolveAttachDesc.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-						else if (attach.usage == AttachmentUsage::Present)
-							resolveAttachDesc.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-
-						resolveAttachRef.attachment = resolvAttachIndex;
-					}
-					else if(attach.usage == AttachmentUsage::Present)
-						attachDesc.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-				}
-				else if(attach.type == AttachmentType::Depth)
+				if (desc.usage && TextureUsage::Depth)
 				{
 					attachDesc.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+					resolveAttachRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+					// Emplace depth attachment ref.
 					depthAttachRef.attachment = attachIndex;
 				}
-
-				if(attach.usage == AttachmentUsage::InputNext)
+				else if (desc.usage && TextureUsage::RenderTarget)
 				{
-					// Last attachment added: current or resolved.
-					const uint32_t inputAttachIndex = static_cast<uint32_t>(attachmentDescs.size() - 1);
-					inputAttachmentRefs.emplace_back(VkAttachmentReference{
-						inputAttachIndex,
-						attach.type == AttachmentType::Depth ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
-					});
+					// Emplace color attachment ref.
+					colorAttachmentRefs.emplace_back(VkAttachmentReference{ attachIndex, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL });
 				}
+				
+				// For any render target.
+				if (desc.usage && TextureUsage::RenderTarget)
+				{
+					// Multisampling resolution.
+					if (desc.sampling != Sampling::S1Bit && attach.resolved)
+					{
+						const TextureDescriptor& resolvedDesc = attach.resolved->GetDescriptor();
+
+						SA_ASSERT((Default, resolvedDesc.sampling == Sampling::S1Bit), SA.Render.Vulkan, L"Resolved texture must have 1 sample!")
+
+						const uint32_t resolvAttachIndex = static_cast<uint32_t>(attachmentDescs.size());
+						resolveAttachRef.attachment = resolvAttachIndex;
+						textureToAttachIndexMap[attach.resolved] = resolvAttachIndex;
+						VkAttachmentDescription& resolveAttachDesc = attachmentDescs.emplace_back(VkAttachmentDescription{
+							.flags = 0u,
+							.format = VK::API_GetFormat(resolvedDesc.format),
+							.samples = VK_SAMPLE_COUNT_1_BIT,
+							.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+							.storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+							.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+							.stencilStoreOp = VK_ATTACHMENT_STORE_OP_STORE,
+							.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+							.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+						});
+
+						if (resolvedDesc.usage == TextureUsage::Input)
+						{
+							if(resolvedDesc.usage && TextureUsage::Depth)
+								resolveAttachDesc.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+							else
+								resolveAttachDesc.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+						}
+						else if (resolvedDesc.usage == TextureUsage::Present)
+							resolveAttachDesc.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+					}
+					else if (desc.usage == TextureUsage::Present)
+						attachDesc.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+				}
+			}
+
+			for (auto& input : subpass.inputs)
+			{
+				auto findIt = textureToAttachIndexMap.find(input);
+
+				SA_ASSERT((Default, findIt != textureToAttachIndexMap.end()), SA.Render.Vulkan, L"Input Attachment not found in previous subpass render targets!");
+
+				const uint32_t attachIndex = textureToAttachIndexMap[input];
+
+				const TextureDescriptor& inputDesc = input->GetDescriptor();
+
+				inputAttachmentRefs.emplace_back(VkAttachmentReference{
+					attachIndex,
+					(inputDesc.usage & TextureUsage::Depth) ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+				});
 			}
 
 			const uint32_t subpassIndex = static_cast<uint32_t>(subpassDescriptions.size());
-			VkSubpassDescription& vkSubpassDesc = subpassDescriptions.emplace_back(Intl::CreateSubpassDesc());
-
-			vkSubpassDesc.pDepthStencilAttachment = &depthAttachRef;
-			vkSubpassDesc.colorAttachmentCount = static_cast<uint32_t>(colorAttachmentRefs.size());
-			vkSubpassDesc.pColorAttachments = colorAttachmentRefs.data();
-			vkSubpassDesc.pResolveAttachments = resolveAttachmentRefs.data();
-
-			if (subpassIndex > 0)
-			{
-				// Add input attachment from previous subpass.
-				vkSubpassDesc.inputAttachmentCount = static_cast<uint32_t>(subpassInputAttachmentRefs[subpassIndex - 1].size());
-				vkSubpassDesc.pInputAttachments = subpassInputAttachmentRefs[subpassIndex - 1].data();
-			}
+			VkSubpassDescription& vkSubpassDesc = subpassDescriptions.emplace_back(VkSubpassDescription{
+				.flags = 0u,
+				.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
+				.inputAttachmentCount = static_cast<uint32_t>(inputAttachmentRefs.size()),
+				.pInputAttachments = inputAttachmentRefs.data(),
+				.colorAttachmentCount = static_cast<uint32_t>(colorAttachmentRefs.size()),
+				.pColorAttachments = colorAttachmentRefs.data(),
+				.pResolveAttachments = resolveAttachmentRefs.data(),
+				.pDepthStencilAttachment = &depthAttachRef,
+				.preserveAttachmentCount = 0u,
+				.pPreserveAttachments = nullptr,
+			});
 
 			// Subpass dependency.
+			// TODO: Rework
 			/*VkSubpassDependency& subpassDep =*/ subpassDependencies.emplace_back(Intl::CreateSubpassDependency(subpassIndex, subpassNum));
 		}
 
