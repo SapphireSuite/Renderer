@@ -35,6 +35,11 @@ namespace SA::RND::VK
 		* Used as input texture for sampling.
 		*/
 		void Create(const Device& _device, ResourceInitializer& _init, const RawTexture& _raw);
+		/**
+		* Create texture from backbuffer image handle.
+		* Used as frambuffer present attachment.
+		*/
+		void CreateFromImage(const Device& _device, VkImage _backbufferImage, const Vec2ui& _extents, VkFormat _format);
 		void Destroy(const Device& _device);
 	};
 }

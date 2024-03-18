@@ -214,6 +214,17 @@ namespace SA::RND::VK
 		}
 	}
 
+	void Texture::CreateFromImage(const Device& _device, VkImage _backbufferImage, const Vec2ui& _extents, VkFormat _format)
+	{
+		mDescriptor.extents = _extents;
+		mDescriptor.mipLevels = 1u;
+		mDescriptor.format = API_GetFormat(_format);
+		mDescriptor.sampling = Sampling::S1Bit;
+		mDescriptor.usage = TextureUsage::Present;
+
+		mImage = _backbufferImage;
+	}
+
 	void Texture::Destroy(const Device& _device)
 	{
 		// In case the image was given to the texture (using CreateFromImage).

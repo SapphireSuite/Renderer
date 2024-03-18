@@ -23,12 +23,13 @@ namespace SA::RND
 		std::vector<AttachmentInfo<TextureT>> attachments;
 
 
-		AttachmentInfo<TextureT>& AddAttachment(std::string _name, TextureT* _texture)
+		AttachmentInfo<TextureT>& AddAttachment(std::string _name, TextureT* _texture, TextureT* _resolvedTexture = nullptr)
 		{
 			AttachmentInfo<TextureT>& attach = attachments.emplace_back();
 
 			attach.name = std::move(_name);
 			attach.texture = _texture;
+			attach.resolvedTexture = _resolvedTexture;
 
 			return attach;
 		}

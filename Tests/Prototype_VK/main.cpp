@@ -59,8 +59,14 @@ VK::Buffer objectBuffer;
 VK::DescriptorPool objectDescPool;
 VK::DescriptorSetLayout objectDescSetLayout;
 VK::DescriptorSet objectSet;
-VK::Texture colorTexture;
-VK::Texture depthTexture;
+
+struct SceneTexture
+{
+	VK::Texture color;
+	VK::Texture resolvedColor;
+	VK::Texture depth;
+};
+std::vector<SceneTexture> sceneTextures;
 
 constexpr bool bDepth = true;
 constexpr bool bDepthPrepass = true;
@@ -162,23 +168,38 @@ void Init()
 
 		// Scene Textures
 		{
-			SA::RND::TextureDescriptor desc
+			sceneTextures.resize(swapchain.GetImageNum());
+
+			for (uint32_t i = 0; i < sceneTextures.size(); ++i)
 			{
-				.extents = swapchain.GetExtents(),
-				.mipLevels = 1u,
-				.format = VK::API_GetFormat(swapchain.GetFormat()),
-				.sampling = bMSAA ? Sampling::S8Bits : Sampling::S1Bit,
-				.usage = TextureUsage::RenderTarget,
-			};
+				auto& sceneTexture = sceneTextures[i];
 
-			colorTexture.Create(device, desc);
+				SA::RND::TextureDescriptor desc
+				{
+					.extents = swapchain.GetExtents(),
+					.mipLevels = 1u,
+					.format = VK::API_GetFormat(swapchain.GetFormat()),
+					.sampling = bMSAA ? Sampling::S8Bits : Sampling::S1Bit,
+					.usage = TextureUsage::RenderTarget,
+				};
 
-			desc.format = Format::D16_UNORM;
-			desc.usage |= TextureUsage::Depth;
-			if(bDepthPrepass)
-				desc.usage |= TextureUsage::Input;
+				if (bMSAA)
+				{
+					sceneTexture.color.Create(device, desc);
+					sceneTexture.resolvedColor.CreateFromImage(device, swapchain.GetBackBufferHandle(i), swapchain.GetExtents(), swapchain.GetFormat());
+				}
+				else
+				{
+					sceneTexture.color.CreateFromImage(device, swapchain.GetBackBufferHandle(i), swapchain.GetExtents(), swapchain.GetFormat());
+				}
 
-			depthTexture.Create(device, desc);
+				desc.format = Format::D16_UNORM;
+				desc.usage |= TextureUsage::Depth;
+				if (bDepthPrepass)
+					desc.usage |= TextureUsage::Input;
+
+				sceneTexture.depth.Create(device, desc);
+			}
 		}
 
 		// Render Pass
@@ -190,7 +211,7 @@ void Init()
 				{
 					auto& depthPrepass = passInfo.AddSubpass("Depth-Only Prepass");
 
-					auto& depthRT = depthPrepass.AddAttachment("Depth", &depthTexture);
+					auto& depthRT = depthPrepass.AddAttachment("Depth", &sceneTextures[0].depth);
 
 					if(bDepthInverted)
 						depthRT.clearColor = SA::RND::Color::black;
@@ -201,17 +222,17 @@ void Init()
 				auto& mainSubpass = passInfo.AddSubpass("Main");
 
 				// Color and present attachment.
-				auto& colorRT = mainSubpass.AddAttachment("Color", &colorTexture);
+				auto& colorRT = mainSubpass.AddAttachment("Color", &sceneTextures[0].color, &sceneTextures[0].resolvedColor);
 
 				if (bDepth)
 				{
 					if (bDepthPrepass)
 					{
-						mainSubpass.AddInputAttachments({ &depthTexture });
+						mainSubpass.AddInputAttachments({ &sceneTextures[0].depth });
 					}
 					else
 					{
-						auto& depthRT = mainSubpass.AddAttachment("Depth", &depthTexture);
+						auto& depthRT = mainSubpass.AddAttachment("Depth", &sceneTextures[0].depth);
 
 						if (bDepthInverted)
 							depthRT.clearColor = SA::RND::Color::black;
