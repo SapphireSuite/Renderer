@@ -14,6 +14,7 @@ namespace SA::RND::VK
 {
 	class Device;
 	class ResourceInitializer;
+	class Swapchain;
 
 	class Texture
 	{
@@ -30,16 +31,19 @@ namespace SA::RND::VK
 		* Used as framebuffer attachment.
 		*/
 		void Create(const Device& _device, const TextureDescriptor& _desc);
+		
 		/**
 		* Create Texture from raw texture input.
 		* Used as input texture for sampling.
 		*/
 		void Create(const Device& _device, ResourceInitializer& _init, const RawTexture& _raw);
+		
 		/**
-		* Create texture from backbuffer image handle.
+		* Create texture from swapchain backbuffer image handle.
 		* Used as frambuffer present attachment.
 		*/
-		void CreateFromImage(const Device& _device, VkImage _backbufferImage, const Vec2ui& _extents, VkFormat _format);
+		void CreateFromImage(const Device& _device, const Swapchain& _swapchain, uint32_t _imageIndex);
+		
 		void Destroy(const Device& _device);
 	};
 }

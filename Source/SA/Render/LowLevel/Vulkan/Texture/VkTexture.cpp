@@ -4,6 +4,7 @@
 
 #include <Device/VkDevice.hpp>
 #include <VkResourceInitializer.hpp>
+#include <Surface/VkSwapchain.hpp>
 
 #include <Buffers/VkBuffer.hpp>
 
@@ -214,15 +215,15 @@ namespace SA::RND::VK
 		}
 	}
 
-	void Texture::CreateFromImage(const Device& _device, VkImage _backbufferImage, const Vec2ui& _extents, VkFormat _format)
+	void Texture::CreateFromImage(const Device& _device, const Swapchain& _swapchain, uint32_t _imageIndex)
 	{
-		mDescriptor.extents = _extents;
+		mDescriptor.extents = _swapchain.GetExtents();
 		mDescriptor.mipLevels = 1u;
-		mDescriptor.format = API_GetFormat(_format);
+		mDescriptor.format = API_GetFormat(_swapchain.GetFormat());
 		mDescriptor.sampling = Sampling::S1Bit;
 		mDescriptor.usage = TextureUsage::Present;
 
-		mImage = _backbufferImage;
+		mImage = _swapchain.GetBackBufferHandle(_imageIndex);
 	}
 
 	void Texture::Destroy(const Device& _device)
