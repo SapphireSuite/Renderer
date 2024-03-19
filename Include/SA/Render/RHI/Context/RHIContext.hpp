@@ -217,6 +217,7 @@ namespace SA::RND::RHI
 		virtual void DeleteTextureClass(Texture* _texture);
 
 	public:
+		Texture* CreateTexture(const Swapchain* _swapchain, uint32_t _imageIndex);
 		Texture* CreateTexture(const TextureDescriptor& _desc);
 		Texture* CreateTexture(ResourceInitializer* _init, const RawTexture& _texture);
 		void DestroyTexture(Texture* _texture);

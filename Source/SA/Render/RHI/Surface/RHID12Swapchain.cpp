@@ -68,23 +68,10 @@ namespace SA::RND::RHI
 	}
 
 
-//{ BackBuffer
-
-	MComPtr<ID3D12Resource> D12Swapchain::BackBufferHandle::API_DirectX12() const
+	const DX12::Swapchain& D12Swapchain::API_DirectX12() const
 	{
-		return handle;
+		return mHandle;
 	}
-
-	std::shared_ptr<Swapchain::BackBufferHandle> D12Swapchain::GetBackBufferHandle(uint32_t _index)
-	{
-		auto backBufferHandle = std::make_shared<D12Swapchain::BackBufferHandle>();
-
-		backBufferHandle->handle = mHandle.GetBackBufferHandle(_index);
-
-		return backBufferHandle;
-	}
-
-//}
 }
 
 #endif // SA_RENDER_LOWLEVEL_DX12_IMPL

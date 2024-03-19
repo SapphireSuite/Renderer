@@ -28,6 +28,7 @@ namespace SA::RND
 	{
 		class Device;
 		class ResourceInitializer;
+		class Swapchain;
 
 		class Texture
 		{
@@ -44,6 +45,7 @@ namespace SA::RND
 			* Used as input texture for sampling.
 			*/
 			virtual void Create(const Device* _device, ResourceInitializer* _init, const SA::RND::RawTexture& _raw) = 0;
+			virtual void CreateFromImage(const Device* _device, const Swapchain* _swapchain, uint32_t _imageIndex) = 0;
 			virtual void Destroy(const Device* _device) = 0;
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL

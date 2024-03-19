@@ -6,7 +6,7 @@ namespace SA::RND::RHI
 {
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
-	VkImage Swapchain::BackBufferHandle::API_Vulkan() const
+	const VK::Swapchain& Swapchain::API_Vulkan() const
 	{
 		SA_THROW((QueryBadAPIObject, Vulkan), SA.Render.RHI.Vulkan);
 	}
@@ -15,7 +15,7 @@ namespace SA::RND::RHI
 
 #if SA_RENDER_LOWLEVEL_DX12_IMPL
 
-	MComPtr<ID3D12Resource> Swapchain::BackBufferHandle::API_DirectX12() const
+	const DX12::Swapchain& Swapchain::API_DirectX12() const
 	{
 		SA_THROW((QueryBadAPIObject, DX12), SA.Render.RHI.DX12);
 	}

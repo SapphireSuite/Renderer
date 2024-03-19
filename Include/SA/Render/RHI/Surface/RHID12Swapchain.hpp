@@ -33,19 +33,7 @@ namespace SA::RND::RHI
 		uint32_t Begin() override final;
 		void End(std::vector<CommandBuffer*> _cmds) override final;
 
-//{ BackBuffer
-	
-		class BackBufferHandle : public Swapchain::BackBufferHandle
-		{
-		public:
-			MComPtr<ID3D12Resource> handle = nullptr;
-
-			MComPtr<ID3D12Resource> API_DirectX12() const override final;
-		};
-
-		std::shared_ptr<Swapchain::BackBufferHandle> GetBackBufferHandle(uint32_t _index) override final;
-
-//}
+		const DX12::Swapchain& API_DirectX12() const override final;
 	};
 }
 

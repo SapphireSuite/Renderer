@@ -522,6 +522,18 @@ namespace SA::RND::RHI
 		delete _texture;
 	}
 
+
+	Texture* Context::CreateTexture(const Swapchain* _swapchain, uint32_t _imageIndex)
+	{
+		Texture* const texture = mTextures.emplace_front(InstantiateTextureClass());
+
+		SA_ASSERT((Nullptr, texture), SA.Render.RHI, (L"Texture instantiate class failed!"));
+
+		texture->CreateFromImage(mDevice, _swapchain, _imageIndex);
+
+		return texture;
+	}
+
 	Texture* Context::CreateTexture(const TextureDescriptor& _desc)
 	{
 		Texture* const texture = mTextures.emplace_front(InstantiateTextureClass());

@@ -70,23 +70,10 @@ namespace SA::RND::RHI
 	}
 
 
-//{ BackBuffer
-
-	VkImage VkSwapchain::BackBufferHandle::API_Vulkan() const
+	const VK::Swapchain& VkSwapchain::API_Vulkan() const
 	{
-		return handle;
+		return mHandle;
 	}
-
-	std::shared_ptr<Swapchain::BackBufferHandle> VkSwapchain::GetBackBufferHandle(uint32_t _index)
-	{
-		auto backBufferHandle = std::make_shared<VkSwapchain::BackBufferHandle>();
-
-		backBufferHandle->handle = mHandle.GetBackBufferHandle(_index);
-
-		return backBufferHandle;
-	}
-
-//}
 }
 
 #endif // SA_RENDER_LOWLEVEL_VULKAN_IMPL

@@ -54,32 +54,18 @@ namespace SA::RND
 
 			virtual uint32_t Begin() = 0;
 			virtual void End(std::vector<CommandBuffer*> _cmds) = 0;
-
-//{ BackBuffer
 	
-			class BackBufferHandle
-			{
-			public:
-				virtual ~BackBufferHandle() = default;
-
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
-				virtual VkImage API_Vulkan() const;
+			virtual const VK::Swapchain& API_Vulkan() const;
 
 #endif
 
 #if SA_RENDER_LOWLEVEL_DX12_IMPL
 
-				virtual MComPtr<ID3D12Resource> API_DirectX12() const;
+			virtual const DX12::Swapchain& API_DirectX12() const;
 
 #endif
-			};
-	
-
-			virtual std::shared_ptr<BackBufferHandle> GetBackBufferHandle(uint32_t _index) = 0;
-	
-//}
-	
 		};
 	}
 }

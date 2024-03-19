@@ -17,7 +17,12 @@ namespace SA::RND::RHI
 	{
 		mHandle.Create(_device->API_Vulkan(), _init->API_Vulkan(), _raw);
 	}
-	
+
+	void VkTexture::CreateFromImage(const Device* _device, const Swapchain* _swapchain, uint32_t _imageIndex)
+	{
+		mHandle.CreateFromImage(_device->API_Vulkan(), _swapchain->API_Vulkan(), _imageIndex);
+	}
+
 	void VkTexture::Destroy(const Device* _device)
 	{
 		mHandle.Destroy(_device->API_Vulkan());

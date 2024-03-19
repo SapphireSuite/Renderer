@@ -33,20 +33,7 @@ namespace SA::RND::RHI
 		uint32_t Begin() override final;
 		void End(std::vector<CommandBuffer*> _cmds) override final;
 
-//{ BackBuffer
-	
-		class BackBufferHandle : public Swapchain::BackBufferHandle
-		{
-		public:
-			VkImage handle = VK_NULL_HANDLE;
-
-			VkImage API_Vulkan() const override final;
-		};
-
-		std::shared_ptr<Swapchain::BackBufferHandle> GetBackBufferHandle(uint32_t _index) override final;
-
-//}
-
+		const VK::Swapchain& API_Vulkan() const override final;
 	};
 }
 
