@@ -17,19 +17,24 @@ namespace SA::RND
 	protected:
 		RHI::RenderInterface* mInterface = nullptr;
 
-		/**
-		* \brief Window surface to render to.
-		* Optionnal if IRenderWindow* is provided.
-		*/
-		RHI::WindowSurface* mWindowSurface = nullptr;
-
 	//{ Device
 
 		RHI::Device* mDevice = nullptr;
 
 		virtual RHI::DeviceRequirements GetDeviceRequirements() const;
 
+		RHI::Context* mContext = nullptr;
+
 	//}
+
+
+	//{ Surface
+
+		/**
+		* \brief Window surface to render to.
+		* Optionnal if IRenderWindow* is provided.
+		*/
+		RHI::WindowSurface* mWindowSurface = nullptr;
 
 		/**
 		* \brief Swapchain to render to.
@@ -37,9 +42,25 @@ namespace SA::RND
 		*/
 		RHI::Swapchain* mSwapchain = nullptr;
 
+		void CreateWindowDependentResources(const RendererSettings& _settings);
+		void DestroyWindowDependentResources(bool bResizeEvent = false);
+		void ResizeWindowCallback();
 
-		RHI::Context* mContext = nullptr;
+	//}
 
+
+		RHI::CommandPool* mCmdPool = nullptr;
+
+
+	//{ Scene Textures
+
+		virtual SceneTextures* InstantiateSceneTexturesClass() = 0;
+		virtual void DeleteSceneTexturesClass(SceneTextures* _sceneTextures) = 0;
+
+	//}
+
+
+	//{ Frames
 
 		struct Frame
 		{
@@ -51,11 +72,15 @@ namespace SA::RND
 
 		std::vector<Frame> mFrames;
 
+		/**
+		* \brief Create SceneTextures and associated FrameBuffers.
+		*/
+		virtual void CreateWindowDependentFrameResources(const RendererSettings::RenderPassSettings& _settings, Frame& _frame, uint32_t _frameIndex);
 
-	//{ Scene Textures
-
-		virtual SceneTextures* InstantiateSceneTexturesClass() = 0;
-		virtual void DeleteSceneTexturesClass(SceneTextures* _sceneTextures) = 0;
+		/**
+		* \brief Destroy SceneTextures and associated FrameBuffers.
+		*/
+		virtual void DestroyWindowDependentFrameResources(Frame& _frame);
 
 	//}
 

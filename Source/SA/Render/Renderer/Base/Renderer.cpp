@@ -29,18 +29,11 @@ namespace SA::RND
 			mDevice = mInterface->CreateDevice(infos[0].get());
 		}
 
-		if (mWindowSurface)
-		{
-			RHI::SwapchainSettings swapchainSettings{};
-			swapchainSettings.frameNum = _settings.swapchain.bufferingCount,
-
-			mSwapchain = mInterface->CreateSwapchain(mDevice, mWindowSurface, swapchainSettings);
-		}
-
 		mContext = mDevice->CreateContext();
 
-		const uint32_t bufferingCount = mSwapchain ? mSwapchain->GetImageNum() : _settings.swapchain.bufferingCount;
-		SA_ASSERT((NotEquals, bufferingCount, uint32_t(-1)), L"Must provide valid bufferingCount parameters without mWindowSurface.");
+		mCmdPool = mContext->CreateCommandPool();
+
+		CreateWindowDependentResources(_settings);
 	}
 
 	void Renderer::Destroy()
@@ -59,9 +52,111 @@ namespace SA::RND
 		return RHI::DeviceRequirements();
 	}
 
-//{ Scene Textures
+
+//{ Surface
+
+	void Renderer::CreateWindowDependentResources(const RendererSettings& _settings)
+	{
+		if (mWindowSurface)
+		{
+			RHI::SwapchainSettings swapchainSettings{};
+			swapchainSettings.frameNum = _settings.swapchain.bufferingCount;
+
+			mSwapchain = mInterface->CreateSwapchain(mDevice, mWindowSurface, swapchainSettings);
+		}
+		else
+		{
+			SA_ASSERT((NotEquals, _settings.swapchain.bufferingCount, uint32_t(-1)), L"Must provide valid bufferingCount parameters without mWindowSurface.");
+			SA_ASSERT((NotEquals, _settings.pass.extents, Vec2ui(-1)), L"Must provide valid pass extents parameters without mWindowSurface.");
+		}
+
+		// Create frames
+		{
+			const uint32_t bufferingCount = mSwapchain ? mSwapchain->GetImageNum() : _settings.swapchain.bufferingCount;
+			mFrames.resize(bufferingCount);
+
+			for (auto& frame : mFrames)
+			{
+				if(frame.cmdBuffer == nullptr)
+					frame.cmdBuffer = mCmdPool->Allocate();
+
+				CreateWindowDependentFrameResources(_settings.pass, frame);
+			}
+		}
+	}
+	
+	void Renderer::DestroyWindowDependentResources(bool bResizeEvent)
+	{
+		if (mSwapchain)
+		{
+			mInterface->DestroySwapchain(mDevice, mSwapchain);
+			mSwapchain = nullptr;
+		}
+
+		// Destroy frames
+		{
+			for (auto& frame : mFrames)
+			{
+				if (!bResizeEvent)
+					mCmdPool->Free(frame.cmdBuffer);
+
+				DestroyWindowDependentFrameResources(frame);
+			}
+
+			if (!bResizeEvent)
+				mFrames.clear();
+		}
+	}
+
+	void Renderer::ResizeWindowCallback()
+	{
+		DestroyWindowDependentResources(true);
+		CreateWindowDependentResources(RendererSettings()); // TODO: Save Settings.
+	}
+
+//}
 
 
+//{ Frames
+
+	void Renderer::CreateWindowDependentFrameResources(const RendererSettings::RenderPassSettings& _settings, Frame& _frame, uint32_t _frameIndex)
+	{
+		(void)_frameIndex;
+
+		// Depth Textures
+		{
+			SA::RND::TextureDescriptor desc
+			{
+				.extents = mSwapchain ? mSwapchain->GetExtents() : _settings.extents,
+				.mipLevels = 1u,
+				.format = _settings.depth.format,
+				.sampling = _settings.MSAA,
+				.usage = TextureUsage::RenderTarget | TextureUsage::Depth,
+			};
+
+			if (_settings.depth.bPrepass)
+				desc.usage |= TextureUsage::Input;
+
+			_frame.sceneTextures->depth.texture = mContext->CreateTexture(desc);
+
+			if (_settings.MSAA != RHI::Sampling::S1Bit)
+			{
+				desc.sampling = RHI::Sampling::S1Bit;
+				_frame.sceneTextures->depth.resolved = mContext->CreateTexture(desc);
+			}
+		}
+	}
+	
+	void Renderer::DestroyWindowDependentFrameResources(Frame& _frame)
+	{
+		// Depth Textures
+		{
+			mContext->DestroyTexture(_frame.sceneTextures->depth.texture);
+
+			if (_frame.sceneTextures->depth.resolved)
+				mContext->DestroyTexture(_frame.sceneTextures->depth.resolved);
+		}
+	}
 
 //}
 }
