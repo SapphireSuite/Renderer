@@ -16,16 +16,10 @@ namespace SA::RND
 	protected:
 	//{ Scene Textures
 
-		DeferredSceneTextures mSceneTextures;
-
-		SceneTextures& GetSceneTextures() override final;
-
-		void CreateSceneTextures(const RendererSettings::RenderPassSettings& _settings) override final;
-		void DestroySceneTextures() override final;
+		SceneTextures* InstantiateSceneTexturesClass() override final;
+		void DeleteSceneTexturesClass(SceneTextures* _sceneTextures) override final;
 
 	//}
-
-		void MakeRenderPassInfo(const RendererSettings::RenderPassSettings& _settings, RHI::RenderPassInfo& _passInfo) override final;
 	};
 }
 

@@ -41,34 +41,23 @@ namespace SA::RND
 		RHI::Context* mContext = nullptr;
 
 
+		struct Frame
+		{
+			SceneTextures* sceneTextures = nullptr;
+			RHI::FrameBuffer* frameBuffer = nullptr;
+			
+			RHI::CommandBuffer* cmdBuffer = nullptr;
+		};
+
+		std::vector<Frame> mFrames;
+
+
 	//{ Scene Textures
 
-		virtual SceneTextures& GetSceneTextures() = 0;
-
-		virtual void CreateSceneTextures(const RendererSettings::RenderPassSettings& _settings);
-		virtual void DestroySceneTextures();
+		virtual SceneTextures* InstantiateSceneTexturesClass() = 0;
+		virtual void DeleteSceneTexturesClass(SceneTextures* _sceneTextures) = 0;
 
 	//}
-
-
-	//{ RenderPass
-		
-		RHI::RenderPass* mMainPass = nullptr;
-
-		Vec2ui GetRenderExtents(const RendererSettings::RenderPassSettings& _settings) const;
-
-		virtual void MakeRenderPassInfo(const RendererSettings::RenderPassSettings& _settings, RHI::RenderPassInfo& _passInfo);
-		void AddDepthAttachment(const RendererSettings::RenderPassSettings& _settings, RHI::SubpassInfo& _subpassInfo);
-
-		void CreateRenderPass(const RendererSettings::RenderPassSettings& _settings);
-		void DestroyRenderPass();
-
-	//}
-
-		std::vector<RHI::FrameBuffer*> mFrameBuffers;
-		
-		RHI::CommandPool* mCmdPool = nullptr;
-		std::vector<RHI::CommandBuffer*> mCmdBuffers;
 
 
 	public:

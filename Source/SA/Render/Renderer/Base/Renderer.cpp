@@ -37,28 +37,15 @@ namespace SA::RND
 			mSwapchain = mInterface->CreateSwapchain(mDevice, mWindowSurface, swapchainSettings);
 		}
 
-		const uint32_t bufferingCount = mSwapchain ? mSwapchain->GetImageNum() : _settings.swapchain.bufferingCount;
-
-		SA_ASSERT((NotEquals, bufferingCount, uint32_t(-1)), L"Must provide valid bufferingCount parameters without mWindowSurface.");
-
 		mContext = mDevice->CreateContext();
 
-		CreateSceneTextures(_settings.pass);
-		CreateRenderPass(_settings.pass);
-		
-		mFrameBuffers.resize(mSwapchain ? mSwapchain->GetImageNum() : _settings.swapchain.bufferingCount);
-		for (uint32_t i = 0; i < mFrameBuffers.size(); ++i)
-			mFrameBuffers[i] = mContext->CreateFrameBuffer(mMainPass, mSwapchain ? mSwapchain->GetBackBufferHandle(i) : nullptr);
-
-		mCmdPool = mContext->CreateCommandPool();
-		mCmdBuffers = mCmdPool->Allocate(mSwapchain ? mSwapchain->GetImageNum() : _settings.swapchain.bufferingCount);
+		const uint32_t bufferingCount = mSwapchain ? mSwapchain->GetImageNum() : _settings.swapchain.bufferingCount;
+		SA_ASSERT((NotEquals, bufferingCount, uint32_t(-1)), L"Must provide valid bufferingCount parameters without mWindowSurface.");
 	}
 
 	void Renderer::Destroy()
 	{
 		mDevice->WaitIdle();
-
-		DestroyRenderPass();
 
 		mInterface->DestroyDevice(mDevice);
 		
@@ -74,103 +61,7 @@ namespace SA::RND
 
 //{ Scene Textures
 
-	void Renderer::CreateSceneTextures(const RendererSettings::RenderPassSettings& _settings)
-	{
-		SceneTextures& sceneTextures = GetSceneTextures();
 
-		// Depth
-		{
-			SA::RND::TextureDescriptor desc
-			{
-				.extents = mSwapchain->GetExtents(),
-				.mipLevels = 1u,
-				.format = _settings.depth.format,
-				.sampling = _settings.MSAA,
-				.usage = TextureUsage::RenderTarget | TextureUsage::Depth,
-			};
-
-			if(_settings.depth.bPrepass)
-				desc.usage |= TextureUsage::Input;
-
-			sceneTextures.depth.texture = mContext->CreateTexture(desc);
-
-			if (_settings.MSAA != RHI::Sampling::S1Bit)
-			{
-				desc.sampling = Sampling::S1Bit;
-				sceneTextures.depth.resolved = mContext->CreateTexture(desc);
-			}
-		}
-	}
-	
-	void Renderer::DestroySceneTextures()
-	{
-		SceneTextures& sceneTextures = GetSceneTextures();
-
-		mContext->DestroyTexture(sceneTextures.depth.texture);
-
-		if (sceneTextures.depth.resolved)
-			mContext->DestroyTexture(sceneTextures.depth.resolved);
-	}
-
-//}
-
-//{ RenderPass
-
-	Vec2ui Renderer::GetRenderExtents(const RendererSettings::RenderPassSettings& _settings) const
-	{
-		if (_settings.extents != Vec2ui(-1))
-			return _settings.extents;
-
-		SA_ASSERT((Default, mSwapchain), SA.Render.Renderer, L"Must provide valid render extents without swapchain!");
-
-		return mSwapchain->GetExtents();
-	}
-
-	void Renderer::MakeRenderPassInfo(const RendererSettings::RenderPassSettings& _settings, RHI::RenderPassInfo& _passInfo)
-	{
-		const Vec2ui extents = GetRenderExtents(_settings);
-
-		if (_settings.depth.bEnabled && _settings.depth.bPrepass)
-		{
-			auto& depthPass = _passInfo.AddSubpass("Depth-Only Prepass");
-			depthPass.sampling = _settings.MSAA;
-
-			AddDepthAttachment(_settings, depthPass);
-
-			depthPass.SetAllAttachmentExtents(extents);
-		}
-	}
-	
-	void Renderer::AddDepthAttachment(const RendererSettings::RenderPassSettings& _settings, RHI::SubpassInfo& _subpassInfo)
-	{
-		auto& depthRT = _subpassInfo.AddAttachment("Depth");
-		depthRT.format = _settings.depth.format;
-		depthRT.type = AttachmentType::Depth;
-		depthRT.usage = AttachmentUsage::InputNext;
-
-		if (_settings.depth.bInvertedDepth)
-		{
-			depthRT.clearColor = Color::black;
-		}
-		else
-		{
-			depthRT.clearColor = Color::white;
-		}
-	}
-
-	void Renderer::CreateRenderPass(const RendererSettings::RenderPassSettings& _settings)
-	{
-		RHI::RenderPassInfo passInfo;
-		MakeRenderPassInfo(_settings, passInfo);
-
-		mMainPass = mContext->CreateRenderPass(passInfo);
-	}
-
-	void Renderer::DestroyRenderPass()
-	{
-		mContext->DestroyRenderPass(mMainPass);
-		mMainPass = nullptr;
-	}
 
 //}
 }
