@@ -75,36 +75,45 @@ namespace SA::RND
 			const uint32_t bufferingCount = mSwapchain ? mSwapchain->GetImageNum() : _settings.swapchain.bufferingCount;
 			mFrames.resize(bufferingCount);
 
-			for (auto& frame : mFrames)
+			for (uint32_t i = 0; i < bufferingCount; ++i)
 			{
+				auto& frame = mFrames[i];
+
 				if(frame.cmdBuffer == nullptr)
 					frame.cmdBuffer = mCmdPool->Allocate();
 
-				CreateWindowDependentFrameResources(_settings.pass, frame);
+				if (frame.sceneTextures == nullptr)
+					frame.sceneTextures = InstantiateSceneTexturesClass();
+
+				CreateSceneTextureResources(_settings.pass, frame.sceneTextures, i);
 			}
 		}
 	}
 	
 	void Renderer::DestroyWindowDependentResources(bool bResizeEvent)
 	{
-		if (mSwapchain)
-		{
-			mInterface->DestroySwapchain(mDevice, mSwapchain);
-			mSwapchain = nullptr;
-		}
-
 		// Destroy frames
 		{
 			for (auto& frame : mFrames)
 			{
-				if (!bResizeEvent)
-					mCmdPool->Free(frame.cmdBuffer);
+				DestroySceneTextureResources(frame.sceneTextures);
 
-				DestroyWindowDependentFrameResources(frame);
+				if (!bResizeEvent)
+				{
+					DeleteSceneTexturesClass(frame.sceneTextures);
+
+					mCmdPool->Free(frame.cmdBuffer);
+				}
 			}
 
 			if (!bResizeEvent)
 				mFrames.clear();
+		}
+
+		if (mSwapchain)
+		{
+			mInterface->DestroySwapchain(mDevice, mSwapchain);
+			mSwapchain = nullptr;
 		}
 	}
 
@@ -119,7 +128,7 @@ namespace SA::RND
 
 //{ Frames
 
-	void Renderer::CreateWindowDependentFrameResources(const RendererSettings::RenderPassSettings& _settings, Frame& _frame, uint32_t _frameIndex)
+	void Renderer::CreateSceneTextureResources(const RendererSettings::RenderPassSettings& _settings, SceneTextures* _sceneTextures, uint32_t _frameIndex)
 	{
 		(void)_frameIndex;
 
@@ -137,24 +146,24 @@ namespace SA::RND
 			if (_settings.depth.bPrepass)
 				desc.usage |= TextureUsage::Input;
 
-			_frame.sceneTextures->depth.texture = mContext->CreateTexture(desc);
+			_sceneTextures->depth.texture = mContext->CreateTexture(desc);
 
 			if (_settings.MSAA != RHI::Sampling::S1Bit)
 			{
 				desc.sampling = RHI::Sampling::S1Bit;
-				_frame.sceneTextures->depth.resolved = mContext->CreateTexture(desc);
+				_sceneTextures->depth.resolved = mContext->CreateTexture(desc);
 			}
 		}
 	}
 	
-	void Renderer::DestroyWindowDependentFrameResources(Frame& _frame)
+	void Renderer::DestroySceneTextureResources(SceneTextures* _sceneTextures)
 	{
 		// Depth Textures
 		{
-			mContext->DestroyTexture(_frame.sceneTextures->depth.texture);
+			mContext->DestroyTexture(_sceneTextures->depth.texture);
 
-			if (_frame.sceneTextures->depth.resolved)
-				mContext->DestroyTexture(_frame.sceneTextures->depth.resolved);
+			if (_sceneTextures->depth.resolved)
+				mContext->DestroyTexture(_sceneTextures->depth.resolved);
 		}
 	}
 

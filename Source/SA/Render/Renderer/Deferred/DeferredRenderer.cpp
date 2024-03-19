@@ -16,46 +16,43 @@ namespace SA::RND
 		delete static_cast<DeferredSceneTextures*>(_sceneTextures);
 	}
 
-	void DeferredRenderer::CreateWindowDependentFrameResources(const RendererSettings::RenderPassSettings& _settings, Frame& _frame, uint32_t _frameIndex)
+	void DeferredRenderer::CreateSceneTextureResources(const RendererSettings::RenderPassSettings& _settings, SceneTextures* _sceneTextures, uint32_t _frameIndex)
 	{
-		Renderer::CreateWindowDependentFrameResources(_settings, _frame, _frameIndex);
+		Renderer::CreateSceneTextureResources(_settings, _sceneTextures, _frameIndex);
 
-		// Scene Textures
-		{
-			DeferredSceneTextures& const dSceneTextures = *static_cast<DeferredSceneTextures*>(_frame.sceneTextures);
+		DeferredSceneTextures& const dSceneTextures = *static_cast<DeferredSceneTextures*>(_sceneTextures);
 			
-			// GBuffer
+		// GBuffer
+		{
+			SA::RND::TextureDescriptor desc
 			{
-				SA::RND::TextureDescriptor desc
-				{
-					.extents = mSwapchain ? mSwapchain->GetExtents() : _settings.extents,
-					.mipLevels = 1u,
-					.format = Format::R8G8B8A8_UNORM,
-					.sampling = _settings.MSAA,
-					.usage = TextureUsage::RenderTarget,
-				};
+				.extents = mSwapchain ? mSwapchain->GetExtents() : _settings.extents,
+				.mipLevels = 1u,
+				.format = Format::R8G8B8A8_UNORM,
+				.sampling = _settings.MSAA,
+				.usage = TextureUsage::RenderTarget,
+			};
 
-				dSceneTextures.gbuffer.position = mContext->CreateTexture(desc);
-				dSceneTextures.gbuffer.normal = mContext->CreateTexture(desc);
+			dSceneTextures.gbuffer.position = mContext->CreateTexture(desc);
+			dSceneTextures.gbuffer.normal = mContext->CreateTexture(desc);
 
-				dSceneTextures.gbuffer.color = mContext->CreateTexture(desc);
+			dSceneTextures.gbuffer.color = mContext->CreateTexture(desc);
 
-				desc.format = Format::R8G8_UNORM;
-				dSceneTextures.gbuffer.metallicRoughness = mContext->CreateTexture(desc);
+			desc.format = Format::R8G8_UNORM;
+			dSceneTextures.gbuffer.metallicRoughness = mContext->CreateTexture(desc);
 
-				desc.format = Format::R8_UNORM;
-				dSceneTextures.gbuffer.ao = mContext->CreateTexture(desc);
-			}
+			desc.format = Format::R8_UNORM;
+			dSceneTextures.gbuffer.ao = mContext->CreateTexture(desc);
 		}
 	}
 	
-	void DeferredRenderer::DestroyWindowDependentFrameResources(Frame& _frame)
+	void DeferredRenderer::DestroySceneTextureResources(SceneTextures* _sceneTextures)
 	{
-		Renderer::DestroyWindowDependentFrameResources(_frame);
+		Renderer::DestroySceneTextureResources(_sceneTextures);
 
 		// Scene Textures
 		{
-			DeferredSceneTextures& const dSceneTextures = *static_cast<DeferredSceneTextures*>(_frame.sceneTextures);
+			DeferredSceneTextures& const dSceneTextures = *static_cast<DeferredSceneTextures*>(_sceneTextures);
 
 			// GBuffer
 			{

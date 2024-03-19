@@ -52,14 +52,6 @@ namespace SA::RND
 		RHI::CommandPool* mCmdPool = nullptr;
 
 
-	//{ Scene Textures
-
-		virtual SceneTextures* InstantiateSceneTexturesClass() = 0;
-		virtual void DeleteSceneTexturesClass(SceneTextures* _sceneTextures) = 0;
-
-	//}
-
-
 	//{ Frames
 
 		struct Frame
@@ -72,15 +64,16 @@ namespace SA::RND
 
 		std::vector<Frame> mFrames;
 
-		/**
-		* \brief Create SceneTextures and associated FrameBuffers.
-		*/
-		virtual void CreateWindowDependentFrameResources(const RendererSettings::RenderPassSettings& _settings, Frame& _frame, uint32_t _frameIndex);
+	//}
 
-		/**
-		* \brief Destroy SceneTextures and associated FrameBuffers.
-		*/
-		virtual void DestroyWindowDependentFrameResources(Frame& _frame);
+
+	//{ Scene Textures
+
+		virtual SceneTextures* InstantiateSceneTexturesClass() = 0;
+		virtual void DeleteSceneTexturesClass(SceneTextures* _sceneTextures) = 0;
+
+		virtual void CreateSceneTextureResources(const RendererSettings::RenderPassSettings& _settings, SceneTextures* _sceneTextures, uint32_t _frameIndex);
+		virtual void DestroySceneTextureResources(SceneTextures* _sceneTextures);
 
 	//}
 

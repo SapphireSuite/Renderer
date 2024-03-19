@@ -19,13 +19,8 @@ namespace SA::RND
 		SceneTextures* InstantiateSceneTexturesClass() override final;
 		void DeleteSceneTexturesClass(SceneTextures* _sceneTextures) override final;
 
-	//}
-
-
-	//{ Frames
-
-		void CreateWindowDependentFrameResources(const RendererSettings::RenderPassSettings& _settings, Frame& _frame, uint32_t _frameIndex) override final;
-		void DestroyWindowDependentFrameResources(Frame& _frame) override final;
+		void CreateSceneTextureResources(const RendererSettings::RenderPassSettings& _settings, SceneTextures* _sceneTextures, uint32_t _frameIndex) override final;
+		void DestroySceneTextureResources(SceneTextures* _sceneTextures) override final;
 
 	//}
 	};
