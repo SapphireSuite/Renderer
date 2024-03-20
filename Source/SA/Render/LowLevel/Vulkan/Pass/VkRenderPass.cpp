@@ -147,17 +147,17 @@ namespace SA::RND::VK
 							.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
 						});
 
-						if (resolvedDesc.usage == TextureUsage::Input)
+						if (resolvedDesc.usage & TextureUsage::Input)
 						{
 							if(resolvedDesc.usage & TextureUsage::Depth)
 								resolveAttachDesc.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
 							else
 								resolveAttachDesc.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 						}
-						else if (resolvedDesc.usage == TextureUsage::Present)
+						else if (resolvedDesc.usage & TextureUsage::Present)
 							resolveAttachDesc.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 					}
-					else if (desc.usage == TextureUsage::Present)
+					else if (desc.usage & TextureUsage::Present)
 						attachDesc.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 				}
 			}

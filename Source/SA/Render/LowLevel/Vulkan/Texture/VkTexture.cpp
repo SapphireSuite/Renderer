@@ -221,7 +221,7 @@ namespace SA::RND::VK
 		mDescriptor.mipLevels = 1u;
 		mDescriptor.format = API_GetFormat(_swapchain.GetFormat());
 		mDescriptor.sampling = Sampling::S1Bit;
-		mDescriptor.usage = TextureUsage::Present;
+		mDescriptor.usage = TextureUsage::RenderTarget | TextureUsage::Present;
 
 		mImage = _swapchain.GetBackBufferHandle(_imageIndex);
 	}

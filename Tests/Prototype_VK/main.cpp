@@ -226,7 +226,7 @@ void Init()
 						auto& mainSubpass = passInfo.AddSubpass("Main");
 
 						// Color and present attachment.
-						auto& colorRT = mainSubpass.AddAttachment("Color", &sceneTextures[i].color, &sceneTextures[i].resolvedColor);
+						auto& colorRT = mainSubpass.AddAttachment("Color", &sceneTextures[i].color, bMSAA ? &sceneTextures[i].resolvedColor : nullptr);
 
 						if (bDepth)
 						{
