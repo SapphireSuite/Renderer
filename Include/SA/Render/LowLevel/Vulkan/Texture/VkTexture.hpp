@@ -45,6 +45,8 @@ namespace SA::RND::VK
 		void CreateFromImage(const Device& _device, const Swapchain& _swapchain, uint32_t _imageIndex);
 		
 		void Destroy(const Device& _device);
+
+		operator VkImage() const noexcept;
 	};
 }
 

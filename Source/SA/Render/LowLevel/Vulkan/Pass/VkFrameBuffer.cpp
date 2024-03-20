@@ -7,93 +7,92 @@
 
 namespace SA::RND::VK
 {
+	void FrameBuffer::EmplaceImage(const Device& _device, const AttachmentInfo<Texture>& _attach, Texture* _texture)
+	{
+		const TextureDescriptor& desc = _texture->GetDescriptor();
+
+		// TODO: better impl.
+		mExtents.x = std::min(mExtents.x, desc.extents.x);
+		mExtents.y = std::min(mExtents.y, desc.extents.y);
+
+		VkImageViewCreateInfo info
+		{
+			.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+			.pNext = nullptr,
+			.flags = 0,
+			.image = *_texture,
+			.viewType = VK_IMAGE_VIEW_TYPE_2D, // TODO: set to VK_IMAGE_VIEW_TYPE_CUBE for cubemap.
+			.format = API_GetFormat(desc.format),
+			.components = VkComponentMapping{
+				.r = VK_COMPONENT_SWIZZLE_IDENTITY,
+				.g = VK_COMPONENT_SWIZZLE_IDENTITY,
+				.b = VK_COMPONENT_SWIZZLE_IDENTITY,
+				.a = VK_COMPONENT_SWIZZLE_IDENTITY,
+			},
+			.subresourceRange = VkImageSubresourceRange{
+				.aspectMask = 0u,
+				.baseMipLevel = 0u,
+				.levelCount = desc.mipLevels,
+				.baseArrayLayer = 0u,
+				.layerCount = 1u, // TODO: set to 6 for cubemap.
+			},
+		};
+
+		if (desc.usage == TextureUsage::Depth)
+		{
+			info.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_DEPTH_BIT;
+
+			if (_attach.loadMode == AttachmentLoadMode::Clear)
+			{
+				VkClearValue depthClearValue{
+					.depthStencil = VkClearDepthStencilValue{
+						.depth = _attach.clearColor.r,
+						.stencil = static_cast<uint32_t>(_attach.clearColor.g),
+					}
+				};
+				mClearValues.push_back(depthClearValue);
+			}
+		}
+		else
+		{
+			info.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_COLOR_BIT;
+
+			if (_attach.loadMode == AttachmentLoadMode::Clear)
+				mClearValues.push_back(_attach.clearColor);
+		}
+
+		auto& imageView = mImageViews.emplace_back();
+
+		SA_VK_API(vkCreateImageView(_device, &info, nullptr, &imageView), L"Failed to create image view!");
+		SA_LOG(L"Image View created.", Info, SA.Render.Vulkan, (L"Handle [%1]", imageView));
+	}
+
 	void FrameBuffer::Create(const Device& _device,
 			const RenderPass& _pass,
-			const RenderPassInfo& _info,
-			VkImage _presentImage)
+			const RenderPassInfo& _info)
 	{
 		mExtents = Vec2ui{INT_MAX, INT_MAX};
 
-		for(auto& subpass : _info.subpasses)
+		mImageViews.reserve(_info.subpasses.size() * 8);
+
+		for (auto& subpass : _info.subpasses)
 		{
-			for(auto& attach : subpass.attachments)
+			for (auto& attach : subpass.attachments)
 			{
-				VK::ImageBufferInfo imgInfo;
+				EmplaceImage(_device, attach, attach.texture);
 
-				imgInfo.sampling = subpass.sampling;
-
-				imgInfo.format = attach.format;
-				imgInfo.extents = attach.extents;
-
-				mExtents.x = std::min(mExtents.x, attach.extents.x);
-				mExtents.y = std::min(mExtents.y, attach.extents.y);
-
-				if(attach.type == AttachmentType::Color)
-				{
-					imgInfo.usage |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-					imgInfo.aspectFlags |= VK_IMAGE_ASPECT_COLOR_BIT;
-
-					if(imgInfo.sampling > VK_SAMPLE_COUNT_1_BIT)
-					{
-						// Add multisampled image
-						ImageBuffer& multSampledImg = mAttachments.emplace_back();
-						multSampledImg.Create(_device, imgInfo);
-
-						if(attach.loadMode == VK_ATTACHMENT_LOAD_OP_CLEAR) // multisampled clear color.
-							mClearValues.push_back(attach.clearColor);
-
-						// reset current to single sampling for resolution.
-						imgInfo.sampling = VK_SAMPLE_COUNT_1_BIT;
-					}
-
-					if(attach.loadMode == VK_ATTACHMENT_LOAD_OP_CLEAR)
-						mClearValues.push_back(attach.clearColor);
-				}
-				else if(attach.type == AttachmentType::Depth)
-				{
-					imgInfo.usage |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
-					imgInfo.aspectFlags |= VK_IMAGE_ASPECT_DEPTH_BIT;
-
-					if(attach.loadMode == VK_ATTACHMENT_LOAD_OP_CLEAR)
-						mClearValues.push_back(VkClearValue{ { { attach.clearColor.r, attach.clearColor.g } } });
-				}
-
-
-				ImageBuffer& imgBuffer = mAttachments.emplace_back();
-
-				if(attach.usage == AttachmentUsage::Present)
-				{
-					SA_ASSERT((Default, _presentImage != VK_NULL_HANDLE), SA.Render.Vulkan,
-						L"Input present image handle must be valid with AttachmentUsage::Present");
-
-					imgBuffer.CreateFromImage(_device, _presentImage, imgInfo);
-				}
-				else
-				{
-					if(attach.usage == AttachmentUsage::InputNext)
-						imgInfo.usage |= VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;
-
-					imgBuffer.Create(_device, imgInfo);
-				}
+				if(attach.resolved)
+					EmplaceImage(_device, attach, attach.resolved);
 			}
 		}
 	
-
-		// Image views only required.
-		std::vector<VkImageView> views;
-		views.reserve(mAttachments.size());
-
-		for(const auto& imgBuffer : mAttachments)
-			views.emplace_back(imgBuffer);
-		//
-
 		VkFramebufferCreateInfo createInfo{};
 		createInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
 		createInfo.pNext = nullptr;
 		createInfo.flags = 0;
 		createInfo.renderPass = _pass;
-		createInfo.attachmentCount = static_cast<uint32_t>(views.size());
-		createInfo.pAttachments = views.data();
+		createInfo.attachmentCount = static_cast<uint32_t>(mImageViews.size());
+		createInfo.pAttachments = mImageViews.data();
 		createInfo.width = mExtents.x;
 		createInfo.height = mExtents.y;
 		createInfo.layers = 1;
@@ -107,11 +106,16 @@ namespace SA::RND::VK
 	void FrameBuffer::Destroy(const Device& _device)
 	{
 		SA_VK_API(vkDestroyFramebuffer(_device, mHandle, nullptr));
-		
-		for(auto& attach : mAttachments)
-			attach.Destroy(_device);
 
-		mAttachments.clear();
+		for (auto& view : mImageViews)
+		{
+			SA_VK_API(vkDestroyImageView(_device, view, nullptr));
+
+			SA_LOG(L"Image View destroyed.", Info, SA.Render.Vulkan, (L"Handle [%1]", view));
+		}
+
+		mImageViews.clear();
+
 		mClearValues.clear();
 
 		SA_LOG("FrameBuffer destroyed.", Info, SA.Render.Vulkan, (L"Handle [%1]", mHandle));
@@ -130,12 +134,6 @@ namespace SA::RND::VK
 		return mClearValues;
 	}
 
-	const ImageBuffer& FrameBuffer::GetAttachment(uint32_t _index) const
-	{
-		SA_ASSERT((OutOfArrayRange, _index, mAttachments), SA.Render.Vulkan, L"Attachment index out of framebuffer attachments range");
-
-		return mAttachments[_index];
-	}
 
 	FrameBuffer::operator VkFramebuffer() const noexcept
 	{

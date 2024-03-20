@@ -251,4 +251,9 @@ namespace SA::RND::VK
 			mImage = VK_NULL_HANDLE;
 		}
 	}
+
+	Texture::operator VkImage() const noexcept
+	{
+		return mImage;
+	}
 }
