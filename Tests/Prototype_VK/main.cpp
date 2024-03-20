@@ -821,10 +821,25 @@ void Uninit()
 		objectDescSetLayout.Destroy(device);
 		objectDescPool.Destroy(device);
 
+		depthBufferDescSetLayout.Destroy(device);
+		depthBufferDescPool.Destroy(device);
+
 		for(auto& frameBuffer : frameBuffers)
 			frameBuffer.Destroy(device);
 
 		renderPass.Destroy(device);
+
+		for (auto& sceneTexture : sceneTextures)
+		{
+			if (sceneTexture.depth)
+				sceneTexture.depth.Destroy(device);
+
+			if (sceneTexture.color)
+				sceneTexture.color.Destroy(device);
+
+			if (sceneTexture.resolvedColor)
+				sceneTexture.resolvedColor.Destroy(device);
+		}
 
 		cmdPool.Destroy(device);
 

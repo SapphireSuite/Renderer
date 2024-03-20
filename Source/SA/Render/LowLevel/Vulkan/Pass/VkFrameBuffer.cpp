@@ -38,7 +38,7 @@ namespace SA::RND::VK
 			},
 		};
 
-		if (desc.usage == TextureUsage::Depth)
+		if (desc.usage & TextureUsage::Depth)
 		{
 			info.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_DEPTH_BIT;
 
