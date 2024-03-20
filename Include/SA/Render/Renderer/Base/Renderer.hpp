@@ -67,6 +67,17 @@ namespace SA::RND
 	//}
 
 
+	//{ RenderPass
+
+		RHI::RenderPass* mMainRenderPass = nullptr;
+
+		void AddDepthAttachment(const RendererSettings::RenderPassSettings& _settings, SceneTextures* _sceneTextures, SubpassInfo<RHI::Texture>& _subpassInfo);
+		SubpassInfo<RHI::Texture>& AddPresentSubpass(const RendererSettings::RenderPassSettings& _settings, SceneTextures* _sceneTextures, RHI::RenderPassInfo& _passInfo);
+		virtual void FillRenderPassInfo(const RendererSettings::RenderPassSettings& _settings, SceneTextures* _sceneTextures, RHI::RenderPassInfo& _passInfo) = 0;
+
+	//}
+
+
 	//{ Scene Textures
 
 		virtual SceneTextures* InstantiateSceneTexturesClass() = 0;

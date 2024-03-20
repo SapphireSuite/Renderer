@@ -86,6 +86,17 @@ namespace SA::RND
 					frame.sceneTextures = InstantiateSceneTexturesClass();
 
 				CreateSceneTextureResources(_settings.pass, frame.sceneTextures, i);
+
+				RHI::RenderPassInfo MainPassInfo;
+				FillRenderPassInfo(_settings.pass, frame.sceneTextures, MainPassInfo);
+
+				if (mMainRenderPass == nullptr)
+				{
+					mMainRenderPass = mContext->CreateRenderPass(MainPassInfo);
+				}
+
+				// TODO: impl
+				//frame.frameBuffer = mContext->CreateFrameBuffer(mMainRenderPass, MainPassInfo);
 			}
 		}
 	}
@@ -96,10 +107,14 @@ namespace SA::RND
 		{
 			for (auto& frame : mFrames)
 			{
+				mContext->DestroyFrameBuffer(frame.frameBuffer);
 				DestroySceneTextureResources(frame.sceneTextures);
 
 				if (!bResizeEvent)
 				{
+					mContext->DestroyRenderPass(mMainRenderPass);
+					mMainRenderPass = nullptr;
+
 					DeleteSceneTexturesClass(frame.sceneTextures);
 
 					mCmdPool->Free(frame.cmdBuffer);
@@ -121,6 +136,34 @@ namespace SA::RND
 	{
 		DestroyWindowDependentResources(true);
 		CreateWindowDependentResources(RendererSettings()); // TODO: Save Settings.
+	}
+
+//}
+
+
+//{ RenderPass
+
+	void Renderer::AddDepthAttachment(const RendererSettings::RenderPassSettings& _settings, SceneTextures* _sceneTextures, SubpassInfo<RHI::Texture>& _subpassInfo)
+	{
+		auto& depthRT = _subpassInfo.AddAttachment("Depth", _sceneTextures->depth.texture, _sceneTextures->depth.resolved);
+
+		if (_settings.depth.bInvertedDepth)
+		{
+			depthRT.clearColor = Color{ .r = 0.0f, .g = 0.0f };
+		}
+		else
+		{
+			depthRT.clearColor = Color{ .r = 1.0f, .g = 0.0f };
+		}
+	}
+
+	SubpassInfo<RHI::Texture>& Renderer::AddPresentSubpass(const RendererSettings::RenderPassSettings& _settings, SceneTextures* _sceneTextures, RHI::RenderPassInfo& _passInfo)
+	{
+		auto& presentSubpass = _passInfo.AddSubpass("Present Pass");
+
+		auto& presentRT = presentSubpass.AddAttachment("Color", _sceneTextures->color.texture, _sceneTextures->color.resolved);
+
+		return presentSubpass;
 	}
 
 //}
@@ -154,6 +197,35 @@ namespace SA::RND
 				_sceneTextures->depth.resolved = mContext->CreateTexture(desc);
 			}
 		}
+
+		// Color Textures
+		{
+			SA::RND::TextureDescriptor desc
+			{
+				.extents = mSwapchain ? mSwapchain->GetExtents() : _settings.extents,
+				.mipLevels = 1u,
+				.format = mSwapchain ? mSwapchain->GetFormat() : Format::R8G8B8A8_SNORM,
+				.sampling = _settings.MSAA,
+				.usage = TextureUsage::RenderTarget,
+			};
+
+			if (_settings.MSAA != RHI::Sampling::S1Bit)
+			{
+				_sceneTextures->color.texture = mContext->CreateTexture(desc);
+
+				if (mSwapchain)
+					_sceneTextures->color.resolved = mContext->CreateTexture(mSwapchain, _frameIndex);
+				else
+					_sceneTextures->color.resolved = mContext->CreateTexture(desc);
+			}
+			else
+			{
+				if (mSwapchain)
+					_sceneTextures->color.texture = mContext->CreateTexture(mSwapchain, _frameIndex);
+				else
+					_sceneTextures->color.texture = mContext->CreateTexture(desc);
+			}
+		}
 	}
 	
 	void Renderer::DestroySceneTextureResources(SceneTextures* _sceneTextures)
@@ -164,6 +236,14 @@ namespace SA::RND
 
 			if (_sceneTextures->depth.resolved)
 				mContext->DestroyTexture(_sceneTextures->depth.resolved);
+		}
+
+		// Color Textures
+		{
+			mContext->DestroyTexture(_sceneTextures->color.texture);
+
+			if (_sceneTextures->color.resolved)
+				mContext->DestroyTexture(_sceneTextures->color.resolved);
 		}
 	}
 

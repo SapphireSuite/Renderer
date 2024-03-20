@@ -14,6 +14,12 @@ namespace SA::RND
 	class DeferredRenderer : public Renderer
 	{
 	protected:
+	//{ RenderPass
+
+		void FillRenderPassInfo(const RendererSettings::RenderPassSettings& _settings, SceneTextures* _sceneTextures, RHI::RenderPassInfo& _passInfo) override final;
+
+	//}
+
 	//{ Scene Textures
 
 		SceneTextures* InstantiateSceneTexturesClass() override final;

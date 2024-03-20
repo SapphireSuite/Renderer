@@ -11,11 +11,6 @@ namespace SA::RND
 {
 	struct ForwardSceneTextures : public SceneTextures
 	{
-		struct ColorTextures
-		{
-			RHI::Texture* texture;
-			RHI::Texture* resolved;
-		} color;
 	};
 }
 
