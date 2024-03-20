@@ -27,6 +27,7 @@ namespace SA::RND::DX12
 
 	void RenderPass::NextSubpass(const CommandList& _cmd)
 	{
+		/*
 		++mCurrSubpassIndex;
 
 		std::vector<D3D12_RESOURCE_BARRIER> barriers;
@@ -296,6 +297,7 @@ namespace SA::RND::DX12
 				);
 			}
 		}
+		*/
 	}
 
 	void RenderPass::End(const CommandList& _cmd)

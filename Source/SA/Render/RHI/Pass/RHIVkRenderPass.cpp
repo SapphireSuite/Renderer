@@ -10,9 +10,9 @@ namespace SA::RND::RHI
 {
 	void VkRenderPass::Create(const Device* _device, RenderPassInfo _info)
 	{
-		RenderPass::Create(_device, std::move(_info));
+		//mHandle.Create(_device->API_Vulkan(), mPassInfo.API_Vulkan());
 
-		mHandle.Create(_device->API_Vulkan(), mPassInfo.API_Vulkan());
+		RenderPass::Create(_device, std::move(_info));
 	}
 	
 	void VkRenderPass::Destroy(const Device* _device)

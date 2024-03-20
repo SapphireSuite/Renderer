@@ -96,7 +96,7 @@ namespace SA::RND::RHI
 		delete _frameBuffer;
 	}
 
-	FrameBuffer* Context::CreateFrameBuffer(const RenderPass* _pass, std::shared_ptr<Swapchain::BackBufferHandle> _img)
+	FrameBuffer* Context::CreateFrameBuffer(const RenderPass* _pass)
 	{
 		SA_ASSERT((Nullptr, _pass), SA.Render.RHI);
 
@@ -104,7 +104,7 @@ namespace SA::RND::RHI
 
 		SA_ASSERT((Nullptr, frameBuffer), SA.Render.RHI, (L"FrameBuffer instantiate class failed!"));
 
-		frameBuffer->Create(mDevice, _pass, _img);
+		frameBuffer->Create(mDevice, _pass);
 
 		return frameBuffer;
 	}

@@ -34,19 +34,19 @@ namespace SA::RND::RHI
 
 		auto& passInfo = pass->GetInfo();
 
-		const VkSampleCountFlagBits vkSampling = VK::API_GetSampleCount(passInfo.subpasses[subpassIndex].sampling);
+		//const VkSampleCountFlagBits vkSampling = VK::API_GetSampleCount(passInfo.subpasses[subpassIndex].sampling);
 
-		vkInfo.multisampling = VkPipelineMultisampleStateCreateInfo{
-			.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
-			.pNext = nullptr,
-			.flags = 0u,
-			.rasterizationSamples = vkSampling,
-			.sampleShadingEnable = vkSampling != VK_SAMPLE_COUNT_1_BIT,
-			.minSampleShading = 0.2f,
-			.pSampleMask = nullptr,
-			.alphaToCoverageEnable = VK_FALSE,
-			.alphaToOneEnable = VK_FALSE,
-		};
+		//vkInfo.multisampling = VkPipelineMultisampleStateCreateInfo{
+		//	.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
+		//	.pNext = nullptr,
+		//	.flags = 0u,
+		//	.rasterizationSamples = vkSampling,
+		//	.sampleShadingEnable = vkSampling != VK_SAMPLE_COUNT_1_BIT,
+		//	.minSampleShading = 0.2f,
+		//	.pSampleMask = nullptr,
+		//	.alphaToCoverageEnable = VK_FALSE,
+		//	.alphaToOneEnable = VK_FALSE,
+		//};
 
 
 		vkInfo.layout = &layout->API_Vulkan();
@@ -66,26 +66,26 @@ namespace SA::RND::RHI
 	{
 		DX12::GraphicsPipelineInfo dxDesc;
 
-		dxDesc.rootSign = &layout->API_DirectX12();
+		//dxDesc.rootSign = &layout->API_DirectX12();
 
-		dxDesc.shaderStages = shaders.API_MakeDX12PipelineShaderStages();
-		dxDesc.raster = raster.API_DirectX12();
-		dxDesc.depthStencil = depthStencil.API_DirectX12();
+		//dxDesc.shaderStages = shaders.API_MakeDX12PipelineShaderStages();
+		//dxDesc.raster = raster.API_DirectX12();
+		//dxDesc.depthStencil = depthStencil.API_DirectX12();
 
-		dxDesc.vertexInputElements = shaders.vs->GetDescriptor().MakeDX12VertexInputElementDescsSingleVertexBuffer();
+		//dxDesc.vertexInputElements = shaders.vs->GetDescriptor().MakeDX12VertexInputElementDescsSingleVertexBuffer();
 
-		const auto& passInfo = pass->GetInfo();
-		const auto& subpassInfo = passInfo.subpasses[subpassIndex];
+		//const auto& passInfo = pass->GetInfo();
+		//const auto& subpassInfo = passInfo.subpasses[subpassIndex];
 
-		for (uint32_t i = 0, rtvIndex = 0; i < subpassInfo.attachments.size(); ++i)
-		{
-			if (subpassInfo.attachments[i].type == AttachmentType::Color)
-				dxDesc.rtvFormats[rtvIndex++] = DX12::API_GetFormat(subpassInfo.attachments[i].format);
-			else if(subpassInfo.attachments[i].type == AttachmentType::Depth)
-				dxDesc.dsvFormat = DX12::API_GetFormat(subpassInfo.attachments[i].format);
-		}
+		//for (uint32_t i = 0, rtvIndex = 0; i < subpassInfo.attachments.size(); ++i)
+		//{
+		//	if (subpassInfo.attachments[i].type == AttachmentType::Color)
+		//		dxDesc.rtvFormats[rtvIndex++] = DX12::API_GetFormat(subpassInfo.attachments[i].format);
+		//	else if(subpassInfo.attachments[i].type == AttachmentType::Depth)
+		//		dxDesc.dsvFormat = DX12::API_GetFormat(subpassInfo.attachments[i].format);
+		//}
 
-		dxDesc.sampling = DX12::API_GetSampleCount(subpassInfo.sampling);
+		//dxDesc.sampling = DX12::API_GetSampleCount(subpassInfo.sampling);
 
 		return dxDesc;
 	}

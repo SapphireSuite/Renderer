@@ -5,7 +5,7 @@
 #ifndef SAPPHIRE_RENDER_DX12_FRAME_BUFFER_GUARD
 #define SAPPHIRE_RENDER_DX12_FRAME_BUFFER_GUARD
 
-#include "Info/D12RenderPassInfo.hpp"
+#include "D12RenderPassInfo.hpp"
 
 namespace SA::RND::DX12
 {

@@ -64,7 +64,7 @@ namespace SA::RND::RHI
 		virtual void DeleteFrameBufferClass(FrameBuffer* _frameBuffer);
 
 	public:
-		FrameBuffer* CreateFrameBuffer(const RenderPass* _pass, std::shared_ptr<Swapchain::BackBufferHandle> _img = nullptr);
+		FrameBuffer* CreateFrameBuffer(const RenderPass* _pass);
 		void DestroyFrameBuffer(FrameBuffer* _frameBuffer);
 		void DestroyAllFrameBuffers();
 

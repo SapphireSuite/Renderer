@@ -10,6 +10,7 @@ namespace SA::RND::DX12
 {
 	void FrameBuffer::Create(const Device& _device, const RenderPassInfo& _info, MComPtr<ID3D12Resource> _presentImage)
 	{
+		/*
 		mSubpassFrames.reserve(_info.subpasses.size());
 
 		// Render Target view heap
@@ -194,6 +195,7 @@ namespace SA::RND::DX12
 		}
 
 		SA_LOG("FrameBuffer created.", Info, SA.Render.DX12, (L"Handle [%1]", this))
+		*/
 	}
 
 	void FrameBuffer::Destroy()

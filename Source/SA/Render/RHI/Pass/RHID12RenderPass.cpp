@@ -11,7 +11,7 @@ namespace SA::RND::RHI
 {
 	void D12RenderPass::Create(const Device* _device, RenderPassInfo _info)
 	{
-		mHandle.Create(_info.API_DirectX12());
+		//mHandle.Create(_info.API_DirectX12());
 
 		RenderPass::Create(_device, std::move(_info));
 	}

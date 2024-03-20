@@ -5,7 +5,7 @@
 #ifndef SAPPHIRE_RENDER_RHI_RENDER_PASS_GUARD
 #define SAPPHIRE_RENDER_RHI_RENDER_PASS_GUARD
 
-#include "Info/RHIRenderPassInfo.hpp"
+#include "RHIRenderPassInfo.hpp"
 
 namespace SA::RND
 {
