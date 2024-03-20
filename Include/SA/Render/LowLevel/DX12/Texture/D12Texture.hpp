@@ -14,22 +14,33 @@ namespace SA::RND::DX12
 {
 	class Device;
 	class ResourceInitializer;
+	class Swapchain;
 
 	class Texture
 	{
 		MComPtr<ID3D12Resource> mHandle;
 
 	public:
+		TextureDescriptor GetDescriptor() const noexcept;
+
 		/**
 		* Create Texture from descriptor
 		* Used as framebuffer attachment.
 		*/
 		void Create(const Device& _device, const TextureDescriptor& _desc);
+
 		/**
 		* Create Texture from raw texture input.
 		* Used as input texture for sampling.
 		*/
 		void Create(const Device& _device, ResourceInitializer& _init, const RawTexture& _raw);
+
+		/**
+		* Create texture from swapchain backbuffer image handle.
+		* Used as frambuffer present attachment.
+		*/
+		void CreateFromImage(const Device& _device, const Swapchain& _swapchain, uint32_t _imageIndex);
+
 		void Destroy();
 	};
 }

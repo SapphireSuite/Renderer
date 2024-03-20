@@ -4,10 +4,25 @@
 
 #include <Device/D12Device.hpp>
 #include <D12ResourceInitializer.hpp>
+#include <Surface/D12Swapchain.hpp>
 #include <Buffers/D12Buffer.hpp>
 
 namespace SA::RND::DX12
 {
+	TextureDescriptor Texture::GetDescriptor() const noexcept
+	{
+		D3D12_RESOURCE_DESC d12Desc = mHandle->GetDesc();
+
+		return TextureDescriptor
+		{
+			.extents = Vec2ui{ static_cast<uint32_t>(d12Desc.Width), static_cast<uint32_t>(d12Desc.Height) },
+			.mipLevels = d12Desc.MipLevels,
+			.format = API_GetFormat(d12Desc.Format),
+			.sampling = static_cast<Sampling>(d12Desc.SampleDesc.Count),
+			.usage = API_GetTextureUsage(d12Desc.Flags),
+		};
+	}
+
 	void Texture::Create(const Device& _device, const TextureDescriptor& _desc)
 	{
 		const D3D12_RESOURCE_DESC desc{
@@ -126,6 +141,11 @@ namespace SA::RND::DX12
 		SA_LOG(L"Texture created.", Info, SA.Render.DX12, (L"Handle [%1]", mHandle.Get()));
 	}
 	
+	void Texture::CreateFromImage(const Device& _device, const Swapchain& _swapchain, uint32_t _imageIndex)
+	{
+		mHandle = _swapchain.GetBackBufferHandle(_imageIndex);
+	}
+
 	void Texture::Destroy()
 	{
 		SA_LOG_RAII(L"Texture destroyed.", Info, SA.Render.DX12, (L"Handle [%1]", mHandle.Get()));

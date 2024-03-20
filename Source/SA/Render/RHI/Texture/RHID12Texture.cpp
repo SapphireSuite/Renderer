@@ -20,7 +20,7 @@ namespace SA::RND::RHI
 	
 	void D12Texture::CreateFromImage(const Device* _device, const Swapchain* _swapchain, uint32_t _imageIndex)
 	{
-		//mHandle.CreateFromImage(_device->API_DirectX12(), _swapchain->API_DirectX12(), _imageIndex);
+		mHandle.CreateFromImage(_device->API_DirectX12(), _swapchain->API_DirectX12(), _imageIndex);
 	}
 
 	void D12Texture::Destroy(const Device* _device)
