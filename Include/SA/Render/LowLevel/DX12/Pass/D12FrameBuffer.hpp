@@ -41,7 +41,7 @@ namespace SA::RND::DX12
 		std::vector<SubpassFrame> mSubpassFrames;
 
 	public:
-		void Create(const Device& _device, const RenderPassInfo& _info, MComPtr<ID3D12Resource> _presentImage = nullptr);
+		void Create(const Device& _device, const RenderPassInfo& _info);
 		void Destroy();
 
 		uint32_t GetRTVDescriptorIncrementSize() const;

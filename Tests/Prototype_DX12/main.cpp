@@ -61,6 +61,14 @@ DX12::Buffer objectBuffer;
 //DX12::DescriptorSet objectSet;
 std::vector<SA::MComPtr<ID3D12DescriptorHeap>> depthHeaps;
 
+struct SceneTexture
+{
+	DX12::Texture color;
+	DX12::Texture resolvedColor;
+	DX12::Texture depth;
+};
+std::vector<SceneTexture> sceneTextures;
+
 constexpr bool bDepth = true;
 constexpr bool bDepthPrepass = true;
 constexpr bool bDepthInverted = true;
@@ -136,67 +144,94 @@ void Init()
 			cmdBuffers = cmdPool.AllocateMultiple(device, swapchain.GetImageNum());
 		}
 
-		// Render Pass
 		{
-			// Forward
-			if (true)
+			uint32_t num = swapchain.GetImageNum();
+			sceneTextures.resize(num);
+			frameBuffers.resize(num);
+
+			for (uint32_t i = 0; i < num; ++i)
 			{
-				if (bDepth && bDepthPrepass)
+				// Scene Textures
 				{
-					auto& depthPrepass = passInfo.AddSubpass("Depth-Only Prepass");
+					auto& sceneTexture = sceneTextures[i];
+
+					SA::RND::TextureDescriptor desc
+					{
+						.extents = swapchain.GetExtents(),
+						.mipLevels = 1u,
+						.format = DX12::API_GetFormat(swapchain.GetFormat()),
+						.sampling = bMSAA ? Sampling::S8Bits : Sampling::S1Bit,
+						.usage = TextureUsage::RenderTarget,
+					};
 
 					if (bMSAA)
-						depthPrepass.sampling = 8;
-
-					auto& depthRT = depthPrepass.AddAttachment("Depth");
-					depthRT.format = DXGI_FORMAT_D16_UNORM;
-					depthRT.type = AttachmentType::Depth;
-
-					if (bDepthInverted)
-						depthRT.clearColor = SA::RND::Color::black;
+					{
+						sceneTexture.color.Create(device, desc);
+						sceneTexture.resolvedColor.CreateFromImage(device, swapchain, i);
+					}
 					else
-						depthRT.clearColor = SA::RND::Color::white;
+					{
+						sceneTexture.color.CreateFromImage(device, swapchain, i);
+					}
 
-					depthRT.usage = AttachmentUsage::InputNext;
+					desc.format = Format::D16_UNORM;
+					desc.usage |= TextureUsage::Depth;
+					if (bDepthPrepass)
+						desc.usage |= TextureUsage::Input;
 
-					depthPrepass.SetAllAttachmentExtents(swapchain.GetExtents());
+					sceneTexture.depth.Create(device, desc);
 				}
 
-				auto& mainSubpass = passInfo.AddSubpass("Main");
-
-				if (bMSAA)
-					mainSubpass.sampling = 8;
-
-				// Color and present attachment.
-				auto& colorRT = mainSubpass.AddAttachment("Color");
-				colorRT.format = swapchain.GetFormat();
-				colorRT.usage = AttachmentUsage::Present;
-
-				if (bDepth && !bDepthPrepass)
+				// RenderPass
 				{
-					auto& depthRT = mainSubpass.AddAttachment("Depth");
-					depthRT.format = DXGI_FORMAT_D16_UNORM;
-					depthRT.type = AttachmentType::Depth;
+					DX12::RenderPassInfo passInfo;
 
-					if (bDepthInverted)
-						depthRT.clearColor = SA::RND::Color::black;
-					else
-						depthRT.clearColor = SA::RND::Color::white;
+					// Forward
+					if (true)
+					{
+						if (bDepth && bDepthPrepass)
+						{
+							auto& depthPrepass = passInfo.AddSubpass("Depth-Only Prepass");
+
+							auto& depthRT = depthPrepass.AddAttachment("Depth", &sceneTextures[i].depth);
+
+							if (bDepthInverted)
+								depthRT.clearColor = SA::RND::Color::black;
+							else
+								depthRT.clearColor = SA::RND::Color::white;
+						}
+
+						auto& mainSubpass = passInfo.AddSubpass("Main");
+
+						// Color and present attachment.
+						auto& colorRT = mainSubpass.AddAttachment("Color", &sceneTextures[i].color, bMSAA ? &sceneTextures[i].resolvedColor : nullptr);
+
+						if (bDepth)
+						{
+							if (bDepthPrepass)
+							{
+								mainSubpass.AddInputAttachments({ &sceneTextures[i].depth });
+							}
+							else
+							{
+								auto& depthRT = mainSubpass.AddAttachment("Depth", &sceneTextures[i].depth);
+
+								if (bDepthInverted)
+									depthRT.clearColor = SA::RND::Color::black;
+								else
+									depthRT.clearColor = SA::RND::Color::white;
+							}
+						}
+					}
+
+					if (!renderPass)
+						renderPass.Create(passInfo);
+
+					// FrameBuffers
+					{
+						frameBuffers[i].Create(device, passInfo);
+					}
 				}
-
-				mainSubpass.SetAllAttachmentExtents(swapchain.GetExtents());
-			}
-
-			renderPass.Create(passInfo);
-
-
-			// FrameBuffers
-			{
-				uint32_t num = swapchain.GetImageNum();
-				frameBuffers.resize(num);
-
-				for (uint32_t i = 0; i < num; ++i)
-					frameBuffers[i].Create(device, passInfo, swapchain.GetBackBufferHandle(i));
 			}
 		}
 
@@ -465,7 +500,7 @@ void Init()
 					.DepthBiasClamp = D3D12_DEFAULT_DEPTH_BIAS_CLAMP,
 					.SlopeScaledDepthBias = D3D12_DEFAULT_SLOPE_SCALED_DEPTH_BIAS,
 					.DepthClipEnable = TRUE,
-					.MultisampleEnable = passInfo.subpasses[0].sampling != 1,
+					.MultisampleEnable = bMSAA,
 					.AntialiasedLineEnable = FALSE,
 					.ForcedSampleCount = 0,
 					.ConservativeRaster = D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF,
@@ -500,7 +535,7 @@ void Init()
 				.rtvFormats = { swapchain.GetFormat() },
 				.dsvFormat = bDepthPrepass ? DXGI_FORMAT_UNKNOWN : DXGI_FORMAT_D16_UNORM,
 
-				.sampling = passInfo.subpasses[0].sampling,
+				.sampling = bMSAA ? 8u : 1u,
 			};
 
 
