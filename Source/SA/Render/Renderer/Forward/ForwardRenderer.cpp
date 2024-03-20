@@ -21,7 +21,7 @@ namespace SA::RND
 	{
 		Renderer::CreateSceneTextureResources(_settings, _sceneTextures, _frameIndex);
 
-		ForwardSceneTextures& const fSceneTextures = *static_cast<ForwardSceneTextures*>(_sceneTextures);
+		ForwardSceneTextures& fSceneTextures = *static_cast<ForwardSceneTextures*>(_sceneTextures);
 
 		// Colors
 		{
@@ -34,7 +34,7 @@ namespace SA::RND
 				.usage = TextureUsage::RenderTarget,
 			};
 
-			if (_settings.MSAA != RHI:Sampling::S1Bit)
+			if (_settings.MSAA != RHI::Sampling::S1Bit)
 			{
 				fSceneTextures.color.texture = mContext->CreateTexture(desc);
 
@@ -57,7 +57,7 @@ namespace SA::RND
 	{
 		Renderer::DestroySceneTextureResources(_sceneTextures);
 
-		ForwardSceneTextures& const fSceneTextures = *static_cast<ForwardSceneTextures*>(_sceneTextures);
+		ForwardSceneTextures& fSceneTextures = *static_cast<ForwardSceneTextures*>(_sceneTextures);
 
 		// Colors
 		{

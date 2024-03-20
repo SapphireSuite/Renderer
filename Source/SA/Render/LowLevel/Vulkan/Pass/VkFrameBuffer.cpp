@@ -134,6 +134,12 @@ namespace SA::RND::VK
 		return mClearValues;
 	}
 
+	VkImageView FrameBuffer::GetImageView(uint32_t _index)
+	{
+		SA_ASSERT((OutOfArrayRange, _index, mImageViews), SA.Render.Vulkan, L"ImageView index out of framebuffer ImageViews range");
+
+		return mImageViews[_index];
+	}
 
 	FrameBuffer::operator VkFramebuffer() const noexcept
 	{

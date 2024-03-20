@@ -108,7 +108,7 @@ namespace SA::RND::VK
 				});
 				VkAttachmentReference& resolveAttachRef = resolveAttachmentRefs.emplace_back(VkAttachmentReference{ VK_ATTACHMENT_UNUSED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL });
 				
-				if (desc.usage && TextureUsage::Depth)
+				if (desc.usage & TextureUsage::Depth)
 				{
 					attachDesc.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 					resolveAttachRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
@@ -116,14 +116,14 @@ namespace SA::RND::VK
 					// Emplace depth attachment ref.
 					depthAttachRef.attachment = attachIndex;
 				}
-				else if (desc.usage && TextureUsage::RenderTarget)
+				else if (desc.usage & TextureUsage::RenderTarget)
 				{
 					// Emplace color attachment ref.
 					colorAttachmentRefs.emplace_back(VkAttachmentReference{ attachIndex, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL });
 				}
 				
 				// For any render target.
-				if (desc.usage && TextureUsage::RenderTarget)
+				if (desc.usage & TextureUsage::RenderTarget)
 				{
 					// Multisampling resolution.
 					if (desc.sampling != Sampling::S1Bit && attach.resolved)
@@ -149,7 +149,7 @@ namespace SA::RND::VK
 
 						if (resolvedDesc.usage == TextureUsage::Input)
 						{
-							if(resolvedDesc.usage && TextureUsage::Depth)
+							if(resolvedDesc.usage & TextureUsage::Depth)
 								resolveAttachDesc.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
 							else
 								resolveAttachDesc.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
@@ -179,7 +179,7 @@ namespace SA::RND::VK
 			}
 
 			const uint32_t subpassIndex = static_cast<uint32_t>(subpassDescriptions.size());
-			VkSubpassDescription& vkSubpassDesc = subpassDescriptions.emplace_back(VkSubpassDescription{
+			/*VkSubpassDescription& vkSubpassDesc = */subpassDescriptions.emplace_back(VkSubpassDescription{
 				.flags = 0u,
 				.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
 				.inputAttachmentCount = static_cast<uint32_t>(inputAttachmentRefs.size()),

@@ -28,7 +28,7 @@ namespace SA::RND
 
 		struct RenderPassSettings
 		{
-			RHI::Sampling MSAA = RHI::Sampling::Sample4Bits;
+			RHI::Sampling MSAA = RHI::Sampling::S4Bits;
 
 			/**
 			* Custom extents

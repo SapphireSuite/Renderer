@@ -53,7 +53,7 @@ VK::DescriptorSetLayout cameraDescSetLayout;
 std::vector<VK::DescriptorSet> cameraSets;
 VK::DescriptorPool depthBufferDescPool;
 VK::DescriptorSetLayout depthBufferDescSetLayout;
-std::vector<VK::DescriptorSet> depthBufferSet;
+std::vector<VK::DescriptorSet> depthBufferSets;
 VK::Buffer objectBuffer;
 VK::DescriptorPool objectDescPool;
 VK::DescriptorSetLayout objectDescSetLayout;
@@ -556,7 +556,7 @@ void Init()
 
 			// Set
 			{
-				depthBufferSet = depthBufferDescPool.Allocate(device,
+				depthBufferSets = depthBufferDescPool.Allocate(device,
 					std::vector<VK::DescriptorSetLayout>(swapchain.GetImageNum(), depthBufferDescSetLayout));
 
 				std::vector<VkDescriptorImageInfo> imageInfo;
@@ -565,16 +565,16 @@ void Init()
 				std::vector<VkWriteDescriptorSet> writes;
 				writes.reserve(swapchain.GetImageNum());
 
-				for (uint32_t i = 0; i < cameraSets.size(); ++i)
+				for (uint32_t i = 0; i < depthBufferSets.size(); ++i)
 				{
 					VkDescriptorImageInfo& imgInfo = imageInfo.emplace_back();
 					imgInfo.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
-					imgInfo.imageView = frameBuffers[i].GetAttachment(0);
+					imgInfo.imageView = frameBuffers[i].GetImageView(0);
 
 					VkWriteDescriptorSet& descWrite = writes.emplace_back();
 					descWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 					descWrite.pNext = nullptr;
-					descWrite.dstSet = depthBufferSet[i];
+					descWrite.dstSet = depthBufferSets[i];
 					descWrite.dstBinding = 0;
 					descWrite.dstArrayElement = 0;
 					descWrite.descriptorCount = 1;
@@ -588,7 +588,7 @@ void Init()
 		}
 		else
 		{
-			depthBufferSet.resize(swapchain.GetImageNum());
+			depthBufferSets.resize(swapchain.GetImageNum());
 		}
 
 		// Pipeline layout
@@ -693,8 +693,8 @@ void Init()
 				.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
 				.pNext = nullptr,
 				.flags = 0u,
-				.rasterizationSamples = passInfo.subpasses[0].sampling,
-				.sampleShadingEnable = passInfo.subpasses[0].sampling != VK_SAMPLE_COUNT_1_BIT,
+				.rasterizationSamples = bMSAA ? VK_SAMPLE_COUNT_8_BIT : VK_SAMPLE_COUNT_1_BIT,
+				.sampleShadingEnable = bMSAA,
 				.minSampleShading = 0.2f,
 				.pSampleMask = nullptr,
 				.alphaToCoverageEnable = VK_FALSE,
@@ -892,8 +892,8 @@ void Loop()
 		static_cast<VkDescriptorSet>(objectSet),
 	};
 
-	if (depthBufferSet[frameIndex])
-		boundSets.push_back(static_cast<VkDescriptorSet>(depthBufferSet[frameIndex]));
+	if (depthBufferSets[frameIndex])
+		boundSets.push_back(static_cast<VkDescriptorSet>(depthBufferSets[frameIndex]));
 
 	vkCmdBindDescriptorSets(cmd,
 		VK_PIPELINE_BIND_POINT_GRAPHICS,

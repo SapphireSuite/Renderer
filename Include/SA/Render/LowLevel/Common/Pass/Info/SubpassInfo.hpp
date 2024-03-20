@@ -29,7 +29,7 @@ namespace SA::RND
 
 			attach.name = std::move(_name);
 			attach.texture = _texture;
-			attach.resolvedTexture = _resolvedTexture;
+			attach.resolved = _resolvedTexture;
 
 			return attach;
 		}

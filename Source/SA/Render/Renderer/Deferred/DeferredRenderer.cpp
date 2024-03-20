@@ -20,7 +20,7 @@ namespace SA::RND
 	{
 		Renderer::CreateSceneTextureResources(_settings, _sceneTextures, _frameIndex);
 
-		DeferredSceneTextures& const dSceneTextures = *static_cast<DeferredSceneTextures*>(_sceneTextures);
+		DeferredSceneTextures& dSceneTextures = *static_cast<DeferredSceneTextures*>(_sceneTextures);
 			
 		// GBuffer
 		{
@@ -52,7 +52,7 @@ namespace SA::RND
 
 		// Scene Textures
 		{
-			DeferredSceneTextures& const dSceneTextures = *static_cast<DeferredSceneTextures*>(_sceneTextures);
+			DeferredSceneTextures& dSceneTextures = *static_cast<DeferredSceneTextures*>(_sceneTextures);
 
 			// GBuffer
 			{
