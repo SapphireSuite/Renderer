@@ -177,29 +177,29 @@ void Init()
 				{
 					auto& sceneTexture = sceneTextures[i];
 
-					SA::RND::TextureDescriptor desc
+					SA::RND::VK::TextureDescriptor desc
 					{
 						.extents = swapchain.GetExtents(),
 						.mipLevels = 1u,
-						.format = VK::API_GetFormat(swapchain.GetFormat()),
-						.sampling = bMSAA ? Sampling::S8Bits : Sampling::S1Bit,
-						.usage = TextureUsage::RenderTarget,
+						.format = swapchain.GetFormat(),
+						.sampling = bMSAA ? VK_SAMPLE_COUNT_8_BIT : VK_SAMPLE_COUNT_1_BIT,
+						.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
 					};
 
 					if (bMSAA)
 					{
 						sceneTexture.color.Create(device, desc);
-						sceneTexture.resolvedColor.CreateFromImage(device, swapchain, i);
+						sceneTexture.resolvedColor.CreateFromImage(swapchain, i);
 					}
 					else
 					{
-						sceneTexture.color.CreateFromImage(device, swapchain, i);
+						sceneTexture.color.CreateFromImage(swapchain, i);
 					}
 
-					desc.format = Format::D16_UNORM;
-					desc.usage |= TextureUsage::Depth;
+					desc.format = VK_FORMAT_D16_UNORM;
+					desc.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 					if (bDepthPrepass)
-						desc.usage |= TextureUsage::Input;
+						desc.usage |= VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;
 
 					sceneTexture.depth.Create(device, desc);
 				}

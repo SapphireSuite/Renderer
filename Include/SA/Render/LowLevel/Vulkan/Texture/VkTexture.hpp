@@ -8,7 +8,7 @@
 #include <SA/Render/LowLevel/Vulkan/VulkanAPI.hpp>
 
 #include <SA/Render/LowLevel/Common/Texture/RawTexture.hpp>
-#include <SA/Render/LowLevel/Common/Texture/TextureDescriptor.hpp>
+#include "VkTextureDescriptor.hpp"
 
 namespace SA::RND::VK
 {
@@ -42,7 +42,7 @@ namespace SA::RND::VK
 		* Create texture from swapchain backbuffer image handle.
 		* Used as frambuffer present attachment.
 		*/
-		void CreateFromImage(const Device& _device, const Swapchain& _swapchain, uint32_t _imageIndex);
+		void CreateFromImage(const Swapchain& _swapchain, uint32_t _imageIndex);
 		
 		void Destroy(const Device& _device);
 

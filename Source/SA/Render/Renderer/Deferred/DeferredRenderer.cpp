@@ -74,13 +74,13 @@ namespace SA::RND
 			
 		// GBuffer
 		{
-			SA::RND::TextureDescriptor desc
+			RHI::TextureDescriptor desc
 			{
 				.extents = mSwapchain ? mSwapchain->GetExtents() : _settings.extents,
 				.mipLevels = 1u,
-				.format = Format::R8G8B8A8_UNORM,
+				.format = RHI::Format::R8G8B8A8_UNORM,
 				.sampling = _settings.MSAA,
-				.usage = TextureUsage::RenderTarget,
+				.usage = RHI::TextureUsage::RenderTarget,
 			};
 
 			dSceneTextures.gbuffer.position = mContext->CreateTexture(desc);
@@ -88,10 +88,10 @@ namespace SA::RND
 
 			dSceneTextures.gbuffer.color = mContext->CreateTexture(desc);
 
-			desc.format = Format::R8G8_UNORM;
+			desc.format = RHI::Format::R8G8_UNORM;
 			dSceneTextures.gbuffer.metallicRoughness = mContext->CreateTexture(desc);
 
-			desc.format = Format::R8_UNORM;
+			desc.format = RHI::Format::R8_UNORM;
 			dSceneTextures.gbuffer.ao = mContext->CreateTexture(desc);
 		}
 	}

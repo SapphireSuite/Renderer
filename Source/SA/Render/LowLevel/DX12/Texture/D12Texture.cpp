@@ -17,9 +17,9 @@ namespace SA::RND::DX12
 		{
 			.extents = Vec2ui{ static_cast<uint32_t>(d12Desc.Width), static_cast<uint32_t>(d12Desc.Height) },
 			.mipLevels = d12Desc.MipLevels,
-			.format = API_GetFormat(d12Desc.Format),
-			.sampling = static_cast<Sampling>(d12Desc.SampleDesc.Count),
-			.usage = API_GetTextureUsage(d12Desc.Flags),
+			.format = d12Desc.Format,
+			.sampling = d12Desc.SampleDesc.Count,
+			.usage = d12Desc.Flags,
 		};
 	}
 
@@ -32,13 +32,13 @@ namespace SA::RND::DX12
 			.Height = _desc.extents.y,
 			.DepthOrArraySize = 1,
 			.MipLevels = static_cast<UINT16>(_desc.mipLevels),
-			.Format = API_GetFormat(_desc.format),
+			.Format = _desc.format,
 			.SampleDesc = DXGI_SAMPLE_DESC{
-				.Count = API_GetSampling(_desc.sampling),
+				.Count = _desc.sampling,
 				.Quality = 0,
 			},
 			.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN,
-			.Flags = API_GetTextureUsage(_desc.usage),
+			.Flags = _desc.usage,
 		};
 
 		const D3D12_HEAP_PROPERTIES heap{
@@ -141,7 +141,7 @@ namespace SA::RND::DX12
 		SA_LOG(L"Texture created.", Info, SA.Render.DX12, (L"Handle [%1]", mHandle.Get()));
 	}
 	
-	void Texture::CreateFromImage(const Device& _device, const Swapchain& _swapchain, uint32_t _imageIndex)
+	void Texture::CreateFromImage(const Swapchain& _swapchain, uint32_t _imageIndex)
 	{
 		mHandle = _swapchain.GetBackBufferHandle(_imageIndex);
 	}

@@ -6,7 +6,8 @@
 #define SAPPHIRE_RENDER_RHI_TEXTURE_GUARD
 
 #include <SA/Render/LowLevel/Common/Texture/RawTexture.hpp>
-#include <SA/Render/LowLevel/Common/Texture/TextureDescriptor.hpp>
+
+#include "RHITextureDescriptor.hpp"
 
 namespace SA::RND
 {
@@ -39,13 +40,13 @@ namespace SA::RND
 			* Create Texture from descriptor
 			* Used as framebuffer attachment.
 			*/
-			virtual void Create(const Device* _device, const SA::RND::TextureDescriptor& _desc) = 0;
+			virtual void Create(const Device* _device, const TextureDescriptor& _desc) = 0;
 			/**
 			* Create Texture from raw texture input.
 			* Used as input texture for sampling.
 			*/
 			virtual void Create(const Device* _device, ResourceInitializer* _init, const SA::RND::RawTexture& _raw) = 0;
-			virtual void CreateFromImage(const Device* _device, const Swapchain* _swapchain, uint32_t _imageIndex) = 0;
+			virtual void CreateFromImage(const Swapchain* _swapchain, uint32_t _imageIndex) = 0;
 			virtual void Destroy(const Device* _device) = 0;
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL

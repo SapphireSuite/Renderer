@@ -8,9 +8,9 @@
 
 namespace SA::RND::RHI
 {
-	void D12Texture::Create(const Device* _device, const SA::RND::TextureDescriptor& _desc)
+	void D12Texture::Create(const Device* _device, const TextureDescriptor& _desc)
 	{
-		mHandle.Create(_device->API_DirectX12(), _desc);
+		mHandle.Create(_device->API_DirectX12(), _desc.API_DirectX12());
 	}
 
 	void D12Texture::Create(const Device* _device, ResourceInitializer* _init, const SA::RND::RawTexture& _raw)
@@ -18,9 +18,9 @@ namespace SA::RND::RHI
 		mHandle.Create(_device->API_DirectX12(), _init->API_DirectX12(), _raw);
 	}
 	
-	void D12Texture::CreateFromImage(const Device* _device, const Swapchain* _swapchain, uint32_t _imageIndex)
+	void D12Texture::CreateFromImage(const Swapchain* _swapchain, uint32_t _imageIndex)
 	{
-		mHandle.CreateFromImage(_device->API_DirectX12(), _swapchain->API_DirectX12(), _imageIndex);
+		mHandle.CreateFromImage(_swapchain->API_DirectX12(), _imageIndex);
 	}
 
 	void D12Texture::Destroy(const Device* _device)

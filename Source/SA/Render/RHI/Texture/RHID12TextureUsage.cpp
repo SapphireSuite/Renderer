@@ -1,6 +1,6 @@
 // Copyright (c) 2023 Sapphire's Suite. All Rights Reserved.
 
-#include <SA/Render/LowLevel/Common/Texture/TextureUsage.hpp>
+#include <SA/Render/RHI/Texture/RHITextureUsage.hpp>
 
 namespace SA::RND::DX12
 {
@@ -8,13 +8,13 @@ namespace SA::RND::DX12
 	{
 		D3D12_RESOURCE_FLAGS d12Flags;
 
-		if (_usage & TextureUsage::RenderTarget)
+		if (_usage & RHI::TextureUsage::RenderTarget)
 			d12Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 
-		if (_usage & TextureUsage::Depth)
+		if (_usage & RHI::TextureUsage::Depth)
 			d12Flags |= D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
 
-		if (_usage & TextureUsage::UAV)
+		if (_usage & RHI::TextureUsage::UAV)
 			d12Flags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
 
 		return d12Flags;
@@ -25,13 +25,13 @@ namespace SA::RND::DX12
 		uint8_t usage = 0u;
 
 		if (_d12Flags & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET)
-			usage |= TextureUsage::RenderTarget;
+			usage |= RHI::TextureUsage::RenderTarget;
 
 		if (_d12Flags & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL)
-			usage |= TextureUsage::Depth;
+			usage |= RHI::TextureUsage::Depth;
 
 		if (_d12Flags & D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS)
-			usage |= TextureUsage::UAV;
+			usage |= RHI::TextureUsage::UAV;
 
 		return usage;
 	}

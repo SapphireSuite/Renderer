@@ -2,8 +2,8 @@
 
 #pragma once
 
-#ifndef SAPPHIRE_RENDER_COMMON_TEXTURE_USAGE_GUARD
-#define SAPPHIRE_RENDER_COMMON_TEXTURE_USAGE_GUARD
+#ifndef SAPPHIRE_RENDER_RHI_TEXTURE_USAGE_GUARD
+#define SAPPHIRE_RENDER_RHI_TEXTURE_USAGE_GUARD
 
 #include <cstdint>
 
@@ -21,28 +21,31 @@
 
 namespace SA::RND
 {
-	enum TextureUsage : uint8_t
+	namespace RHI
 	{
-		Unknown = 0,
+		enum TextureUsage : uint8_t
+		{
+			//None = 0,
 
-		/// Texture used as render target.
-		RenderTarget = (1 << 0),
+			/// Texture used as render target.
+			RenderTarget = (1 << 0),
 
-		/// Texture used as depth attachment/render target.
-		Depth = (1 << 1),
+			/// Texture used as depth attachment/render target.
+			Depth = (1 << 1),
 
-		/// Texture used as input attachment in next subpass.
-		Input = (1 << 2),
+			/// Texture used as input attachment in next subpass.
+			Input = (1 << 2),
 
-		/// TExture used as Shader Resource.
-		SRV = (1 << 3),
+			/// TExture used as Shader Resource.
+			SRV = (1 << 3),
 
-		/// Texture used as Unordered Access.
-		UAV = (1 << 4),
+			/// Texture used as Unordered Access.
+			UAV = (1 << 4),
 
-		/// Texture used as present image.
-		Present = (1 << 5),
-	};
+			/// Texture used as present image.
+			Present = (1 << 5),
+		};
+	}
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
@@ -64,4 +67,4 @@ namespace SA::RND
 #endif
 }
 
-#endif // SAPPHIRE_RENDER_COMMON_TEXTURE_USAGE_GUARD
+#endif // SAPPHIRE_RENDER_RHI_TEXTURE_USAGE_GUARD

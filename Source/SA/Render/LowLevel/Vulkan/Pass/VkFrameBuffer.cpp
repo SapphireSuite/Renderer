@@ -22,7 +22,7 @@ namespace SA::RND::VK
 			.flags = 0,
 			.image = *_texture,
 			.viewType = VK_IMAGE_VIEW_TYPE_2D, // TODO: set to VK_IMAGE_VIEW_TYPE_CUBE for cubemap.
-			.format = API_GetFormat(desc.format),
+			.format = desc.format,
 			.components = VkComponentMapping{
 				.r = VK_COMPONENT_SWIZZLE_IDENTITY,
 				.g = VK_COMPONENT_SWIZZLE_IDENTITY,
@@ -38,7 +38,7 @@ namespace SA::RND::VK
 			},
 		};
 
-		if (desc.usage & TextureUsage::Depth)
+		if (desc.usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
 		{
 			info.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_DEPTH_BIT;
 

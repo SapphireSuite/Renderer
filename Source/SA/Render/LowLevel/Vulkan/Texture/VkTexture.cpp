@@ -26,13 +26,13 @@ namespace SA::RND::VK
 				.pNext = nullptr,
 				.flags = 0u,
 				.imageType = VK_IMAGE_TYPE_2D,
-				.format = API_GetFormat(_desc.format),
+				.format = _desc.format,
 				.extent = VkExtent3D{ _desc.extents.x, _desc.extents.y, 1 },
 				.mipLevels = _desc.mipLevels,
 				.arrayLayers = 1u,
-				.samples = API_GetSampling(_desc.sampling),
+				.samples = _desc.sampling,
 				.tiling = VK_IMAGE_TILING_OPTIMAL,
-				.usage = API_GetTextureUsage(_desc.usage),
+				.usage = _desc.usage,
 				.sharingMode = VK_SHARING_MODE_EXCLUSIVE,
 				.queueFamilyIndexCount = 0u,
 				.pQueueFamilyIndices = nullptr,
@@ -68,9 +68,9 @@ namespace SA::RND::VK
 	{
 		mDescriptor.extents = _raw.extents;
 		mDescriptor.mipLevels = _raw.mipLevels;
-		mDescriptor.format = _raw.format;
-		mDescriptor.sampling = Sampling::S1Bit;
-		mDescriptor.usage = TextureUsage::SRV;
+		mDescriptor.format = API_GetFormat(_raw.format);
+		mDescriptor.sampling = VK_SAMPLE_COUNT_1_BIT;
+		mDescriptor.usage = VK_IMAGE_USAGE_SAMPLED_BIT;
 
 		// Image
 		{
@@ -215,13 +215,14 @@ namespace SA::RND::VK
 		}
 	}
 
-	void Texture::CreateFromImage(const Device& _device, const Swapchain& _swapchain, uint32_t _imageIndex)
+	void Texture::CreateFromImage(const Swapchain& _swapchain, uint32_t _imageIndex)
 	{
 		mDescriptor.extents = _swapchain.GetExtents();
 		mDescriptor.mipLevels = 1u;
-		mDescriptor.format = API_GetFormat(_swapchain.GetFormat());
-		mDescriptor.sampling = Sampling::S1Bit;
-		mDescriptor.usage = TextureUsage::RenderTarget | TextureUsage::Present;
+		mDescriptor.format = _swapchain.GetFormat();
+		mDescriptor.sampling = VK_SAMPLE_COUNT_1_BIT;
+		mDescriptor.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+		mDescriptor.bPresentAttachment = true;
 
 		mImage = _swapchain.GetBackBufferHandle(_imageIndex);
 	}

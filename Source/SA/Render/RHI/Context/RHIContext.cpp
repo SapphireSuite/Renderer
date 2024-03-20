@@ -529,7 +529,7 @@ namespace SA::RND::RHI
 
 		SA_ASSERT((Nullptr, texture), SA.Render.RHI, (L"Texture instantiate class failed!"));
 
-		texture->CreateFromImage(mDevice, _swapchain, _imageIndex);
+		texture->CreateFromImage(_swapchain, _imageIndex);
 
 		return texture;
 	}

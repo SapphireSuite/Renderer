@@ -97,8 +97,8 @@ namespace SA::RND::VK
 				textureToAttachIndexMap[attach.texture] = attachIndex;
 				VkAttachmentDescription& attachDesc = attachmentDescs.emplace_back(VkAttachmentDescription{
 					.flags = 0u,
-					.format = VK::API_GetFormat(desc.format),
-					.samples = VK::API_GetSampling(desc.sampling),
+					.format = desc.format,
+					.samples = desc.sampling,
 					.loadOp = VK::API_GetAttachmentLoadOp(attach.loadMode),
 					.storeOp = VK_ATTACHMENT_STORE_OP_STORE,
 					.stencilLoadOp = VK::API_GetAttachmentLoadOp(attach.loadMode),
@@ -108,7 +108,7 @@ namespace SA::RND::VK
 				});
 				VkAttachmentReference& resolveAttachRef = resolveAttachmentRefs.emplace_back(VkAttachmentReference{ VK_ATTACHMENT_UNUSED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL });
 				
-				if (desc.usage & TextureUsage::Depth)
+				if (desc.usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
 				{
 					attachDesc.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 					resolveAttachRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
@@ -116,28 +116,28 @@ namespace SA::RND::VK
 					// Emplace depth attachment ref.
 					depthAttachRef.attachment = attachIndex;
 				}
-				else if (desc.usage & TextureUsage::RenderTarget)
+				else if (desc.usage & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
 				{
 					// Emplace color attachment ref.
 					colorAttachmentRefs.emplace_back(VkAttachmentReference{ attachIndex, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL });
 				}
 				
 				// For any render target.
-				if (desc.usage & TextureUsage::RenderTarget)
+				//if (desc.usage & TextureUsage::RenderTarget)
 				{
 					// Multisampling resolution.
-					if (desc.sampling != Sampling::S1Bit && attach.resolved)
+					if (desc.sampling != VK_SAMPLE_COUNT_1_BIT && attach.resolved)
 					{
 						const TextureDescriptor& resolvedDesc = attach.resolved->GetDescriptor();
 
-						SA_ASSERT((Default, resolvedDesc.sampling == Sampling::S1Bit), SA.Render.Vulkan, L"Resolved texture must have 1 sample!")
+						SA_ASSERT((Default, resolvedDesc.sampling == VK_SAMPLE_COUNT_1_BIT), SA.Render.Vulkan, L"Resolved texture must have 1 sample!")
 
 						const uint32_t resolvAttachIndex = static_cast<uint32_t>(attachmentDescs.size());
 						resolveAttachRef.attachment = resolvAttachIndex;
 						textureToAttachIndexMap[attach.resolved] = resolvAttachIndex;
 						VkAttachmentDescription& resolveAttachDesc = attachmentDescs.emplace_back(VkAttachmentDescription{
 							.flags = 0u,
-							.format = VK::API_GetFormat(resolvedDesc.format),
+							.format = resolvedDesc.format,
 							.samples = VK_SAMPLE_COUNT_1_BIT,
 							.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
 							.storeOp = VK_ATTACHMENT_STORE_OP_STORE,
@@ -147,17 +147,17 @@ namespace SA::RND::VK
 							.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
 						});
 
-						if (resolvedDesc.usage & TextureUsage::Input)
+						if (resolvedDesc.usage & VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT)
 						{
-							if(resolvedDesc.usage & TextureUsage::Depth)
+							if(resolvedDesc.usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
 								resolveAttachDesc.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
 							else
 								resolveAttachDesc.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 						}
-						else if (resolvedDesc.usage & TextureUsage::Present)
+						else if (resolvedDesc.bPresentAttachment)
 							resolveAttachDesc.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 					}
-					else if (desc.usage & TextureUsage::Present)
+					else if (desc.bPresentAttachment)
 						attachDesc.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 				}
 			}
@@ -174,7 +174,7 @@ namespace SA::RND::VK
 
 				inputAttachmentRefs.emplace_back(VkAttachmentReference{
 					attachIndex,
-					(inputDesc.usage & TextureUsage::Depth) ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+					(inputDesc.usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT) ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
 				});
 			}
 
