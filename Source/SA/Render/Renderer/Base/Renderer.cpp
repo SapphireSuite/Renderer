@@ -2,7 +2,7 @@
 
 #include <Base/Renderer.hpp>
 
-#include <SA/Render/RHI/Device/RHIDevice.hpp>
+#include <SA/Render/RHI/Common/Device/RHIDevice.hpp>
 
 namespace SA::RND
 {

@@ -19,10 +19,7 @@ SA_ConfigureTarget(SA_Render LINK INTERFACE)
 
 
 
-# Low-level wrapper Libraries
-
-
-## Main LowLevel lib
+# Main LowLevel lib.
 add_library(SA_Render_LowLevel INTERFACE)
 SA_ConfigureTarget(SA_Render_LowLevel LINK INTERFACE)
 
@@ -30,7 +27,8 @@ SA_ConfigureTarget(SA_Render_LowLevel LINK INTERFACE)
 target_link_libraries(SA_Render INTERFACE SA_Render_LowLevel)
 
 
-## LowLevel Common
+
+# LowLevel Common
 add_library(SA_Render_LowLevel_Common STATIC)
 SA_ConfigureTarget(SA_Render_LowLevel_Common)
 SA_TargetSources(SA_Render_LowLevel_Common
@@ -63,13 +61,46 @@ if(SA_RENDER_API_TRACKING_OPT)
 endif()
 
 
-## Vulkan Wrapper
+
+# Main RHI libs.
+option(SA_RENDER_RHI_OPT "Should compile RHI" ON)
+
+if(SA_RENDER_RHI_OPT)
+
+	## Main RHI lib.
+	add_library(SA_Render_RHI INTERFACE)
+	SA_ConfigureTarget(SA_Render_RHI LINK INTERFACE)
+
+
+	## RHI Common lib
+	add_library(SA_Render_RHI_Common STATIC)
+	SA_ConfigureTarget(SA_Render_RHI_Common)
+	SA_TargetSources(SA_Render_RHI_Common
+		PUBLIC_SRC_DIR "Include/SA/Render/RHI/Common"
+		PUBLIC_INCL_DIR "OFF"
+		PRIVATE_SRC_DIR "Source/SA/Render/RHI/Common"
+	)
+
+	### Link dependencies.
+	target_link_libraries(SA_Render_RHI_Common
+		PUBLIC SA_Render_LowLevel SA_Render_ShaderCompiler
+	)
+
+	### Link to main lib.
+	target_link_libraries(SA_Render_RHI INTERFACE SA_Render_RHI_Common)
+
+endif()
+
+
+
+# Vulkan Wrapper
 option(SA_RENDER_VULKAN_OPT "Should compile Vulkan wrapper" ON)
 
 if(SA_RENDER_VULKAN_OPT)
 
 	find_package(Vulkan REQUIRED)
 
+	## LowLevel Vulkan
 	add_library(SA_Render_LowLevel_Vulkan STATIC)
 	SA_ConfigureTarget(SA_Render_LowLevel_Vulkan)
 	SA_TargetSources(SA_Render_LowLevel_Vulkan
@@ -78,24 +109,46 @@ if(SA_RENDER_VULKAN_OPT)
 		PRIVATE_SRC_DIR "Source/SA/Render/LowLevel/Vulkan"
 	)
 
-	### Link dependencies.
+	#### Link dependencies.
 	target_link_libraries(SA_Render_LowLevel_Vulkan
 		PUBLIC SA_Render_LowLevel_Common
 		PUBLIC Vulkan::Vulkan # Set to public for easier wrapping.
-		PRIVATE 
 	)
 
-	### Link to main lib.
+	#### Link to main lib.
 	target_link_libraries(SA_Render_LowLevel INTERFACE SA_Render_LowLevel_Vulkan)
+
+
+	## RHI Vulkan
+	if(SA_RENDER_RHI_OPT)
+		add_library(SA_Render_RHI_Vulkan STATIC)
+		SA_ConfigureTarget(SA_Render_RHI_Vulkan)
+		SA_TargetSources(SA_Render_RHI_Vulkan
+			PUBLIC_SRC_DIR "Include/SA/Render/RHI/Vulkan"
+			PUBLIC_INCL_DIR "OFF"
+			PRIVATE_SRC_DIR "Source/SA/Render/RHI/Vulkan"
+		)
+
+		#### Link dependencies.
+		target_link_libraries(SA_Render_RHI_Vulkan
+			PUBLIC SA_Render_RHI_Common
+			PUBLIC SA_Render_LowLevel_Vulkan # Set to public for easier wrapping.
+		)
+
+		#### Link to main lib.
+		target_link_libraries(SA_Render_RHI INTERFACE SA_Render_RHI_Vulkan)
+	endif()
 
 endif()
 
 
-## DX12 Wrapper
+
+# DX12 Wrapper
 option(SA_RENDER_DX12_OPT "Should compile DirectX12 wrapper" OFF)
 
 if(SA_RENDER_DX12_OPT AND WIN32)
 
+	## LowLevel DX12
 	add_library(SA_Render_LowLevel_DX12 STATIC)
 	SA_ConfigureTarget(SA_Render_LowLevel_DX12)
 	SA_TargetSources(SA_Render_LowLevel_DX12
@@ -114,6 +167,27 @@ if(SA_RENDER_DX12_OPT AND WIN32)
 	### Link to main lib.
 	target_link_libraries(SA_Render_LowLevel INTERFACE SA_Render_LowLevel_DX12)
 
+
+	## RHI DX12
+	if(SA_RENDER_RHI_OPT)
+		add_library(SA_Render_RHI_DX12 STATIC)
+		SA_ConfigureTarget(SA_Render_RHI_DX12)
+		SA_TargetSources(SA_Render_RHI_DX12
+			PUBLIC_SRC_DIR "Include/SA/Render/RHI/DX12"
+			PUBLIC_INCL_DIR "OFF"
+			PRIVATE_SRC_DIR "Source/SA/Render/RHI/DX12"
+		)
+
+		#### Link dependencies.
+		target_link_libraries(SA_Render_RHI_DX12
+			PUBLIC SA_Render_RHI_Common
+			PUBLIC SA_Render_LowLevel_DX12 # Set to public for easier wrapping.
+		)
+
+		#### Link to main lib.
+		target_link_libraries(SA_Render_RHI INTERFACE SA_Render_RHI_DX12)
+	endif()
+
 endif()
 
 
@@ -124,6 +198,7 @@ if(SA_RENDER_OPENGL_OPT)
 
 	find_package(OpenGL REQUIRED)
 
+	## LowLevel OpenGL
 	add_library(SA_Render_LowLevel_OpenGL STATIC)
 	SA_ConfigureTarget(SA_Render_LowLevel_OpenGL)
 	SA_TargetSources(SA_Render_LowLevel_OpenGL
@@ -141,29 +216,26 @@ if(SA_RENDER_OPENGL_OPT)
 	### Link to main lib.
 	target_link_libraries(SA_Render_LowLevel INTERFACE SA_Render_LowLevel_OpenGL)
 
-endif()
 
+	## RHI OpenGL
+	if(SA_RENDER_RHI_OPT)
+		add_library(SA_Render_RHI_OpenGL STATIC)
+		SA_ConfigureTarget(SA_Render_RHI_OpenGL)
+		SA_TargetSources(SA_Render_RHI_OpenGL
+			PUBLIC_SRC_DIR "Include/SA/Render/RHI/OpenGL"
+			PUBLIC_INCL_DIR "OFF"
+			PRIVATE_SRC_DIR "Source/SA/Render/RHI/OpenGL"
+		)
 
-## RHI
-option(SA_RENDER_RHI_OPT "Should compile RHI" ON)
+		#### Link dependencies.
+		target_link_libraries(SA_Render_RHI_OpenGL
+			PUBLIC SA_Render_RHI_Common
+			PUBLIC SA_Render_LowLevel_OpenGL # Set to public for easier wrapping.
+		)
 
-if(SA_RENDER_RHI_OPT)
-
-	add_library(SA_Render_RHI STATIC)
-	SA_ConfigureTarget(SA_Render_RHI)
-	SA_TargetSources(SA_Render_RHI
-		PUBLIC_SRC_DIR "Include/SA/Render/RHI"
-		PUBLIC_INCL_DIR "OFF"
-		PRIVATE_SRC_DIR "Source/SA/Render/RHI"
-	)
-
-	### Link dependencies.
-	target_link_libraries(SA_Render_RHI
-		PUBLIC SA_Render_LowLevel SA_Render_ShaderCompiler
-	)
-
-	### Link to main lib.
-	target_link_libraries(SA_Render INTERFACE SA_Render_RHI)
+		#### Link to main lib.
+		target_link_libraries(SA_Render_RHI INTERFACE SA_Render_RHI_OpenGL)
+	endif()
 
 endif()
 

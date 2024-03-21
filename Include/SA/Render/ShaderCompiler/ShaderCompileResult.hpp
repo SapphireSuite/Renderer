@@ -15,7 +15,7 @@
 #endif
 
 #include <SA/Render/LowLevel/Common/Shader/RawShader.hpp>
-#include <SA/Render/RHI/Shader/Descriptor/ShaderDescriptor.hpp>
+#include <SA/Render/RHI/Common/Shader/Descriptor/ShaderDescriptor.hpp>
 
 namespace SA::RND
 {

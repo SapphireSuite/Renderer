@@ -27,5 +27,7 @@ namespace SA::RND
 			(uiFormat >= static_cast<uint32_t>(Format::R16G16B16A16_UNORM) && uiFormat <= static_cast<uint32_t>(Format::R16G16B16A16_SFLOAT)) ||
 			(uiFormat >= static_cast<uint32_t>(Format::R32G32B32A32_UINT) && uiFormat <= static_cast<uint32_t>(Format::R32G32B32A32_SFLOAT)))
 			return 4u;
+
+		return 0u;
 	}
 }

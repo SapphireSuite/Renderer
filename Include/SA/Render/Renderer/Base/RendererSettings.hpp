@@ -5,7 +5,7 @@
 #ifndef SAPPHIRE_RENDER_RENDERER_SETTINGS_GUARD
 #define SAPPHIRE_RENDER_RENDERER_SETTINGS_GUARD
 
-#include <SA/Render/RHI/RHIRenderInterface.hpp>
+#include <SA/Render/RHI/Common/RHIRenderInterface.hpp>
 
 namespace SA::RND
 {

@@ -5,7 +5,7 @@
 #ifndef SAPPHIRE_RENDER_RENDERER_SCENE_TEXTURES_GUARD
 #define SAPPHIRE_RENDER_RENDERER_SCENE_TEXTURES_GUARD
 
-#include <SA/Render/RHI/Texture/RHITexture.hpp>
+#include <SA/Render/RHI/Common/Texture/RHITexture.hpp>
 
 namespace SA::RND
 {
