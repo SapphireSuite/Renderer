@@ -222,7 +222,6 @@ namespace SA::RND::VK
 		mDescriptor.format = _swapchain.GetFormat();
 		mDescriptor.sampling = VK_SAMPLE_COUNT_1_BIT;
 		mDescriptor.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-		mDescriptor.bPresentAttachment = true;
 
 		mImage = _swapchain.GetBackBufferHandle(_imageIndex);
 	}

@@ -90,4 +90,20 @@ namespace SA::RND::VK
 
 		return Format::R8G8B8A8_UNORM;
 	}
+
+	VkFormat SRGBToUNORMFormat(VkFormat _vkFormat) noexcept
+	{
+		if (_vkFormat == VK_FORMAT_R8G8B8A8_SRGB)
+			return VK_FORMAT_R8G8B8A8_UNORM;
+
+		if (_vkFormat == VK_FORMAT_B8G8R8A8_SRGB)
+			return VK_FORMAT_B8G8R8A8_UNORM;
+
+		return _vkFormat;
+	}
+
+	bool IsPresentFormat(VkFormat _vkFormat) noexcept
+	{
+		return _vkFormat == VK_FORMAT_R8G8B8A8_SRGB || _vkFormat == VK_FORMAT_B8G8R8A8_SRGB;
+	}
 }

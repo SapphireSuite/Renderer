@@ -181,7 +181,7 @@ void Init()
 					{
 						.extents = swapchain.GetExtents(),
 						.mipLevels = 1u,
-						.format = swapchain.GetFormat(),
+						.format = VK::SRGBToUNORMFormat(swapchain.GetFormat()),
 						.sampling = bMSAA ? VK_SAMPLE_COUNT_8_BIT : VK_SAMPLE_COUNT_1_BIT,
 						.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
 					};

@@ -237,6 +237,7 @@ namespace SA::RND
 	};
 	
 	uint32_t API_GetChannelNum(Format _format);
+	Format SRGBToUNORMFormat(Format _format);
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
@@ -244,6 +245,8 @@ namespace SA::RND
 	{
 		VkFormat API_GetFormat(Format _format);
 		Format API_GetFormat(VkFormat _vkFormat);
+		VkFormat SRGBToUNORMFormat(VkFormat _vkFormat) noexcept;
+		bool IsPresentFormat(VkFormat _vkFormat) noexcept;
 	}
 
 #endif

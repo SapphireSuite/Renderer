@@ -41,9 +41,6 @@ namespace SA::RND
 
 			/// Texture used as Unordered Access.
 			UAV = (1 << 4),
-
-			/// Texture used as present image.
-			Present = (1 << 5),
 		};
 	}
 

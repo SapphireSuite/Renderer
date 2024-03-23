@@ -154,10 +154,10 @@ namespace SA::RND::VK
 							else
 								resolveAttachDesc.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 						}
-						else if (resolvedDesc.bPresentAttachment)
+						else if (IsPresentFormat(resolvedDesc.format))
 							resolveAttachDesc.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 					}
-					else if (desc.bPresentAttachment)
+					else if (IsPresentFormat(desc.format))
 						attachDesc.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 				}
 			}

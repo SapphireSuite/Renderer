@@ -22,8 +22,6 @@ namespace SA::RND::VK
 		VkSampleCountFlagBits sampling = VK_SAMPLE_COUNT_1_BIT;
 
 		VkImageUsageFlags usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-
-		bool bPresentAttachment = false;
 	};
 }
 

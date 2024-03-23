@@ -204,7 +204,7 @@ namespace SA::RND
 			{
 				.extents = mSwapchain ? mSwapchain->GetExtents() : _settings.extents,
 				.mipLevels = 1u,
-				.format = mSwapchain ? mSwapchain->GetFormat() : RHI::Format::R8G8B8A8_SNORM,
+				.format = mSwapchain ? SRGBToUNORMFormat(mSwapchain->GetFormat()) : RHI::Format::R8G8B8A8_UNORM,
 				.sampling = _settings.MSAA,
 				.usage = RHI::TextureUsage::RenderTarget,
 			};

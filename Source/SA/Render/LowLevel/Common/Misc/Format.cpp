@@ -30,4 +30,15 @@ namespace SA::RND
 
 		return 0u;
 	}
+
+	Format SRGBToUNORMFormat(Format _format)
+	{
+		if (_format == Format::R8G8B8A8_SRGB)
+			return Format::R8G8B8A8_UNORM;
+
+		if(_format == Format::B8G8R8A8_SRGB)
+			return Format::B8G8R8A8_UNORM;
+
+		return _format;
+	}
 }
