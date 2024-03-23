@@ -99,6 +99,8 @@ namespace SA::RND::VK
 		if (_vkFormat == VK_FORMAT_B8G8R8A8_SRGB)
 			return VK_FORMAT_B8G8R8A8_UNORM;
 
+		SA_LOG((L"VkFormat [%1] not supported", _vkFormat), Warning, SA.Render.DX12);
+
 		return _vkFormat;
 	}
 

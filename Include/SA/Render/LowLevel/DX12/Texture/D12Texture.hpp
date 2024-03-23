@@ -21,6 +21,9 @@ namespace SA::RND::DX12
 	{
 		MComPtr<ID3D12Resource> mHandle;
 
+		/// Internal format used to handle SRGB conversion.
+		DXGI_FORMAT mIntlFormat = DXGI_FORMAT_UNKNOWN;
+
 	public:
 		TextureDescriptor GetDescriptor() const noexcept;
 

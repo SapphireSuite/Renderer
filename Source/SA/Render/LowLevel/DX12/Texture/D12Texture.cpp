@@ -17,7 +17,7 @@ namespace SA::RND::DX12
 		{
 			.extents = Vec2ui{ static_cast<uint32_t>(d12Desc.Width), static_cast<uint32_t>(d12Desc.Height) },
 			.mipLevels = d12Desc.MipLevels,
-			.format = d12Desc.Format,
+			.format = mIntlFormat == DXGI_FORMAT_UNKNOWN ? d12Desc.Format : mIntlFormat,
 			.sampling = d12Desc.SampleDesc.Count,
 			.usage = d12Desc.Flags,
 		};
@@ -144,6 +144,7 @@ namespace SA::RND::DX12
 	void Texture::CreateFromImage(const Swapchain& _swapchain, uint32_t _imageIndex)
 	{
 		mHandle = _swapchain.GetBackBufferHandle(_imageIndex);
+		mIntlFormat = UNORMToSRGBFormat(mHandle->GetDesc().Format);
 	}
 
 	void Texture::Destroy()
@@ -151,5 +152,6 @@ namespace SA::RND::DX12
 		SA_LOG_RAII(L"Texture destroyed.", Info, SA.Render.DX12, (L"Handle [%1]", mHandle.Get()));
 
 		mHandle.Reset();
+		mIntlFormat = DXGI_FORMAT_UNKNOWN;
 	}
 }

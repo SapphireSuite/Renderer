@@ -257,6 +257,9 @@ namespace SA::RND
 	{
 		DXGI_FORMAT API_GetFormat(Format _format);
 		Format API_GetFormat(DXGI_FORMAT _d12Format);
+		DXGI_FORMAT SRGBToUNORMFormat(DXGI_FORMAT _d12Format) noexcept;
+		DXGI_FORMAT UNORMToSRGBFormat(DXGI_FORMAT _d12Format) noexcept;
+		bool IsPresentFormat(DXGI_FORMAT _d12Format) noexcept;
 	}
 
 #endif

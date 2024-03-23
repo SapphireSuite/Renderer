@@ -155,29 +155,27 @@ void Init()
 				{
 					auto& sceneTexture = sceneTextures[i];
 
-					SA::RND::TextureDescriptor desc
+					DX12::TextureDescriptor desc
 					{
 						.extents = swapchain.GetExtents(),
 						.mipLevels = 1u,
-						.format = DX12::API_GetFormat(swapchain.GetFormat()),
-						.sampling = bMSAA ? Sampling::S8Bits : Sampling::S1Bit,
-						.usage = TextureUsage::RenderTarget,
+						.format = DX12::SRGBToUNORMFormat(swapchain.GetFormat()),
+						.sampling = bMSAA ? 8 : 1,
+						.usage = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET,
 					};
 
 					if (bMSAA)
 					{
 						sceneTexture.color.Create(device, desc);
-						sceneTexture.resolvedColor.CreateFromImage(device, swapchain, i);
+						sceneTexture.resolvedColor.CreateFromImage(swapchain, i);
 					}
 					else
 					{
-						sceneTexture.color.CreateFromImage(device, swapchain, i);
+						sceneTexture.color.CreateFromImage(swapchain, i);
 					}
 
-					desc.format = Format::D16_UNORM;
-					desc.usage |= TextureUsage::Depth;
-					if (bDepthPrepass)
-						desc.usage |= TextureUsage::Input;
+					desc.format = DXGI_FORMAT_D16_UNORM;
+					desc.usage = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
 
 					sceneTexture.depth.Create(device, desc);
 				}
@@ -224,7 +222,7 @@ void Init()
 						}
 					}
 
-					if (!renderPass)
+					//if (!renderPass) // TODO fix.
 						renderPass.Create(passInfo);
 
 					// FrameBuffers
@@ -508,7 +506,7 @@ void Init()
 
 				.depthStencil
 				{
-					.DepthEnable = bDepthPrepass ? FALSE : TRUE,
+					.DepthEnable = bDepthPrepass || !bDepth ? FALSE : TRUE,
 					.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL,
 					.DepthFunc = bDepthInverted ? D3D12_COMPARISON_FUNC_GREATER_EQUAL : D3D12_COMPARISON_FUNC_LESS_EQUAL,
 					.StencilEnable = FALSE,
@@ -533,7 +531,7 @@ void Init()
 				.vertexInputElements = vsDesc.MakeDX12VertexInputElementDescsSingleVertexBuffer(),
 
 				.rtvFormats = { swapchain.GetFormat() },
-				.dsvFormat = bDepthPrepass ? DXGI_FORMAT_UNKNOWN : DXGI_FORMAT_D16_UNORM,
+				.dsvFormat = bDepthPrepass || !bDepth ? DXGI_FORMAT_UNKNOWN : DXGI_FORMAT_D16_UNORM,
 
 				.sampling = bMSAA ? 8u : 1u,
 			};

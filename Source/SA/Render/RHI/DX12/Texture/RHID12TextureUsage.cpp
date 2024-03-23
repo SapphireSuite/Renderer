@@ -12,27 +12,11 @@ namespace SA::RND::DX12
 			d12Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 
 		if (_usage & RHI::TextureUsage::Depth)
-			d12Flags |= D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+			d12Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
 
 		if (_usage & RHI::TextureUsage::UAV)
 			d12Flags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
 
 		return d12Flags;
-	}
-
-	uint8_t API_GetTextureUsage(D3D12_RESOURCE_FLAGS _d12Flags)
-	{
-		uint8_t usage = 0u;
-
-		if (_d12Flags & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET)
-			usage |= RHI::TextureUsage::RenderTarget;
-
-		if (_d12Flags & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL)
-			usage |= RHI::TextureUsage::Depth;
-
-		if (_d12Flags & D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS)
-			usage |= RHI::TextureUsage::UAV;
-
-		return usage;
 	}
 }

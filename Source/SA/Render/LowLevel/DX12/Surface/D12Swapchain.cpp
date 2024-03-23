@@ -7,7 +7,7 @@
 #include <Device/Command/D12CommandList.hpp>
 #include <Surface/D12WindowSurface.hpp>
 
-#include "../Misc/D12Format.hpp"
+#include <SA/Render/LowLevel/Common/Misc/Format.hpp>
 
 namespace SA::RND::DX12
 {
@@ -44,7 +44,7 @@ namespace SA::RND::DX12
 		desc.BufferCount = frameNum;
 		desc.Width = mExtents.x;
 		desc.Height = mExtents.y;
-		desc.Format = Intl::SRGBToUNORMFormat(_settings.format);
+		desc.Format = SRGBToUNORMFormat(_settings.format); // Must create UNORM Image with SRGB ImageView.
 		desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 		desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 		desc.SampleDesc.Count = 1;
