@@ -213,6 +213,8 @@ namespace SA::RND::DX12
 		// Curr Subpass
 		if (mCurrSubpassIndex < mCurrFrameBuffer->GetSubpassNum())
 		{
+			uint32_t colorAttachNum = 0u;
+
 			auto& currSubpassFrame = mCurrFrameBuffer->GetSubpassFrame(mCurrSubpassIndex);
 			std::vector<FrameBuffer::Attachment>& currFBuffAttachs = currSubpassFrame.attachments;
 
@@ -264,6 +266,8 @@ namespace SA::RND::DX12
 
 					if (desc.Flags & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET)
 					{
+						++colorAttachNum; // Only count Color Render Targets (no depth).
+
 						_cmd->ClearRenderTargetView(colorDescHandle, fBuffAttach.clearValue.Color, 0, nullptr);
 						colorDescHandle.ptr += mCurrFrameBuffer->GetRTVDescriptorIncrementSize();
 					}
@@ -279,7 +283,7 @@ namespace SA::RND::DX12
 			// Binding
 			{
 				_cmd->OMSetRenderTargets(
-					static_cast<uint32_t>(currSubpassFrame.attachments.size()),
+					colorAttachNum,
 					&currSubpassFrame.colorViewHeap,
 					true,
 					currSubpassFrame.depthViewHeap.ptr ? &currSubpassFrame.depthViewHeap : nullptr

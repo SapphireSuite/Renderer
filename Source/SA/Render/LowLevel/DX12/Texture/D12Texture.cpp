@@ -54,7 +54,7 @@ namespace SA::RND::DX12
 			.VisibleNodeMask = 1,
 		};
 
-		SA_DX12_API(_device->CreateCommittedResource(&heap, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&mHandle)));
+		SA_DX12_API(_device->CreateCommittedResource(&heap, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_COMMON, nullptr, IID_PPV_ARGS(&mHandle)));
 	}
 
 	void Texture::Create(const Device& _device, ResourceInitializer& _init, const RawTexture& _raw)
