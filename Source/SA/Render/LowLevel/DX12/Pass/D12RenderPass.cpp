@@ -2,6 +2,8 @@
 
 #include <Pass/D12RenderPass.hpp>
 
+#include <SA/Collections/Debug>
+
 #include <Pass/D12FrameBuffer.hpp>
 #include <Device/Command/D12CommandList.hpp>
 
@@ -9,11 +11,48 @@ namespace SA::RND::DX12
 {
 	void RenderPass::Create(const RenderPassInfo& _info)
 	{
-		mPassInfo = _info;
+		mSubpassInfos.reserve(_info.subpasses.size());
+
+		for(auto subpassIt = _info.subpasses.begin(); subpassIt != _info.subpasses.end(); ++subpassIt)
+		{
+			auto& subpassInfo = mSubpassInfos.emplace_back();
+
+			subpassInfo.attachInfos.reserve(subpassIt->attachments.size());
+
+			for (auto& attach : subpassIt->attachments)
+			{
+				auto& attachInfo = subpassInfo.attachInfos.emplace_back();
+
+				if (IsPresentFormat(attach.texture->GetDescriptor().format))
+				{
+					attachInfo.texture.bPresent = true;
+				}
+				else if (attach.resolved && IsPresentFormat(attach.resolved->GetDescriptor().format))
+				{
+					attachInfo.resolved.bPresent = true;
+				}
+
+				for (auto nextSubpassIt = subpassIt; nextSubpassIt != _info.subpasses.end(); ++nextSubpassIt)
+				{
+					for (auto& nextInput : nextSubpassIt->inputs)
+					{
+						if (nextInput == attach.texture)
+						{
+							attachInfo.texture.bUsedAsInput = true;
+						}
+						if (nextInput == attach.resolved)
+						{
+							attachInfo.resolved.bUsedAsInput = true;
+						}
+					}
+				}
+			}
+		}
 	}
 
 	void RenderPass::Destroy()
 	{
+		mSubpassInfos.clear();
 	}
 
 
@@ -27,7 +66,6 @@ namespace SA::RND::DX12
 
 	void RenderPass::NextSubpass(const CommandList& _cmd)
 	{
-		/*
 		++mCurrSubpassIndex;
 
 		std::vector<D3D12_RESOURCE_BARRIER> barriers;
@@ -38,9 +76,6 @@ namespace SA::RND::DX12
 		
 		if (prevSubpassIndex != uint32_t(-1))
 		{
-			SA_ASSERT((OutOfArrayRange, prevSubpassIndex, mPassInfo.subpasses));
-			auto& prevSubpassInfo = mPassInfo.subpasses[prevSubpassIndex];
-
 			auto& prevSubpassFrame = mCurrFrameBuffer->GetSubpassFrame(prevSubpassIndex);
 			std::vector<FrameBuffer::Attachment>& prevFBuffAttachs = prevSubpassFrame.attachments;
 
@@ -48,17 +83,15 @@ namespace SA::RND::DX12
 			{
 				// Transition To Resolve src/dst
 				{
-					for (uint32_t fBuffAttachIndex = 0; auto& attachInfo : prevSubpassInfo.attachments)
+					for (auto& fBuffAttach : prevFBuffAttachs)
 					{
-						auto& fBuffAttach = attachInfo.type == AttachmentType::Depth ? prevSubpassFrame.depthAttachment : prevFBuffAttachs[fBuffAttachIndex++];
-
-						if (!fBuffAttach.resolveImageBuffer)
+						if (!fBuffAttach.resolved)
 							continue;
 
 						D3D12_RESOURCE_BARRIER& barrier1 = barriers.emplace_back();
 						barrier1.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
 						barrier1.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-						barrier1.Transition.pResource = fBuffAttach.imageBuffer.Get();
+						barrier1.Transition.pResource = fBuffAttach.texture.Get();
 						barrier1.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
 						barrier1.Transition.StateBefore = fBuffAttach.state;
 						barrier1.Transition.StateAfter = D3D12_RESOURCE_STATE_RESOLVE_SOURCE;
@@ -66,9 +99,9 @@ namespace SA::RND::DX12
 						D3D12_RESOURCE_BARRIER& barrier2 = barriers.emplace_back();
 						barrier2.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
 						barrier2.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-						barrier2.Transition.pResource = fBuffAttach.resolveImageBuffer.Get();
+						barrier2.Transition.pResource = fBuffAttach.resolved.Get();
 						barrier2.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-						barrier2.Transition.StateBefore = attachInfo.usage == AttachmentUsage::Present ? D3D12_RESOURCE_STATE_PRESENT : fBuffAttach.state;
+						barrier2.Transition.StateBefore = IsPresentFormat(fBuffAttach.resolved->GetDesc().Format) ? D3D12_RESOURCE_STATE_PRESENT : fBuffAttach.state;
 						barrier2.Transition.StateAfter = D3D12_RESOURCE_STATE_RESOLVE_DEST;
 					}
 
@@ -81,33 +114,29 @@ namespace SA::RND::DX12
 
 				// Resolve
 				{
-					for (uint32_t fBuffAttachIndex = 0; auto & attachInfo : prevSubpassInfo.attachments)
+					for (auto& fBuffAttach : prevFBuffAttachs)
 					{
-						auto& fBuffAttach = attachInfo.type == AttachmentType::Depth ? prevSubpassFrame.depthAttachment : prevFBuffAttachs[fBuffAttachIndex++];
-					
-						if (!fBuffAttach.resolveImageBuffer)
+						if (!fBuffAttach.resolved)
 							continue;
 
-						_cmd->ResolveSubresource(fBuffAttach.resolveImageBuffer.Get(), 0,
-							fBuffAttach.imageBuffer.Get(), 0,
-							fBuffAttach.resolveImageBuffer->GetDesc().Format
+						_cmd->ResolveSubresource(fBuffAttach.resolved.Get(), 0,
+							fBuffAttach.texture.Get(), 0,
+							fBuffAttach.resolved->GetDesc().Format
 						);
 					}
 				}
 
 				// Transition from Resolve src/dst
 				{
-					for (uint32_t fBuffAttachIndex = 0; auto & attachInfo : prevSubpassInfo.attachments)
+					for (auto& fBuffAttach : prevFBuffAttachs)
 					{
-						auto& fBuffAttach = attachInfo.type == AttachmentType::Depth ? prevSubpassFrame.depthAttachment : prevFBuffAttachs[fBuffAttachIndex++];
-
-						if (!fBuffAttach.resolveImageBuffer)
+						if (!fBuffAttach.resolved)
 							continue;
 
 						D3D12_RESOURCE_BARRIER& barrier1 = barriers.emplace_back();
 						barrier1.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
 						barrier1.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-						barrier1.Transition.pResource = fBuffAttach.imageBuffer.Get();
+						barrier1.Transition.pResource = fBuffAttach.texture.Get();
 						barrier1.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
 						barrier1.Transition.StateBefore = D3D12_RESOURCE_STATE_RESOLVE_SOURCE;
 						barrier1.Transition.StateAfter = fBuffAttach.state;
@@ -118,127 +147,95 @@ namespace SA::RND::DX12
 			// Transition to next
 			{
 				// Apply transition to prev subpass.
-				for (uint32_t fBuffAttachIndex = 0; auto& attachInfo : prevSubpassInfo.attachments)
+				for(uint32_t i = 0; i  < prevFBuffAttachs.size(); ++i)
+				//for (auto& fBuffAttach : prevFBuffAttachs)
 				{
-					auto& fBuffAttach = attachInfo.type == AttachmentType::Depth ? prevSubpassFrame.depthAttachment : prevFBuffAttachs[fBuffAttachIndex++];
+					auto& fBuffAttach = prevFBuffAttachs[i];
+					auto& attachInfo = mSubpassInfos[prevSubpassIndex].attachInfos[i];
 
-					D3D12_RESOURCE_BARRIER barrier{};
-					barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-					barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-					barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+					D3D12_RESOURCE_BARRIER barrier1{};
+					barrier1.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+					barrier1.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+					barrier1.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+					barrier1.Transition.pResource = fBuffAttach.texture.Get();
+					barrier1.Transition.StateBefore = fBuffAttach.state;
 
-					if (fBuffAttach.resolveImageBuffer)
+					if (attachInfo.texture.bUsedAsInput)
 					{
-						barrier.Transition.pResource = fBuffAttach.resolveImageBuffer.Get();
-						barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RESOLVE_DEST;
+						barrier1.Transition.StateAfter = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
 					}
-					else
+					else if (attachInfo.texture.bPresent)
 					{
-						barrier.Transition.pResource = fBuffAttach.imageBuffer.Get();
-						barrier.Transition.StateBefore = fBuffAttach.state;
-					}
-
-
-					switch (attachInfo.type)
-					{
-						case AttachmentType::Color:
-						{
-							switch (attachInfo.usage)
-							{
-								case AttachmentUsage::InputNext:
-								{
-									barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
-									break;
-								}
-								case AttachmentUsage::Present:
-								{
-									barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
-									break;
-								}
-								default:
-								{
-									SA_LOG((L"AttachmentUsage [%1] not supported", attachInfo.usage), Error, SA.Render.DX12);
-									break;
-								}
-							}
-
-							break;
-						}
-						case AttachmentType::Depth:
-						{
-							if (attachInfo.usage != AttachmentUsage::InputNext)
-								continue;
-
-							barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
-							//barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_DEPTH_READ;
-							break;
-						}
-						default:
-						{
-							SA_LOG((L"AttachmentType [%1] not supported", attachInfo.type), Error, SA.Render.DX12);
-							continue;
-							break;
-						}
+						barrier1.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
 					}
 
-					if (barrier.Transition.StateBefore != barrier.Transition.StateAfter)
+					if (barrier1.Transition.StateBefore != barrier1.Transition.StateAfter)
 					{
-						// Only switch state when no MSAA.
-						// State switch is handled internally otherwise.
-						if(!fBuffAttach.resolveImageBuffer)
-							fBuffAttach.state = barrier.Transition.StateAfter;
-						
-						barriers.emplace_back(barrier);
+						fBuffAttach.state = barrier1.Transition.StateAfter;
+						barriers.emplace_back(barrier1);
+					}
+
+
+					if (fBuffAttach.resolved)
+					{
+						D3D12_RESOURCE_BARRIER barrier2{};
+						barrier2.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+						barrier2.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+						barrier2.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+						barrier2.Transition.pResource = fBuffAttach.resolved.Get();
+						barrier2.Transition.StateBefore = D3D12_RESOURCE_STATE_RESOLVE_DEST;
+
+						if (attachInfo.resolved.bUsedAsInput)
+						{
+							barrier2.Transition.StateAfter = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+						}
+						else if (attachInfo.resolved.bPresent)
+						{
+							barrier2.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
+						}
+
+						if (barrier2.Transition.StateBefore != barrier2.Transition.StateAfter)
+						{
+							// State only reflect texture attachment state, not resolved one.
+
+							barriers.emplace_back(barrier2);
+						}
 					}
 				}
 			
 				// If no currPass: submit prev only barriers.
-				if (mCurrSubpassIndex >= static_cast<uint32_t>(mPassInfo.subpasses.size()) && barriers.size())
+				if (mCurrSubpassIndex >= mCurrFrameBuffer->GetSubpassNum() && barriers.size())
 					_cmd->ResourceBarrier(static_cast<UINT>(barriers.size()), barriers.data());
 			}
 		}
 
 
 		// Curr Subpass
-		if (mCurrSubpassIndex < static_cast<uint32_t>(mPassInfo.subpasses.size()))
+		if (mCurrSubpassIndex < mCurrFrameBuffer->GetSubpassNum())
 		{
-			SA_ASSERT((OutOfArrayRange, mCurrSubpassIndex, mPassInfo.subpasses));
-			auto& currSubpassInfo = mPassInfo.subpasses[mCurrSubpassIndex];
-
 			auto& currSubpassFrame = mCurrFrameBuffer->GetSubpassFrame(mCurrSubpassIndex);
 			std::vector<FrameBuffer::Attachment>& currFBuffAttachs = currSubpassFrame.attachments;
 
 			// Transition
 			{
-				for(uint32_t fBuffAttachIndex = 0; auto& attachInfo : currSubpassInfo.attachments)
+				for (auto& fBuffAttach : currFBuffAttachs)
 				{
-					auto& fBuffAttach = attachInfo.type == AttachmentType::Depth ? currSubpassFrame.depthAttachment : currFBuffAttachs[fBuffAttachIndex++];
-
-					D3D12_RESOURCE_BARRIER barrier;
+					D3D12_RESOURCE_BARRIER barrier{};
 					barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
 					barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-					barrier.Transition.pResource = fBuffAttach.imageBuffer.Get();
+					barrier.Transition.pResource = fBuffAttach.texture.Get();
 					barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
 					barrier.Transition.StateBefore = fBuffAttach.state;
 
-					switch (attachInfo.type)
+					auto desc = fBuffAttach.texture->GetDesc();
+
+					if (desc.Flags & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET)
 					{
-						case AttachmentType::Color:
-						{
-							barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
-							break;
-						}
-						case AttachmentType::Depth:
-						{
-							barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_DEPTH_WRITE;
-							break;
-						}
-						default:
-						{
-							SA_LOG((L"AttachmentType [%1] not supported", attachInfo.type), Error, SA.Render.DX12);
-							continue;
-							break;
-						}
+						barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
+					}
+					else if (desc.Flags & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL)
+					{
+						barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_DEPTH_WRITE;
 					}
 
 					if (barrier.Transition.StateBefore != barrier.Transition.StateAfter)
@@ -258,31 +255,23 @@ namespace SA::RND::DX12
 				D3D12_CPU_DESCRIPTOR_HANDLE colorDescHandle = currSubpassFrame.colorViewHeap;
 				D3D12_CPU_DESCRIPTOR_HANDLE depthDescHandle = currSubpassFrame.depthViewHeap;
 
-				for (uint32_t fBuffAttachIndex = 0; auto & attachInfo : currSubpassInfo.attachments)
+				for (auto& fBuffAttach : currFBuffAttachs)
 				{
-					if (!attachInfo.bClearOnLoad)
+					if (fBuffAttach.clearValue.Color[0] < 0.0f)
 						continue;
 
-					switch (attachInfo.type)
+					auto desc = fBuffAttach.texture->GetDesc();
+
+					if (desc.Flags & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET)
 					{
-						case AttachmentType::Color:
-						{
-							_cmd->ClearRenderTargetView(colorDescHandle, currFBuffAttachs[fBuffAttachIndex++].clearValue.Color, 0, nullptr);
-							colorDescHandle.ptr += mCurrFrameBuffer->GetRTVDescriptorIncrementSize();
-							break;
-						}
-						case AttachmentType::Depth:
-						{
-							auto DSClearValue = currSubpassFrame.depthAttachment.clearValue.DepthStencil;
-							_cmd->ClearDepthStencilView(depthDescHandle, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, DSClearValue.Depth, DSClearValue.Stencil, 0, nullptr);
-							depthDescHandle.ptr += mCurrFrameBuffer->GetDSVDescriptorIncrementSize();
-							break;
-						}
-						default:
-						{
-							SA_LOG((L"AttachmentType [%1] not supported", attachInfo.type), Error, SA.Render.DX12);
-							break;
-						}
+						_cmd->ClearRenderTargetView(colorDescHandle, fBuffAttach.clearValue.Color, 0, nullptr);
+						colorDescHandle.ptr += mCurrFrameBuffer->GetRTVDescriptorIncrementSize();
+					}
+					else if (desc.Flags & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL)
+					{
+						auto DSClearValue = fBuffAttach.clearValue.DepthStencil;
+						_cmd->ClearDepthStencilView(depthDescHandle, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, DSClearValue.Depth, DSClearValue.Stencil, 0, nullptr);
+						depthDescHandle.ptr += mCurrFrameBuffer->GetDSVDescriptorIncrementSize();
 					}
 				}
 			}
@@ -297,7 +286,6 @@ namespace SA::RND::DX12
 				);
 			}
 		}
-		*/
 	}
 
 	void RenderPass::End(const CommandList& _cmd)
@@ -307,5 +295,11 @@ namespace SA::RND::DX12
 
 		mCurrSubpassIndex = 0u;
 		mCurrFrameBuffer = nullptr;
+	}
+
+
+	RenderPass::operator bool() const noexcept
+	{
+		return mSubpassInfos.size();
 	}
 }

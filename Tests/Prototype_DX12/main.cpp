@@ -70,9 +70,9 @@ struct SceneTexture
 std::vector<SceneTexture> sceneTextures;
 
 constexpr bool bDepth = true;
-constexpr bool bDepthPrepass = true;
-constexpr bool bDepthInverted = true;
-constexpr bool bMSAA = true;
+constexpr bool bDepthPrepass = false;
+constexpr bool bDepthInverted = false;
+constexpr bool bMSAA = false;
 
 void GLFWErrorCallback(int32_t error, const char* description)
 {
@@ -416,7 +416,7 @@ void Init()
 				srvDesc.Format = DXGI_FORMAT_R16_UNORM;
 				srvDesc.ViewDimension = bMSAA ? D3D12_SRV_DIMENSION_TEXTURE2DMS : D3D12_SRV_DIMENSION_TEXTURE2D;
 				srvDesc.Texture2D.MipLevels = 1;
-				device->CreateShaderResourceView(frameBuffers[i].GetSubpassFrame(0).depthAttachment.imageBuffer.Get(), &srvDesc, depthHeaps[i]->GetCPUDescriptorHandleForHeapStart());
+				//device->CreateShaderResourceView(frameBuffers[i].GetSubpassFrame(0).depthAttachment.imageBuffer.Get(), &srvDesc, depthHeaps[i]->GetCPUDescriptorHandleForHeapStart());
 			}
 		}
 

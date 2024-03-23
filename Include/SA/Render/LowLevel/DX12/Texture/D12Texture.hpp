@@ -25,6 +25,8 @@ namespace SA::RND::DX12
 		DXGI_FORMAT mIntlFormat = DXGI_FORMAT_UNKNOWN;
 
 	public:
+		MComPtr<ID3D12Resource> Get() const;
+
 		TextureDescriptor GetDescriptor() const noexcept;
 
 		/**

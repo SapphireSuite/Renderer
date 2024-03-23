@@ -22,8 +22,8 @@ namespace SA::RND::DX12
 	public:
 		struct Attachment
 		{
-			MComPtr<ID3D12Resource> imageBuffer;
-			MComPtr<ID3D12Resource> resolveImageBuffer;
+			MComPtr<ID3D12Resource> texture;
+			MComPtr<ID3D12Resource> resolved;
 			D3D12_CLEAR_VALUE clearValue{};
 			D3D12_RESOURCE_STATES state = D3D12_RESOURCE_STATE_COMMON;
 		};
@@ -31,7 +31,6 @@ namespace SA::RND::DX12
 		struct SubpassFrame
 		{
 			std::vector<Attachment> attachments;
-			Attachment depthAttachment;
 
 			D3D12_CPU_DESCRIPTOR_HANDLE colorViewHeap{ 0 };
 			D3D12_CPU_DESCRIPTOR_HANDLE depthViewHeap{ 0 };
@@ -47,6 +46,7 @@ namespace SA::RND::DX12
 		uint32_t GetRTVDescriptorIncrementSize() const;
 		uint32_t GetDSVDescriptorIncrementSize() const;
 
+		uint32_t GetSubpassNum() const;
 		SubpassFrame& GetSubpassFrame(uint32_t _subpassIndex);
 		std::vector<Attachment>& GetSubpassAttachments(uint32_t _subpassIndex);
 	};

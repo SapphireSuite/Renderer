@@ -15,10 +15,31 @@ namespace SA::RND::DX12
 
 	class RenderPass
 	{
-		RenderPassInfo mPassInfo;
-
 		uint32_t mCurrSubpassIndex = 0u;
 		DX12::FrameBuffer* mCurrFrameBuffer = nullptr;
+
+	//{ Info
+
+		struct SubpassInfo
+		{
+			struct AttachInfo
+			{
+				struct TextureInfo
+				{
+					bool bPresent = false;
+					bool bUsedAsInput = false;
+				};
+
+				TextureInfo texture;
+				TextureInfo resolved;
+			};
+
+			std::vector<AttachInfo> attachInfos;
+		};
+
+		std::vector<SubpassInfo> mSubpassInfos;
+
+	//}
 
 	public:
 		void Create(const RenderPassInfo& _info);
@@ -27,6 +48,8 @@ namespace SA::RND::DX12
 		void Begin(const CommandList& _cmd, FrameBuffer& _fBuff);
 		void NextSubpass(const CommandList& _cmd);
 		void End(const CommandList& _cmd);
+
+		operator bool() const noexcept;
 	};
 }
 

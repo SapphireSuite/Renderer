@@ -9,6 +9,11 @@
 
 namespace SA::RND::DX12
 {
+	MComPtr<ID3D12Resource> Texture::Get() const
+	{
+		return mHandle;
+	}
+
 	TextureDescriptor Texture::GetDescriptor() const noexcept
 	{
 		D3D12_RESOURCE_DESC d12Desc = mHandle->GetDesc();

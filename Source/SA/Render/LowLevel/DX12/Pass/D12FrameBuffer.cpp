@@ -4,13 +4,26 @@
 
 #include <Device/D12Device.hpp>
 
-#include "../Misc/D12Format.hpp"
-
 namespace SA::RND::DX12
 {
+	namespace Intl
+	{
+		bool HasDepthAttachment(const DX12::SubpassInfo& _subpass)
+		{
+			for (auto& attach : _subpass.attachments)
+			{
+				auto desc = attach.texture->GetDescriptor();
+
+				if (desc.usage == D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL)
+					return true;
+			}
+
+			return false;
+		}
+	}
+
 	void FrameBuffer::Create(const Device& _device, const RenderPassInfo& _info)
 	{
-		/*
 		mSubpassFrames.reserve(_info.subpasses.size());
 
 		// Render Target view heap
@@ -22,10 +35,12 @@ namespace SA::RND::DX12
 			{
 				for(auto& attach : subpass.attachments)
 				{
-					if(attach.type == AttachmentType::Color)
-						++renderTargetNum;
-					else if (attach.type == AttachmentType::Depth)
+					auto desc = attach.texture->GetDescriptor();
+
+					if (desc.usage & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL)
 						++depthStencilNum;
+					else if (desc.usage & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET)
+						++renderTargetNum;
 				}
 			}
 
@@ -64,17 +79,19 @@ namespace SA::RND::DX12
 		{
 			auto& subpassFrame = mSubpassFrames.emplace_back();
 			subpassFrame.colorViewHeap = rtvHandle;
-			subpassFrame.depthViewHeap = subpass.HasDepthAttachment() ? dsvHandle : D3D12_CPU_DESCRIPTOR_HANDLE();
+			subpassFrame.depthViewHeap = Intl::HasDepthAttachment(subpass) ? dsvHandle : D3D12_CPU_DESCRIPTOR_HANDLE();
 			subpassFrame.attachments.reserve(subpass.attachments.size());
 
 			for(auto& attachInfo : subpass.attachments)
 			{
+				auto textureDesc = attachInfo.texture->GetDescriptor();
+
 				Attachment attach;
-				attach.clearValue.Format = attachInfo.format;
 
 				D3D12_RENDER_TARGET_VIEW_DESC viewDesc
 				{
-					.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D,
+					.Format = textureDesc.format,
+					.ViewDimension = textureDesc.sampling > 1 ? D3D12_RTV_DIMENSION_TEXTURE2DMS : D3D12_RTV_DIMENSION_TEXTURE2D,
 
 					.Texture2D
 					{
@@ -85,117 +102,55 @@ namespace SA::RND::DX12
 
 				// Resource
 				{
-					D3D12_RESOURCE_DESC desc{};
-					desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-					desc.Width = attachInfo.extents.x;
-					desc.Height = attachInfo.extents.y;
-					desc.DepthOrArraySize = 1;
-					desc.MipLevels = 1;
-					desc.Format = attachInfo.format;
-					desc.SampleDesc.Count = subpass.sampling;
+					attach.texture = attachInfo.texture->Get();
 
-					if (attachInfo.type == AttachmentType::Color)
+					if(attachInfo.resolved)
+						attach.resolved = attachInfo.resolved->Get();
+
+
+					// Clear color
 					{
-						attach.state = D3D12_RESOURCE_STATE_RENDER_TARGET;
+						attach.clearValue.Format = textureDesc.format;
 
-						desc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
-
-						attach.clearValue.Color[0] = attachInfo.clearColor.r;
-						attach.clearValue.Color[1] = attachInfo.clearColor.g;
-						attach.clearValue.Color[2] = attachInfo.clearColor.b;
-						attach.clearValue.Color[3] = attachInfo.clearColor.a;
-					}
-					else if (attachInfo.type == AttachmentType::Depth)
-					{
-						attach.state = D3D12_RESOURCE_STATE_DEPTH_WRITE;
-
-						desc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
-
-						attach.clearValue.DepthStencil.Depth = attachInfo.clearColor.r;
-						attach.clearValue.DepthStencil.Stencil = static_cast<uint8_t>(attachInfo.clearColor.g);
-					}
-
-
-					if (attachInfo.usage == AttachmentUsage::Present)
-					{
-						SA_ASSERT((Nullptr, _presentImage.Get()), SA.Render.DX12,
-							L"Input present image handle must be valid with AttachmentUsage::Present");
-
-						//attach.state = D3D12_RESOURCE_STATE_PRESENT;
-	
-						if (desc.SampleDesc.Count > 1)
+						if (attachInfo.loadMode == AttachmentLoadMode::Clear)
 						{
-							viewDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DMS;
-							SA_DX12_API(_device->CreateCommittedResource(&heapProps,
-								D3D12_HEAP_FLAG_NONE,
-								&desc,
-								attach.state,
-								&attach.clearValue,
-								IID_PPV_ARGS(&attach.imageBuffer)
-							));
-
-							attach.resolveImageBuffer = _presentImage;
+							if (textureDesc.usage & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL)
+							{
+								attach.clearValue.DepthStencil.Depth = attachInfo.clearColor.r;
+								attach.clearValue.DepthStencil.Stencil = static_cast<uint8_t>(attachInfo.clearColor.g);
+							}
+							else
+							{
+								attach.clearValue.Color[0] = attachInfo.clearColor.r;
+								attach.clearValue.Color[1] = attachInfo.clearColor.g;
+								attach.clearValue.Color[2] = attachInfo.clearColor.b;
+								attach.clearValue.Color[3] = attachInfo.clearColor.a;
+							}
 						}
 						else
 						{
-							attach.state = D3D12_RESOURCE_STATE_PRESENT;
-							attach.imageBuffer = _presentImage;
+							attach.clearValue.Color[0] = -1.0f;
 						}
-						
-						viewDesc.Format = Intl::UNORMToSRGBFormat(_presentImage->GetDesc().Format);
-					}
-					else
-					{
-						// Create resource.
-
-						SA_DX12_API(_device->CreateCommittedResource(&heapProps,
-							D3D12_HEAP_FLAG_NONE,
-							&desc,
-							attach.state,
-							&attach.clearValue,
-							IID_PPV_ARGS(&attach.imageBuffer)
-						));
-
-						// Resolve resource.
-						if (desc.SampleDesc.Count > 1 && 
-							attachInfo.type == AttachmentType::Color) // DX12 does not support MSAA Depth resolve.
-						{
-							viewDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DMS;
-							desc.SampleDesc.Count = 1;
-
-							SA_DX12_API(_device->CreateCommittedResource(&heapProps,
-								D3D12_HEAP_FLAG_NONE,
-								&desc,
-								attach.state,
-								&attach.clearValue,
-								IID_PPV_ARGS(&attach.resolveImageBuffer)
-							));
-						}
-
-						viewDesc.Format = attach.imageBuffer->GetDesc().Format;
 					}
 				}
 
 				// View.
-				if(attachInfo.type == AttachmentType::Color)
+				if(textureDesc.usage & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET)
 				{
-					_device->CreateRenderTargetView(attach.imageBuffer.Get(), &viewDesc, rtvHandle);
+					_device->CreateRenderTargetView(attach.texture.Get(), &viewDesc, rtvHandle);
 					rtvHandle.ptr += mRTVDescriptorIncrementSize;
-
-					subpassFrame.attachments.emplace_back(attach);
 				}
-				else if(attachInfo.type == AttachmentType::Depth)
+				else if(textureDesc.usage & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL)
 				{
-					_device->CreateDepthStencilView(attach.imageBuffer.Get(), nullptr, dsvHandle);
+					_device->CreateDepthStencilView(attach.texture.Get(), nullptr, dsvHandle);
 					dsvHandle.ptr += mDSVDescriptorIncrementSize;
-
-					subpassFrame.depthAttachment = std::move(attach);
 				}
+				
+				subpassFrame.attachments.emplace_back(attach);
 			}
 		}
 
 		SA_LOG("FrameBuffer created.", Info, SA.Render.DX12, (L"Handle [%1]", this))
-		*/
 	}
 
 	void FrameBuffer::Destroy()
@@ -218,6 +173,11 @@ namespace SA::RND::DX12
 		return mDSVDescriptorIncrementSize;
 	}
 
+
+	uint32_t FrameBuffer::GetSubpassNum() const
+	{
+		return mSubpassFrames.size();
+	}
 
 	FrameBuffer::SubpassFrame& FrameBuffer::GetSubpassFrame(uint32_t _subpassIndex)
 	{
