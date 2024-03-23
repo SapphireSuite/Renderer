@@ -21,7 +21,7 @@ namespace SA::RND::VK
 
 		Vec2ui mExtents;
 
-		void EmplaceImage(const Device& _device, const AttachmentInfo<Texture>& _attach, Texture* _texture);
+		void EmplaceImage(const Device& _device, const AttachmentInfo& _attach, Texture* _texture);
 
 	public:
 		void Create(const Device& _device,

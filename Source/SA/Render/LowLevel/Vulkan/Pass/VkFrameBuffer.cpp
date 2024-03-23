@@ -7,7 +7,7 @@
 
 namespace SA::RND::VK
 {
-	void FrameBuffer::EmplaceImage(const Device& _device, const AttachmentInfo<Texture>& _attach, Texture* _texture)
+	void FrameBuffer::EmplaceImage(const Device& _device, const AttachmentInfo& _attach, Texture* _texture)
 	{
 		const TextureDescriptor& desc = _texture->GetDescriptor();
 

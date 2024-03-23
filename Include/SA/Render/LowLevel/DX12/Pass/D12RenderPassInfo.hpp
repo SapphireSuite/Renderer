@@ -11,6 +11,8 @@
 
 namespace SA::RND::DX12
 {
+	using AttachmentInfo = SA::RND::AttachmentInfo<Texture>;
+	using SubpassInfo = SA::RND::SubpassInfo<Texture>;
 	using RenderPassInfo = SA::RND::RenderPassInfo<Texture>;
 }
 
