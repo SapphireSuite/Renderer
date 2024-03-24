@@ -5,7 +5,7 @@
 #ifndef SAPPHIRE_RENDER_RENDERER_SCENE_TEXTURES_GUARD
 #define SAPPHIRE_RENDER_RENDERER_SCENE_TEXTURES_GUARD
 
-#include <SA/Render/RHI/Common/Texture/RHITexture.hpp>
+#include <SA/Render/RHI/Common/Texture/RHIRenderTarget.hpp>
 
 namespace SA::RND
 {
@@ -13,14 +13,14 @@ namespace SA::RND
 	{
 		struct DepthTextures
 		{
-			RHI::Texture* texture;
-			RHI::Texture* resolved;
+			RHI::RenderTarget* texture;
+			RHI::RenderTarget* resolved;
 		} depth;
 
 		struct ColorTextures
 		{
-			RHI::Texture* texture;
-			RHI::Texture* resolved;
+			RHI::RenderTarget* texture;
+			RHI::RenderTarget* resolved;
 		} color;
 	};
 }

@@ -176,18 +176,19 @@ namespace SA::RND
 		(void)_frameIndex;
 
 		// Depth Textures
+		if(_settings.depth.bEnabled)
 		{
-			RHI::TextureDescriptor desc
+			RHI::RenderTargetDescriptor desc
 			{
 				.extents = mSwapchain ? mSwapchain->GetExtents() : _settings.extents,
-				.mipLevels = 1u,
 				.format = _settings.depth.format,
 				.sampling = _settings.MSAA,
-				.usage = RHI::TextureUsage::RenderTarget | RHI::TextureUsage::Depth,
+				//.usage = RHI::TextureUsage::Depth,
+				.clearColor = Color{ 1.0f, 0.0f }
 			};
 
-			if (_settings.depth.bPrepass)
-				desc.usage |= RHI::TextureUsage::Input;
+			if (_settings.depth.bInvertedDepth)
+				desc.clearColor.r = 0.0f;
 
 			_sceneTextures->depth.texture = mContext->CreateTexture(desc);
 
@@ -200,13 +201,12 @@ namespace SA::RND
 
 		// Color Textures
 		{
-			RHI::TextureDescriptor desc
+			RHI::RenderTargetDescriptor desc
 			{
 				.extents = mSwapchain ? mSwapchain->GetExtents() : _settings.extents,
-				.mipLevels = 1u,
 				.format = mSwapchain ? SRGBToUNORMFormat(mSwapchain->GetFormat()) : RHI::Format::R8G8B8A8_UNORM,
 				.sampling = _settings.MSAA,
-				.usage = RHI::TextureUsage::RenderTarget,
+				//.usage = RHI::TextureUsage::Color,
 			};
 
 			if (_settings.MSAA != RHI::Sampling::S1Bit)

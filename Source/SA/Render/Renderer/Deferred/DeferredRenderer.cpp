@@ -74,13 +74,12 @@ namespace SA::RND
 			
 		// GBuffer
 		{
-			RHI::TextureDescriptor desc
+			RHI::RenderTargetDescriptor desc
 			{
 				.extents = mSwapchain ? mSwapchain->GetExtents() : _settings.extents,
-				.mipLevels = 1u,
 				.format = RHI::Format::R8G8B8A8_UNORM,
 				.sampling = _settings.MSAA,
-				.usage = RHI::TextureUsage::RenderTarget,
+				//.usage = RHI::TextureUsage::Color,
 			};
 
 			dSceneTextures.gbuffer.position = mContext->CreateTexture(desc);

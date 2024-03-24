@@ -18,8 +18,6 @@ namespace SA::RND::RHI
 	{
 		Vec2ui extents;
 
-		uint32_t mipLevels = 1u;
-
 		Format format = Format::R8G8B8A8_UNORM;
 
 		Sampling sampling = Sampling::S1Bit;

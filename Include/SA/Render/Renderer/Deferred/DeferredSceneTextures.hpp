@@ -13,11 +13,11 @@ namespace SA::RND
 	{
 		struct GBufferTextures
 		{
-			RHI::Texture* position;
-			RHI::Texture* normal;
-			RHI::Texture* color;
-			RHI::Texture* metallicRoughness;
-			RHI::Texture* ao;
+			RHI::RenderTarget* position;
+			RHI::RenderTarget* normal;
+			RHI::RenderTarget* color;
+			RHI::RenderTarget* metallicRoughness;
+			RHI::RenderTarget* ao;
 		} gbuffer;
 	};
 }
