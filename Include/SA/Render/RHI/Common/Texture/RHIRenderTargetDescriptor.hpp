@@ -20,6 +20,12 @@
 
 #endif
 
+#if SA_RENDER_LOWLEVEL_DX12_IMPL
+
+#include <SA/Render/LowLevel/DX12/Texture/D12TextureDescriptor.hpp>
+
+#endif
+
 namespace SA::RND::RHI
 {
 	struct RenderTargetDescriptor
@@ -37,6 +43,12 @@ namespace SA::RND::RHI
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
 		VK::TextureDescriptor API_Vulkan() const;
+
+#endif
+
+#if SA_RENDER_LOWLEVEL_DX12_IMPL
+
+		DX12::TextureDescriptor API_DirectX12() const noexcept;
 
 #endif
 	};

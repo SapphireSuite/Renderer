@@ -6,19 +6,19 @@ namespace SA::RND::VK
 {
 	VkImageUsageFlags API_GetTextureUsage(RHI::TextureUsage _usage)
 	{
-		VkImageUsageFlags usage;
+		VkImageUsageFlags vkUsage;
 
 		// TODO: Warning check only one of Color and Depth is set.
 
 		if (_usage & RHI::TextureUsageFlags::Color)
-			usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+			vkUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
 		if (_usage & RHI::TextureUsageFlags::Depth)
-			usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+			vkUsage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 
 		if (_usage & RHI::TextureUsageFlags::Input)
-			usage |= VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;
+			vkUsage |= VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;
 
-		return usage;
+		return vkUsage;
 	}
 }

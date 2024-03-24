@@ -515,9 +515,9 @@ namespace SA::RND::RHI
 //}
 
 
-//{ Input Texture
+//{ Sampled Texture
 
-	void Context::DeleteInputTextureClass(InputTexture* _texture)
+	void Context::DeleteSampledTextureClass(SampledTexture* _texture)
 	{
 		SA_ASSERT((Nullptr, _texture), SA.Render.RHI);
 
@@ -525,39 +525,39 @@ namespace SA::RND::RHI
 	}
 
 
-	InputTexture* Context::CreateInputTexture(ResourceInitializer* _init, const RawTexture& _raw)
+	SampledTexture* Context::CreateSampledTexture(ResourceInitializer* _init, const RawTexture& _raw)
 	{
-		InputTexture* const texture = mInputTextures.emplace_front(InstantiateInputTextureClass());
+		SampledTexture* const texture = mSampledTextures.emplace_front(InstantiateSampledTextureClass());
 
-		SA_ASSERT((Nullptr, texture), SA.Render.RHI, (L"Texture instantiate class failed!"));
+		SA_ASSERT((Nullptr, texture), SA.Render.RHI, (L"SampledTexture instantiate class failed!"));
 
 		texture->Create(mDevice, _init, _raw);
 
 		return texture;
 	}
 
-	void Context::DestroyInputTexture(InputTexture* _texture)
+	void Context::DestroySampledTexture(SampledTexture* _texture)
 	{
 		SA_ASSERT((Nullptr, _texture), SA.Render.RHI);
 
-		if (std::erase(mInputTextures, _texture))
+		if (std::erase(mSampledTextures, _texture))
 		{
 			_texture->Destroy(mDevice);
-			DeleteInputTextureClass(_texture);
+			DeleteSampledTextureClass(_texture);
 		}
 		else
-			SA_LOG((L"Try destroy InputTexture [%1] that does not belong to this context!", _texture), Error, SA.Render.RHI);
+			SA_LOG((L"Try destroy SampledTexture [%1] that does not belong to this context!", _texture), Error, SA.Render.RHI);
 	}
 
-	void Context::DestroyAllInputTextures()
+	void Context::DestroyAllSampledTextures()
 	{
-		for (auto texture: mInputTextures)
+		for (auto texture: mSampledTextures)
 		{
 			texture->Destroy(mDevice);
-			DeleteInputTextureClass(texture);
+			DeleteSampledTextureClass(texture);
 		}
 
-		mInputTextures.clear();
+		mSampledTextures.clear();
 	}
 
 //}

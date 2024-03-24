@@ -18,7 +18,7 @@
 #include <SA/Render/RHI/Common/Buffer/RHIBuffer.hpp>
 #include <SA/Render/RHI/Common/RHIResourceInitializer.hpp>
 #include <SA/Render/RHI/Common/Mesh/RHIStaticMesh.hpp>
-#include <SA/Render/RHI/Common/Texture/RHIInputTexture.hpp>
+#include <SA/Render/RHI/Common/Texture/RHISampledTexture.hpp>
 #include <SA/Render/RHI/Common/Texture/RHIRenderTarget.hpp>
 
 namespace SA::RND::RHI
@@ -208,19 +208,19 @@ namespace SA::RND::RHI
 //}
 
 
-//{ Input Texture
+//{ Sampled Texture
 
 	private:
-		std::forward_list<InputTexture*> mInputTextures;
+		std::forward_list<SampledTexture*> mSampledTextures;
 
 	protected:
-		virtual InputTexture* InstantiateInputTextureClass() = 0;
-		virtual void DeleteInputTextureClass(InputTexture* _texture);
+		virtual SampledTexture* InstantiateSampledTextureClass() = 0;
+		virtual void DeleteSampledTextureClass(SampledTexture* _texture);
 
 	public:
-		InputTexture* CreateInputTexture(ResourceInitializer* _init, const RawTexture& _texture);
-		void DestroyInputTexture(InputTexture* _texture);
-		void DestroyAllInputTextures();
+		SampledTexture* CreateSampledTexture(ResourceInitializer* _init, const RawTexture& _texture);
+		void DestroySampledTexture(SampledTexture* _texture);
+		void DestroyAllSampledTextures();
 
 //}
 
