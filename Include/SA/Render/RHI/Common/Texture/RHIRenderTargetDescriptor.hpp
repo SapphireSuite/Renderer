@@ -38,7 +38,7 @@ namespace SA::RND::RHI
 
 		TextureUsage usage = static_cast<TextureUsage>(TextureUsageFlags::Color); // TODO clean.
 
-		Color clearColor = Color{ 0.0f, 0.0f, 0.015f, 0.0f };
+		Color clearColor = Color::black;
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
