@@ -24,6 +24,8 @@ namespace SA::RND::RHI
 	
 	void Context::Destroy()
 	{
+		DestroyAllRenderTargets();
+		DestroyAllInputTextures();
 		DestroyAllStaticMeshes();
 		DestroyAllResourceInitializers();
 		DestroyAllBuffers();
@@ -513,9 +515,9 @@ namespace SA::RND::RHI
 //}
 
 
-//{ Textures
+//{ Input Texture
 
-	void Context::DeleteTextureClass(Texture* _texture)
+	void Context::DeleteInputTextureClass(InputTexture* _texture)
 	{
 		SA_ASSERT((Nullptr, _texture), SA.Render.RHI);
 
@@ -523,31 +525,9 @@ namespace SA::RND::RHI
 	}
 
 
-	Texture* Context::CreateTexture(const Swapchain* _swapchain, uint32_t _imageIndex)
+	InputTexture* Context::CreateInputTexture(ResourceInitializer* _init, const RawTexture& _raw)
 	{
-		Texture* const texture = mTextures.emplace_front(InstantiateTextureClass());
-
-		SA_ASSERT((Nullptr, texture), SA.Render.RHI, (L"Texture instantiate class failed!"));
-
-		texture->CreateFromImage(_swapchain, _imageIndex);
-
-		return texture;
-	}
-
-	Texture* Context::CreateTexture(const TextureDescriptor& _desc)
-	{
-		Texture* const texture = mTextures.emplace_front(InstantiateTextureClass());
-
-		SA_ASSERT((Nullptr, texture), SA.Render.RHI, (L"Texture instantiate class failed!"));
-
-		texture->Create(mDevice, _desc);
-
-		return texture;
-	}
-
-	Texture* Context::CreateTexture(ResourceInitializer* _init, const RawTexture& _raw)
-	{
-		Texture* const texture = mTextures.emplace_front(InstantiateTextureClass());
+		InputTexture* const texture = mInputTextures.emplace_front(InstantiateInputTextureClass());
 
 		SA_ASSERT((Nullptr, texture), SA.Render.RHI, (L"Texture instantiate class failed!"));
 
@@ -556,28 +536,87 @@ namespace SA::RND::RHI
 		return texture;
 	}
 
-	void Context::DestroyTexture(Texture* _texture)
+	void Context::DestroyInputTexture(InputTexture* _texture)
 	{
 		SA_ASSERT((Nullptr, _texture), SA.Render.RHI);
 
-		if (std::erase(mTextures, _texture))
+		if (std::erase(mInputTextures, _texture))
 		{
 			_texture->Destroy(mDevice);
-			DeleteTextureClass(_texture);
+			DeleteInputTextureClass(_texture);
 		}
 		else
-			SA_LOG((L"Try destroy Texture [%1] that does not belong to this context!", _texture), Error, SA.Render.RHI);
+			SA_LOG((L"Try destroy InputTexture [%1] that does not belong to this context!", _texture), Error, SA.Render.RHI);
 	}
 
-	void Context::DestroyAllTextures()
+	void Context::DestroyAllInputTextures()
 	{
-		for (auto texture: mTextures)
+		for (auto texture: mInputTextures)
 		{
 			texture->Destroy(mDevice);
-			DeleteTextureClass(texture);
+			DeleteInputTextureClass(texture);
 		}
 
-		mTextures.clear();
+		mInputTextures.clear();
+	}
+
+//}
+
+
+//{ Render Target
+
+	void Context::DeleteRenderTargetClass(RenderTarget* _rt)
+	{
+		SA_ASSERT((Nullptr, _rt), SA.Render.RHI);
+
+		delete _rt;
+	}
+
+
+	RenderTarget* Context::CreateRenderTarget(const RenderTargetDescriptor& _desc)
+	{
+		RenderTarget* const rt = mRenderTargets.emplace_front(InstantiateRenderTargetClass());
+
+		SA_ASSERT((Nullptr, rt), SA.Render.RHI, (L"RenderTarget instantiate class failed!"));
+
+		rt->Create(mDevice, _desc);
+
+		return rt;
+	}
+
+	RenderTarget* Context::CreateRenderTarget(const Swapchain* _swapchain, uint32_t _imageIndex)
+	{
+		RenderTarget* const rt = mRenderTargets.emplace_front(InstantiateRenderTargetClass());
+
+		SA_ASSERT((Nullptr, rt), SA.Render.RHI, (L"RenderTarget instantiate class failed!"));
+
+		rt->CreateFromImage(_swapchain, _imageIndex);
+
+		return rt;
+	}
+
+	void Context::DestroyRenderTarget(RenderTarget* _rt)
+	{
+		SA_ASSERT((Nullptr, _rt), SA.Render.RHI);
+
+		if (std::erase(mRenderTargets, _rt))
+		{
+			_rt->Destroy(mDevice);
+			DeleteRenderTargetClass(_rt);
+		}
+		else
+			SA_LOG((L"Try destroy RenderTarget [%1] that does not belong to this context!", _rt), Error, SA.Render.RHI);
+	}
+
+	void Context::DestroyAllRenderTargets()
+	{
+		for (auto rt: mRenderTargets)
+		{
+			rt->Destroy(mDevice);
+			DeleteRenderTargetClass(rt);
+		}
+
+		mRenderTargets.clear();
 	}
 
 //}

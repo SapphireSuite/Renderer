@@ -12,6 +12,14 @@
 #include <SA/Render/RHI/Common/Misc/RHIFormat.hpp>
 #include <SA/Render/RHI/Common/Misc/RHISampling.hpp>
 
+#include "RHITextureUsage.hpp"
+
+#if SA_RENDER_LOWLEVEL_VULKAN_IMPL
+
+#include <SA/Render/LowLevel/Vulkan/Texture/VkTextureDescriptor.hpp>
+
+#endif
+
 namespace SA::RND::RHI
 {
 	struct RenderTargetDescriptor
@@ -22,7 +30,15 @@ namespace SA::RND::RHI
 
 		Sampling sampling = Sampling::S1Bit;
 
+		TextureUsage usage = static_cast<TextureUsage>(TextureUsageFlags::Color); // TODO clean.
+
 		Color clearColor = Color{ 0.0f, 0.0f, 0.015f, 0.0f };
+
+#if SA_RENDER_LOWLEVEL_VULKAN_IMPL
+
+		VK::TextureDescriptor API_Vulkan() const;
+
+#endif
 	};
 }
 

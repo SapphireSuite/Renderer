@@ -2,8 +2,8 @@
 
 #pragma once
 
-#ifndef SAPPHIRE_RENDER_RHI_INPUT_TEXTURE_GUARD
-#define SAPPHIRE_RENDER_RHI_INPUT_TEXTURE_GUARD
+#ifndef SAPPHIRE_RENDER_RHI_SAMPLED_TEXTURE_GUARD
+#define SAPPHIRE_RENDER_RHI_SAMPLED_TEXTURE_GUARD
 
 #include "RHIITexture.hpp"
 
@@ -17,14 +17,14 @@ namespace SA::RND::RHI
 	/**
 	* \brief Texture used as input for sampling.
 	*/
-	class InputTexture : public ITexture
+	class SampledTexture : public ITexture
 	{
 	public:
-		virtual ~InputTexture() = default;
+		virtual ~SampledTexture() = default;
 
 		virtual void Create(const Device* _device, ResourceInitializer* _init, const SA::RND::RawTexture& _raw) = 0;
 		virtual void Destroy(const Device* _device) = 0;
 	};
 }
 
-#endif // SAPPHIRE_RENDER_RHI_INPUT_TEXTURE_GUARD
+#endif // SAPPHIRE_RENDER_RHI_SAMPLED_TEXTURE_GUARD

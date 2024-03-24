@@ -12,7 +12,8 @@
 #include <Buffer/RHIVkBuffer.hpp>
 #include <RHIVkResourceInitializer.hpp>
 #include <Mesh/RHIVkStaticMesh.hpp>
-#include <Texture/RHIVkTexture.hpp>
+#include <Texture/RHIVkInputTexture.hpp>
+#include <Texture/RHIVkRenderTarget.hpp>
 
 namespace SA::RND::RHI
 {
@@ -66,8 +67,13 @@ namespace SA::RND::RHI
 		return new VkStaticMesh();
 	}
 
-	Texture* VkContext::InstantiateTextureClass()
+	InputTexture* VkContext::InstantiateInputTextureClass()
 	{
-		return new VkTexture();
+		return new VkInputTexture();
+	}
+
+	RenderTarget* VkContext::InstantiateRenderTargetClass()
+	{
+		return new VkRenderTarget();
 	}
 }
