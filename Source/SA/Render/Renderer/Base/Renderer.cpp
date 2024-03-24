@@ -183,19 +183,19 @@ namespace SA::RND
 				.extents = mSwapchain ? mSwapchain->GetExtents() : _settings.extents,
 				.format = _settings.depth.format,
 				.sampling = _settings.MSAA,
-				//.usage = RHI::TextureUsage::Depth,
+				.usage = static_cast<RHI::TextureUsage>(RHI::TextureUsageFlags::Depth), // TODO: clean
 				.clearColor = Color{ 1.0f, 0.0f }
 			};
 
 			if (_settings.depth.bInvertedDepth)
 				desc.clearColor.r = 0.0f;
 
-			_sceneTextures->depth.texture = mContext->CreateTexture(desc);
+			_sceneTextures->depth.texture = mContext->CreateRenderTarget(desc);
 
 			if (_settings.MSAA != RHI::Sampling::S1Bit)
 			{
 				desc.sampling = RHI::Sampling::S1Bit;
-				_sceneTextures->depth.resolved = mContext->CreateTexture(desc);
+				_sceneTextures->depth.resolved = mContext->CreateRenderTarget(desc);
 			}
 		}
 
@@ -206,24 +206,24 @@ namespace SA::RND
 				.extents = mSwapchain ? mSwapchain->GetExtents() : _settings.extents,
 				.format = mSwapchain ? SRGBToUNORMFormat(mSwapchain->GetFormat()) : RHI::Format::R8G8B8A8_UNORM,
 				.sampling = _settings.MSAA,
-				//.usage = RHI::TextureUsage::Color,
+				.usage = static_cast<RHI::TextureUsage>(RHI::TextureUsageFlags::Color), // TODO: clean.
 			};
 
 			if (_settings.MSAA != RHI::Sampling::S1Bit)
 			{
-				_sceneTextures->color.texture = mContext->CreateTexture(desc);
+				_sceneTextures->color.texture = mContext->CreateRenderTarget(desc);
 
 				if (mSwapchain)
-					_sceneTextures->color.resolved = mContext->CreateTexture(mSwapchain, _frameIndex);
+					_sceneTextures->color.resolved = mContext->CreateRenderTarget(mSwapchain, _frameIndex);
 				else
-					_sceneTextures->color.resolved = mContext->CreateTexture(desc);
+					_sceneTextures->color.resolved = mContext->CreateRenderTarget(desc);
 			}
 			else
 			{
 				if (mSwapchain)
-					_sceneTextures->color.texture = mContext->CreateTexture(mSwapchain, _frameIndex);
+					_sceneTextures->color.texture = mContext->CreateRenderTarget(mSwapchain, _frameIndex);
 				else
-					_sceneTextures->color.texture = mContext->CreateTexture(desc);
+					_sceneTextures->color.texture = mContext->CreateRenderTarget(desc);
 			}
 		}
 	}
@@ -232,18 +232,18 @@ namespace SA::RND
 	{
 		// Depth Textures
 		{
-			mContext->DestroyTexture(_sceneTextures->depth.texture);
+			mContext->DestroyRenderTarget(_sceneTextures->depth.texture);
 
 			if (_sceneTextures->depth.resolved)
-				mContext->DestroyTexture(_sceneTextures->depth.resolved);
+				mContext->DestroyRenderTarget(_sceneTextures->depth.resolved);
 		}
 
 		// Color Textures
 		{
-			mContext->DestroyTexture(_sceneTextures->color.texture);
+			mContext->DestroyRenderTarget(_sceneTextures->color.texture);
 
 			if (_sceneTextures->color.resolved)
-				mContext->DestroyTexture(_sceneTextures->color.resolved);
+				mContext->DestroyRenderTarget(_sceneTextures->color.resolved);
 		}
 	}
 

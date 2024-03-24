@@ -79,19 +79,19 @@ namespace SA::RND
 				.extents = mSwapchain ? mSwapchain->GetExtents() : _settings.extents,
 				.format = RHI::Format::R8G8B8A8_UNORM,
 				.sampling = _settings.MSAA,
-				//.usage = RHI::TextureUsage::Color,
+				.usage = static_cast<RHI::TextureUsage>(RHI::TextureUsageFlags::Color), // TODO: clean.
 			};
 
-			dSceneTextures.gbuffer.position = mContext->CreateTexture(desc);
-			dSceneTextures.gbuffer.normal = mContext->CreateTexture(desc);
+			dSceneTextures.gbuffer.position = mContext->CreateRenderTarget(desc);
+			dSceneTextures.gbuffer.normal = mContext->CreateRenderTarget(desc);
 
-			dSceneTextures.gbuffer.color = mContext->CreateTexture(desc);
+			dSceneTextures.gbuffer.color = mContext->CreateRenderTarget(desc);
 
 			desc.format = RHI::Format::R8G8_UNORM;
-			dSceneTextures.gbuffer.metallicRoughness = mContext->CreateTexture(desc);
+			dSceneTextures.gbuffer.metallicRoughness = mContext->CreateRenderTarget(desc);
 
 			desc.format = RHI::Format::R8_UNORM;
-			dSceneTextures.gbuffer.ao = mContext->CreateTexture(desc);
+			dSceneTextures.gbuffer.ao = mContext->CreateRenderTarget(desc);
 		}
 	}
 	
@@ -105,11 +105,11 @@ namespace SA::RND
 
 			// GBuffer
 			{
-				mContext->DestroyTexture(dSceneTextures.gbuffer.position);
-				mContext->DestroyTexture(dSceneTextures.gbuffer.normal);
-				mContext->DestroyTexture(dSceneTextures.gbuffer.color);
-				mContext->DestroyTexture(dSceneTextures.gbuffer.metallicRoughness);
-				mContext->DestroyTexture(dSceneTextures.gbuffer.ao);
+				mContext->DestroyRenderTarget(dSceneTextures.gbuffer.position);
+				mContext->DestroyRenderTarget(dSceneTextures.gbuffer.normal);
+				mContext->DestroyRenderTarget(dSceneTextures.gbuffer.color);
+				mContext->DestroyRenderTarget(dSceneTextures.gbuffer.metallicRoughness);
+				mContext->DestroyRenderTarget(dSceneTextures.gbuffer.ao);
 			}
 		}
 	}
