@@ -143,9 +143,9 @@ namespace SA::RND
 
 //{ RenderPass
 
-	void Renderer::AddDepthAttachment(const RendererSettings::RenderPassSettings& _settings, SceneTextures* _sceneTextures, SubpassInfo<RHI::Texture>& _subpassInfo)
+	void Renderer::AddDepthAttachment(const RendererSettings::RenderPassSettings& _settings, SceneTextures* _sceneTextures, SubpassInfo& _subpassInfo)
 	{
-		auto& depthRT = _subpassInfo.AddAttachment("Depth", _sceneTextures->depth.texture, _sceneTextures->depth.resolved);
+		auto& depthRT = _subpassInfo.AddAttachment(/*"Depth", */_sceneTextures->depth.texture, _sceneTextures->depth.resolved);
 
 		if (_settings.depth.bInvertedDepth)
 		{
@@ -157,11 +157,11 @@ namespace SA::RND
 		}
 	}
 
-	SubpassInfo<RHI::Texture>& Renderer::AddPresentSubpass(const RendererSettings::RenderPassSettings& _settings, SceneTextures* _sceneTextures, RHI::RenderPassInfo& _passInfo)
+	SubpassInfo& Renderer::AddPresentSubpass(const RendererSettings::RenderPassSettings& _settings, SceneTextures* _sceneTextures, RHI::RenderPassInfo& _passInfo)
 	{
 		auto& presentSubpass = _passInfo.AddSubpass("Present Pass");
 
-		auto& presentRT = presentSubpass.AddAttachment("Color", _sceneTextures->color.texture, _sceneTextures->color.resolved);
+		auto& presentRT = presentSubpass.AddAttachment(/*"Color", */_sceneTextures->color.texture, _sceneTextures->color.resolved);
 
 		return presentSubpass;
 	}
@@ -207,6 +207,7 @@ namespace SA::RND
 				.format = mSwapchain ? SRGBToUNORMFormat(mSwapchain->GetFormat()) : RHI::Format::R8G8B8A8_UNORM,
 				.sampling = _settings.MSAA,
 				.usage = static_cast<RHI::TextureUsage>(RHI::TextureUsageFlags::Color), // TODO: clean.
+				.clearColor = Color{ 0.0f, 0.0f, 0.15f, 1.0f }
 			};
 
 			if (_settings.MSAA != RHI::Sampling::S1Bit)

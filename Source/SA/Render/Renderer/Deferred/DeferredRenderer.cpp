@@ -27,17 +27,17 @@ namespace SA::RND
 			// Render Targets
 			{
 				// Deferred position attachment.
-				auto& posRT = GBufferSubpass.AddAttachment("GBuffer_Position", dSceneTextures.gbuffer.position);
+				auto& posRT = GBufferSubpass.AddAttachment(/*"GBuffer_Position", */dSceneTextures.gbuffer.position);
 
 				// Deferred normal attachment.
-				auto& normRT = GBufferSubpass.AddAttachment("GBuffer_Normal", dSceneTextures.gbuffer.normal);
+				auto& normRT = GBufferSubpass.AddAttachment(/*"GBuffer_Normal", */dSceneTextures.gbuffer.normal);
 
 				// Deferred base color attachment.
-				auto& colorRT = GBufferSubpass.AddAttachment("GBuffer_Color", dSceneTextures.gbuffer.color);
+				auto& colorRT = GBufferSubpass.AddAttachment(/*"GBuffer_Color", */dSceneTextures.gbuffer.color);
 
-				auto& metallicRoughnessRT = GBufferSubpass.AddAttachment("GBuffer_MetallicRoughness", dSceneTextures.gbuffer.metallicRoughness);
+				auto& metallicRoughnessRT = GBufferSubpass.AddAttachment(/*"GBuffer_MetallicRoughness", */dSceneTextures.gbuffer.metallicRoughness);
 
-				auto& aoRT = GBufferSubpass.AddAttachment("GBuffer_AO", dSceneTextures.gbuffer.ao);
+				auto& aoRT = GBufferSubpass.AddAttachment(/*"GBuffer_AO", */dSceneTextures.gbuffer.ao);
 
 				// Depth
 				if (_settings.depth.bEnabled && !_settings.depth.bPrepass)
