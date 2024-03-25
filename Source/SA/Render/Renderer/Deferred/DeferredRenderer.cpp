@@ -21,7 +21,7 @@ namespace SA::RND
 	{
 		DeferredSceneTextures& dSceneTextures = *static_cast<DeferredSceneTextures*>(_sceneTextures);
 
-		CreateSceneDepthResourcesAndPass(_settings, _outPassInfo, _sceneTextures);
+		CreateSceneDepthResourcesAndAddPrepass(_settings, _outPassInfo, _sceneTextures);
 
 		// GBuffer
 		{

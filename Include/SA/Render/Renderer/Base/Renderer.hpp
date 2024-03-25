@@ -75,9 +75,9 @@ namespace SA::RND
 		virtual void DeleteSceneTexturesClass(SceneTextures* _sceneTextures) = 0;
 
 		/**
-		* Create Scene depth resources and Depth-Only prepass if required.
+		* Create Scene depth resources and add Depth-Only prepass if required.
 		*/
-		void CreateSceneDepthResourcesAndPass(const RendererSettings::RenderPassSettings& _settings, RHI::RenderPassInfo& _outPassInfo, SceneTextures* _sceneTextures);
+		void CreateSceneDepthResourcesAndAddPrepass(const RendererSettings::RenderPassSettings& _settings, RHI::RenderPassInfo& _outPassInfo, SceneTextures* _sceneTextures);
 		void DestroySceneDepthResources(SceneTextures* _sceneTextures);
 		
 		/**

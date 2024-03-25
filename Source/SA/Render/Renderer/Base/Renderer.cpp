@@ -140,7 +140,7 @@ namespace SA::RND
 
 //{ Scene Textures
 
-	void Renderer::CreateSceneDepthResourcesAndPass(const RendererSettings::RenderPassSettings& _settings, RHI::RenderPassInfo& _outPassInfo, SceneTextures* _sceneTextures)
+	void Renderer::CreateSceneDepthResourcesAndAddPrepass(const RendererSettings::RenderPassSettings& _settings, RHI::RenderPassInfo& _outPassInfo, SceneTextures* _sceneTextures)
 	{
 		if (_settings.depth.bEnabled)
 		{
@@ -168,7 +168,7 @@ namespace SA::RND
 			{
 				RHI::SubpassInfo& depthPrepass = _outPassInfo.AddSubpass("Depth-Only Prepass");
 
-				auto& depthRT = depthPrepass.AddAttachment(_sceneTextures->depth.texture, _sceneTextures->depth.resolved);
+				/*auto& depthRT = */depthPrepass.AddAttachment(_sceneTextures->depth.texture, _sceneTextures->depth.resolved);
 			}
 		}
 	}
@@ -186,10 +186,13 @@ namespace SA::RND
 		if (_settings.depth.bEnabled)
 		{
 			// Used either as read only from prepass, or read write without depth prepass.
-			auto& depthRT = _subpass.AddAttachment(_sceneTextures->depth.texture);
+			auto& depthRT = _subpass.AddAttachment(_sceneTextures->depth.texture, _sceneTextures->depth.resolved);
 
 			if (_settings.depth.bPrepass)
+			{
 				depthRT.loadMode = RHI::AttachmentLoadMode::Load;
+				depthRT.accessMode = RHI::AttachmentAccessMode::ReadOnly;
+			}
 		}
 	}
 
@@ -241,7 +244,6 @@ namespace SA::RND
 				_outPassInfo.RegisterRenderTarget(_sceneTextures->colorPresent.resolved, desc);
 
 				// Base texture
-				desc.format = SRGBToUNORMFormat(mSwapchain->GetFormat());
 				desc.sampling = _settings.MSAA;
 				_sceneTextures->colorPresent.texture = mContext->CreateTexture(desc);
 				_outPassInfo.RegisterRenderTarget(_sceneTextures->colorPresent.texture, desc);

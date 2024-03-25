@@ -21,7 +21,7 @@ namespace SA::RND
 	{
 		ForwardSceneTextures& fSceneTextures = *static_cast<ForwardSceneTextures*>(_sceneTextures);
 
-		CreateSceneDepthResourcesAndPass(_settings, _outPassInfo, _sceneTextures);
+		CreateSceneDepthResourcesAndAddPrepass(_settings, _outPassInfo, _sceneTextures);
 
 		CreateSceneColorPresentResources(_settings, _outPassInfo, _sceneTextures, _frameIndex);
 

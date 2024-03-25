@@ -20,6 +20,7 @@
 #endif
 
 #include "RHIAttachmentLoadMode.hpp"
+#include "RHIAttachmentAccessMode.hpp"
 
 #include <SA/Render/RHI/Common/Texture/RHITexture.hpp>
 

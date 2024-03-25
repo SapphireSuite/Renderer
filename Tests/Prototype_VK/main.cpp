@@ -232,7 +232,10 @@ void Init()
 							auto& depthRT = mainSubpass.AddAttachment(&sceneTextures[i].depth);
 
 							if (bDepthPrepass)
+							{
 								depthRT.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
+								depthRT.accessMode = AttachmentAccessMode::ReadOnly;
+							}
 						}
 					}
 

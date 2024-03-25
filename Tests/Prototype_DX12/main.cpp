@@ -212,7 +212,10 @@ void Init()
 							auto& depthRT = mainSubpass.AddAttachment(&sceneTextures[i].depth);
 
 							if (bDepthPrepass)
+							{
 								depthRT.bClear = false;
+								depthRT.accessMode = AttachmentAccessMode::ReadOnly;
+							}
 						}
 					}
 
