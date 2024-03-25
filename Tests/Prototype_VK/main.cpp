@@ -181,7 +181,7 @@ void Init()
 						.format = swapchain.GetFormat(),
 						.sampling = VK_SAMPLE_COUNT_1_BIT,
 						.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
-						.clearColor = Color{ 0.0f, 0.0f, 0.15f, 0.0f },
+						.clearColor = Color{ 0.0f, 0.0f, 0.010f, 0.0f },
 					};
 
 					if (bMSAA)

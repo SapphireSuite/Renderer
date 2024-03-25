@@ -204,7 +204,7 @@ namespace SA::RND
 				.format = mSwapchain->GetFormat(),
 				.sampling = RHI::Sampling::S1Bit, // Set later only for base texture.
 				.usage = static_cast<RHI::TextureUsage>(RHI::TextureUsageFlags::Color), // TODO: clean.
-				.clearColor = Color{ 0.0f, 0.0f, 0.15f, 1.0f }
+				.clearColor = Color{ 0.0f, 0.0f, 0.010f, 1.0f }
 			};
 
 			if (_settings.MSAA != RHI::Sampling::S1Bit)
@@ -232,7 +232,7 @@ namespace SA::RND
 				.format = RHI::Format::R8G8B8A8_UNORM,
 				.sampling = RHI::Sampling::S1Bit, // Set later only for base texture.
 				.usage = static_cast<RHI::TextureUsage>(RHI::TextureUsageFlags::Color), // TODO: clean.
-				.clearColor = Color{ 0.0f, 0.0f, 0.15f, 1.0f }
+				.clearColor = Color{ 0.0f, 0.0f, 0.010f, 1.0f }
 			};
 
 			if (_settings.MSAA != RHI::Sampling::S1Bit)
