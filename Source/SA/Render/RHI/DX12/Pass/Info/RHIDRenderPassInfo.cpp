@@ -12,10 +12,10 @@ namespace SA::RND::DX12
 
 		// Texture to Desc map
 		{
-			d12PassInfo.mTextureToDescriptorMap.reserve(_inPassInfo.mTextureToDescriptorMap.size());
+			d12PassInfo.textureToDescriptorMap.reserve(_inPassInfo.textureToDescriptorMap.size());
 
-			for (auto it = _inPassInfo.mTextureToDescriptorMap.begin(); it != _inPassInfo.mTextureToDescriptorMap.end(); ++it)
-				d12PassInfo.mTextureToDescriptorMap[&it->first->API_DirectX12()] = it->second.API_DirectX12();
+			for (auto it = _inPassInfo.textureToDescriptorMap.begin(); it != _inPassInfo.textureToDescriptorMap.end(); ++it)
+				d12PassInfo.textureToDescriptorMap[&it->first->API_DirectX12()] = it->second.API_DirectX12();
 		}
 
 		// Subpasses

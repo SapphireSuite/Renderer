@@ -12,8 +12,11 @@ namespace SA::RND
 	template <typename TextureT, typename TextureDescT>
 	struct RenderPassInfo
 	{
-		/// Internal use only: required public for API copy.
-		std::unordered_map<const TextureT*, TextureDescT> mTextureToDescriptorMap;
+		/**
+		* WARN: Internal use only.
+		* Use RegisterRenderTarget instead.
+		*/
+		std::unordered_map<const TextureT*, TextureDescT> textureToDescriptorMap;
 
 		std::string name;
 
@@ -46,15 +49,15 @@ namespace SA::RND
 
 		bool RegisterRenderTarget(const TextureT* _texture, const TextureDescT& _desc)
 		{
-			auto it = mTextureToDescriptorMap.find(_texture);
+			auto it = textureToDescriptorMap.find(_texture);
 
-			if (it != mTextureToDescriptorMap.end())
+			if (it != textureToDescriptorMap.end())
 			{
 				SA_LOG((L"Texture [%1] already registered.", _texture), Error, SA.Render.RHI);
 				return false;
 			}
 
-			mTextureToDescriptorMap[_texture] = _desc;
+			textureToDescriptorMap[_texture] = _desc;
 
 			return true;
 		}

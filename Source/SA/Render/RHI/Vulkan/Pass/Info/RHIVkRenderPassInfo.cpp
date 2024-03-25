@@ -12,10 +12,10 @@ namespace SA::RND::VK
 
 		// Texture to Desc map
 		{
-			vkPassInfo.mTextureToDescriptorMap.reserve(_inPassInfo.mTextureToDescriptorMap.size());
+			vkPassInfo.textureToDescriptorMap.reserve(_inPassInfo.textureToDescriptorMap.size());
 
-			for (auto it = _inPassInfo.mTextureToDescriptorMap.begin(); it != _inPassInfo.mTextureToDescriptorMap.end(); ++it)
-				vkPassInfo.mTextureToDescriptorMap[&it->first->API_Vulkan()] = it->second.API_Vulkan();
+			for (auto it = _inPassInfo.textureToDescriptorMap.begin(); it != _inPassInfo.textureToDescriptorMap.end(); ++it)
+				vkPassInfo.textureToDescriptorMap[&it->first->API_Vulkan()] = it->second.API_Vulkan();
 		}
 
 		// Subpasses
