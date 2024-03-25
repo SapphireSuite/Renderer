@@ -12,7 +12,7 @@ namespace SA::RND::RHI
 		mHandle.Create(_device->API_Vulkan(), _init->API_Vulkan(), _raw);
 	}
 
-	void VkTexture::Create(const Device* _device, const RenderTargetDescriptor& _desc)
+	void VkTexture::Create(const Device* _device, const TextureDescriptor& _desc)
 	{
 		mHandle.Create(_device->API_Vulkan(), _desc.API_Vulkan());
 	}

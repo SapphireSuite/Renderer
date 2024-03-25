@@ -32,7 +32,7 @@ namespace SA::RND::RHI
 		vkInfo.raster = raster.API_Vulkan();
 		vkInfo.depthStencil = depthStencil.API_Vulkan();
 
-		auto& passInfo = pass->GetInfo();
+		//auto& passInfo = pass->GetInfo();
 
 		//const VkSampleCountFlagBits vkSampling = VK::API_GetSampleCount(passInfo.subpasses[subpassIndex].sampling);
 

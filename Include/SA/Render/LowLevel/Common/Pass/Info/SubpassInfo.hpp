@@ -28,7 +28,7 @@ namespace SA::RND
 		{
 			SA_ASSERT((Nullptr, _texture), SA.Render.RHI, L"Valid RenderTarget must be bound as subpass attachment");
 
-			AttachmentInfo& attach = attachments.emplace_back();
+			AttachT& attach = attachments.emplace_back();
 
 			attach.texture = _texture;
 			attach.resolved = _resolvedTexture;

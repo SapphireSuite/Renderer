@@ -24,6 +24,8 @@ namespace SA::RND::RHI
 
 	void D12Texture::Destroy(const Device* _device)
 	{
+		(void)_device;
+
 		mHandle.Destroy();
 	}
 }

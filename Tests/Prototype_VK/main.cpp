@@ -226,7 +226,7 @@ void Init()
 						if (bDepth)
 						{
 							// Always add depth, even with depth prepass: set depth as read only.
-							auto& depthRT = mainSubpass.AddAttachment("Depth", &sceneTextures[i].depth);
+							auto& depthRT = mainSubpass.AddAttachment(&sceneTextures[i].depth);
 
 							if (bDepthPrepass)
 								depthRT.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;

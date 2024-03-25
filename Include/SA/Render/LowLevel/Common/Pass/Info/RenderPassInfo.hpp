@@ -23,11 +23,11 @@ namespace SA::RND
 
 		std::string name;
 
-		std::vector<SubpassInfo> subpasses;
+		std::vector<SubpassT> subpasses;
 
-		SubpassInfo& AddSubpass(std::string _name)
+		SubpassT& AddSubpass(std::string _name)
 		{
-			SubpassInfo& subpass = subpasses.emplace_back();
+			SubpassT& subpass = subpasses.emplace_back();
 
 			subpass.name = std::move(_name);
 

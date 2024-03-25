@@ -7,10 +7,10 @@
 
 namespace SA::RND
 {
-	template <typename TextureT>
+	template <typename InTextureT>
 	struct AttachmentInfoBase
 	{
-		using TextureT = TextureT;
+		using TextureT = InTextureT;
 
 		const TextureT* texture = nullptr;
 		const TextureT* resolved = nullptr;
