@@ -2,8 +2,8 @@
 
 #pragma once
 
-#ifndef SAPPHIRE_RENDER_RHI_RENDER_TARGET_DESCRIPTOR_GUARD
-#define SAPPHIRE_RENDER_RHI_RENDER_TARGET_DESCRIPTOR_GUARD
+#ifndef SAPPHIRE_RENDER_RHI_TEXTURE_DESCRIPTOR_GUARD
+#define SAPPHIRE_RENDER_RHI_TEXTURE_DESCRIPTOR_GUARD
 
 #include <SA/Maths/Space/Vector2.hpp>
 
@@ -28,7 +28,7 @@
 
 namespace SA::RND::RHI
 {
-	struct RenderTargetDescriptor
+	struct TextureDescriptor
 	{
 		Vec2ui extents;
 
@@ -54,4 +54,4 @@ namespace SA::RND::RHI
 	};
 }
 
-#endif // SAPPHIRE_RENDER_RHI_RENDER_TARGET_DESCRIPTOR_GUARD
+#endif // SAPPHIRE_RENDER_RHI_TEXTURE_DESCRIPTOR_GUARD

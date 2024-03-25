@@ -24,17 +24,19 @@ namespace SA::RND::RHI
 	
 	void Context::Destroy()
 	{
-		DestroyAllRenderTargets();
-		DestroyAllInputTextures();
-		DestroyAllStaticMeshes();
-		DestroyAllResourceInitializers();
-		DestroyAllBuffers();
-		DestroyAllCommandPools();
 		DestroyAllPipelines();
 		DestroyAllPipelineLayouts();
-		DestroyAllShaders();
+		
 		DestroyAllFrameBuffers();
 		DestroyAllRenderPasses();
+		
+		DestroyAllTextures();
+		DestroyAllStaticMeshes();
+		DestroyAllShaders();
+		DestroyAllBuffers();
+		DestroyAllResourceInitializers();
+		
+		DestroyAllCommandPools();
 
 		mDevice = nullptr;
 
@@ -515,9 +517,9 @@ namespace SA::RND::RHI
 //}
 
 
-//{ Sampled Texture
+//{ Texture
 
-	void Context::DeleteSampledTextureClass(SampledTexture* _texture)
+	void Context::DeleteTextureClass(Texture* _texture)
 	{
 		SA_ASSERT((Nullptr, _texture), SA.Render.RHI);
 
@@ -525,98 +527,61 @@ namespace SA::RND::RHI
 	}
 
 
-	SampledTexture* Context::CreateSampledTexture(ResourceInitializer* _init, const RawTexture& _raw)
+	Texture* Context::CreateTexture(ResourceInitializer* _init, const RawTexture& _raw)
 	{
-		SampledTexture* const texture = mSampledTextures.emplace_front(InstantiateSampledTextureClass());
+		Texture* const texture = mTextures.emplace_front(InstantiateTextureClass());
 
-		SA_ASSERT((Nullptr, texture), SA.Render.RHI, (L"SampledTexture instantiate class failed!"));
+		SA_ASSERT((Nullptr, texture), SA.Render.RHI, (L"Texture instantiate class failed!"));
 
 		texture->Create(mDevice, _init, _raw);
 
 		return texture;
 	}
 
-	void Context::DestroySampledTexture(SampledTexture* _texture)
+	Texture* Context::CreateTexture(const TextureDescriptor& _desc)
+	{
+		Texture* const texture = mTextures.emplace_front(InstantiateTextureClass());
+
+		SA_ASSERT((Nullptr, texture), SA.Render.RHI, (L"Texture instantiate class failed!"));
+
+		texture->Create(mDevice, _desc);
+
+		return texture;
+	}
+
+	Texture* Context::CreateTexture(const Swapchain* _swapchain, uint32_t _imageIndex)
+	{
+		Texture* const texture = mTextures.emplace_front(InstantiateTextureClass());
+
+		SA_ASSERT((Nullptr, texture), SA.Render.RHI, (L"Texture instantiate class failed!"));
+
+		texture->CreateFromImage(_swapchain, _imageIndex);
+
+		return texture;
+	}
+
+	void Context::DestroyTexture(Texture* _texture)
 	{
 		SA_ASSERT((Nullptr, _texture), SA.Render.RHI);
 
-		if (std::erase(mSampledTextures, _texture))
+		if (std::erase(mTextures, _texture))
 		{
 			_texture->Destroy(mDevice);
-			DeleteSampledTextureClass(_texture);
+			DeleteTextureClass(_texture);
 		}
 		else
-			SA_LOG((L"Try destroy SampledTexture [%1] that does not belong to this context!", _texture), Error, SA.Render.RHI);
+			SA_LOG((L"Try destroy Texture [%1] that does not belong to this context!", _texture), Error, SA.Render.RHI);
 	}
 
-	void Context::DestroyAllSampledTextures()
+	void Context::DestroyAllTextures()
 	{
-		for (auto texture: mSampledTextures)
+		for (auto texture: mTextures)
 		{
 			texture->Destroy(mDevice);
-			DeleteSampledTextureClass(texture);
+			DeleteTextureClass(texture);
 		}
 
-		mSampledTextures.clear();
-	}
-
-//}
-
-
-//{ Render Target
-
-	void Context::DeleteRenderTargetClass(RenderTarget* _rt)
-	{
-		SA_ASSERT((Nullptr, _rt), SA.Render.RHI);
-
-		delete _rt;
-	}
-
-
-	RenderTarget* Context::CreateRenderTarget(const RenderTargetDescriptor& _desc)
-	{
-		RenderTarget* const rt = mRenderTargets.emplace_front(InstantiateRenderTargetClass());
-
-		SA_ASSERT((Nullptr, rt), SA.Render.RHI, (L"RenderTarget instantiate class failed!"));
-
-		rt->Create(mDevice, _desc);
-
-		return rt;
-	}
-
-	RenderTarget* Context::CreateRenderTarget(const Swapchain* _swapchain, uint32_t _imageIndex)
-	{
-		RenderTarget* const rt = mRenderTargets.emplace_front(InstantiateRenderTargetClass());
-
-		SA_ASSERT((Nullptr, rt), SA.Render.RHI, (L"RenderTarget instantiate class failed!"));
-
-		rt->CreateFromImage(_swapchain, _imageIndex);
-
-		return rt;
-	}
-
-	void Context::DestroyRenderTarget(RenderTarget* _rt)
-	{
-		SA_ASSERT((Nullptr, _rt), SA.Render.RHI);
-
-		if (std::erase(mRenderTargets, _rt))
-		{
-			_rt->Destroy(mDevice);
-			DeleteRenderTargetClass(_rt);
-		}
-		else
-			SA_LOG((L"Try destroy RenderTarget [%1] that does not belong to this context!", _rt), Error, SA.Render.RHI);
-	}
-
-	void Context::DestroyAllRenderTargets()
-	{
-		for (auto rt: mRenderTargets)
-		{
-			rt->Destroy(mDevice);
-			DeleteRenderTargetClass(rt);
-		}
-
-		mRenderTargets.clear();
+		mTextures.clear();
 	}
 
 //}

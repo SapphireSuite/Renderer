@@ -1,10 +1,10 @@
 // Copyright (c) 2024 Sapphire's Suite. All Rights Reserved.
 
-#include <SA/Render/RHI/Common/Texture/RHIRenderTargetDescriptor.hpp>
+#include <SA/Render/RHI/Common/Texture/RHITextureDescriptor.hpp>
 
 namespace SA::RND::RHI
 {
-	DX12::TextureDescriptor RenderTargetDescriptor::API_DirectX12() const noexcept
+	DX12::TextureDescriptor TextureDescriptor::API_DirectX12() const noexcept
 	{
 		return DX12::TextureDescriptor{
 			.extents = extents,
@@ -14,5 +14,4 @@ namespace SA::RND::RHI
 			.clearColor = clearColor,
 		};
 	}
-
 }

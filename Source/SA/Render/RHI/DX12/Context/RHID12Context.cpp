@@ -12,8 +12,7 @@
 #include <Buffer/RHID12Buffer.hpp>
 #include <RHID12ResourceInitializer.hpp>
 #include <Mesh/RHID12StaticMesh.hpp>
-#include <Texture/RHID12SampledTexture.hpp>
-#include <Texture/RHID12RenderTarget.hpp>
+#include <Texture/RHID12Texture.hpp>
 
 namespace SA::RND::RHI
 {
@@ -67,13 +66,8 @@ namespace SA::RND::RHI
 		return new D12StaticMesh();
 	}
 
-	SampledTexture* D12Context::InstantiateSampledTextureClass()
+	Texture* D12Context::InstantiateTextureClass()
 	{
-		return new D12SampledTexture();
-	}
-	
-	RenderTarget* D12Context::InstantiateRenderTargetClass()
-	{
-		return new D12RenderTarget();
+		return new D12Texture();
 	}
 }

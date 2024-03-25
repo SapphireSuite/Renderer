@@ -18,8 +18,7 @@
 #include <SA/Render/RHI/Common/Buffer/RHIBuffer.hpp>
 #include <SA/Render/RHI/Common/RHIResourceInitializer.hpp>
 #include <SA/Render/RHI/Common/Mesh/RHIStaticMesh.hpp>
-#include <SA/Render/RHI/Common/Texture/RHISampledTexture.hpp>
-#include <SA/Render/RHI/Common/Texture/RHIRenderTarget.hpp>
+#include <SA/Render/RHI/Common/Texture/RHITexture.hpp>
 
 namespace SA::RND::RHI
 {
@@ -208,36 +207,21 @@ namespace SA::RND::RHI
 //}
 
 
-//{ Sampled Texture
+//{ Texture
 
 	private:
-		std::forward_list<SampledTexture*> mSampledTextures;
+		std::forward_list<Texture*> mTextures;
 
 	protected:
-		virtual SampledTexture* InstantiateSampledTextureClass() = 0;
-		virtual void DeleteSampledTextureClass(SampledTexture* _texture);
+		virtual Texture* InstantiateTextureClass() = 0;
+		virtual void DeleteTextureClass(Texture* _texture);
 
 	public:
-		SampledTexture* CreateSampledTexture(ResourceInitializer* _init, const RawTexture& _texture);
-		void DestroySampledTexture(SampledTexture* _texture);
-		void DestroyAllSampledTextures();
-
-//}
-
-//{ Render Target
-
-	private:
-		std::forward_list<RenderTarget*> mRenderTargets;
-
-	protected:
-		virtual RenderTarget* InstantiateRenderTargetClass() = 0;
-		virtual void DeleteRenderTargetClass(RenderTarget* _rt);
-
-	public:
-		RenderTarget* CreateRenderTarget(const RenderTargetDescriptor& _desc);
-		RenderTarget* CreateRenderTarget(const Swapchain* _swapchain, uint32_t _imageIndex);
-		void DestroyRenderTarget(RenderTarget* _rt);
-		void DestroyAllRenderTargets();
+		Texture* CreateTexture(ResourceInitializer* _init, const RawTexture& _texture);
+		Texture* CreateTexture(const TextureDescriptor& _desc);
+		Texture* CreateTexture(const Swapchain* _swapchain, uint32_t _imageIndex);
+		void DestroyTexture(Texture* _texture);
+		void DestroyAllTextures();
 
 //}
 	};

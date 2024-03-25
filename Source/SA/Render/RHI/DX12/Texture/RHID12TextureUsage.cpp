@@ -4,7 +4,7 @@
 
 namespace SA::RND::DX12
 {
-	D3D12_RESOURCE_FLAGS API_GetTextureUsage(uint8_t _usage)
+	D3D12_RESOURCE_FLAGS API_GetTextureUsage(RHI::TextureUsage _usage)
 	{
 		D3D12_RESOURCE_FLAGS d12Flags;
 
