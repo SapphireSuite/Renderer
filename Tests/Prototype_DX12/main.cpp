@@ -449,7 +449,7 @@ void Init()
 				.vertexInputElements = vsDesc.MakeDX12VertexInputElementDescsSingleVertexBuffer(),
 
 				.rtvFormats = { swapchain.GetFormat() },
-				.dsvFormat = bDepthPrepass || !bDepth ? DXGI_FORMAT_UNKNOWN : DXGI_FORMAT_D16_UNORM,
+				.dsvFormat = bDepth ? DXGI_FORMAT_D16_UNORM : DXGI_FORMAT_UNKNOWN,
 
 				.sampling = bMSAA ? 8u : 1u,
 			};
