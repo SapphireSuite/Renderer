@@ -4,35 +4,6 @@
 
 namespace SA::RND
 {
-//{ RenderPass
-
-	void ForwardRenderer::FillRenderPassInfo(const RendererSettings::RenderPassSettings& _settings, SceneTextures* _sceneTextures, RHI::RenderPassInfo& _passInfo)
-	{
-		ForwardSceneTextures& fSceneTextures = *static_cast<ForwardSceneTextures*>(_sceneTextures);
-
-		// Depth-Only prepass
-		if (_settings.depth.bEnabled && _settings.depth.bPrepass)
-		{
-			auto& depthPass = _passInfo.AddSubpass("Depth-Only Prepass");
-
-			AddDepthAttachment(_settings, _sceneTextures, depthPass);
-		}
-
-
-		// Present pass
-		{
-			auto& presentSubpass = AddPresentSubpass(_settings, _sceneTextures, _passInfo);
-
-			if (_settings.depth.bEnabled && !_settings.depth.bPrepass)
-			{
-				AddDepthAttachment(_settings, _sceneTextures, presentSubpass);
-			}
-		}
-	}
-
-//}
-
-
 //{ Scene Textures
 
 	SceneTextures* ForwardRenderer::InstantiateSceneTexturesClass()
@@ -43,6 +14,31 @@ namespace SA::RND
 	void ForwardRenderer::DeleteSceneTexturesClass(SceneTextures* _sceneTextures)
 	{
 		delete static_cast<ForwardSceneTextures*>(_sceneTextures);
+	}
+
+
+	void ForwardRenderer::CreateSceneTextureResources(const RendererSettings::RenderPassSettings& _settings, RHI::RenderPassInfo& _outPassInfo, SceneTextures* _sceneTextures, uint32_t _frameIndex)
+	{
+		ForwardSceneTextures& fSceneTextures = *static_cast<ForwardSceneTextures*>(_sceneTextures);
+
+		CreateSceneDepthResourcesAndPass(_settings, _outPassInfo, _sceneTextures);
+
+		CreateSceneColorPresentResources(_settings, _outPassInfo, _sceneTextures, _frameIndex);
+
+		// Scene Color Present Pass.
+		{
+			auto& colorPresentSubpass = _outPassInfo.AddSubpass("Color Present Pass");
+
+			colorPresentSubpass.AddAttachment(fSceneTextures.colorPresent.texture, fSceneTextures.colorPresent.resolved);
+
+			AddOrLoadSceneDepthAttachment(_settings, colorPresentSubpass, _sceneTextures);
+		}
+	}
+
+	void ForwardRenderer::DestroySceneTextureResources(SceneTextures* _sceneTextures)
+	{
+		DestroySceneDepthResources(_sceneTextures);
+		DestroySceneColorPresentResources(_sceneTextures);
 	}
 
 //}

@@ -9,14 +9,19 @@
 
 namespace SA::RND::RHI
 {
-	struct RenderPassInfo
+	class RenderPassInfo
 	{
+		std::unordered_map<Texture*, TextureDescriptor> mTextureToDescriptorMap;
+
+	public:
 		std::string name;
 
 		std::vector<SubpassInfo> subpasses;
 
 		SubpassInfo& AddSubpass(std::string _name);
 		bool RemoveSubpass(std::string_view _name);
+
+		bool RegisterRenderTarget(Texture* _texture, const TextureDescriptor& _desc);
 	};
 }
 

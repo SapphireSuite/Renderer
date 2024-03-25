@@ -4,56 +4,6 @@
 
 namespace SA::RND
 {
-//{ RenderPass
-
-	void DeferredRenderer::FillRenderPassInfo(const RendererSettings::RenderPassSettings& _settings, SceneTextures* _sceneTextures, RHI::RenderPassInfo& _passInfo)
-	{
-		_passInfo.subpasses.reserve(3u);
-
-		DeferredSceneTextures& dSceneTextures = *static_cast<DeferredSceneTextures*>(_sceneTextures);
-
-		// Depth-Only prepass
-		if (_settings.depth.bEnabled && _settings.depth.bPrepass)
-		{
-			auto& depthPass = _passInfo.AddSubpass("Depth-Only Prepass");
-
-			AddDepthAttachment(_settings, _sceneTextures, depthPass);
-		}
-
-		// GBuffer
-		{
-			auto& GBufferSubpass = _passInfo.AddSubpass("GBuffer Pass");
-
-			// Render Targets
-			{
-				// Deferred position attachment.
-				auto& posRT = GBufferSubpass.AddAttachment(/*"GBuffer_Position", */dSceneTextures.gbuffer.position);
-
-				// Deferred normal attachment.
-				auto& normRT = GBufferSubpass.AddAttachment(/*"GBuffer_Normal", */dSceneTextures.gbuffer.normal);
-
-				// Deferred base color attachment.
-				auto& colorRT = GBufferSubpass.AddAttachment(/*"GBuffer_Color", */dSceneTextures.gbuffer.color);
-
-				auto& metallicRoughnessRT = GBufferSubpass.AddAttachment(/*"GBuffer_MetallicRoughness", */dSceneTextures.gbuffer.metallicRoughness);
-
-				auto& aoRT = GBufferSubpass.AddAttachment(/*"GBuffer_AO", */dSceneTextures.gbuffer.ao);
-
-				// Depth
-				if (_settings.depth.bEnabled && !_settings.depth.bPrepass)
-				{
-					AddDepthAttachment(_settings, _sceneTextures, GBufferSubpass);
-				}
-			}
-		}
-
-		// Present Subpass
-		AddPresentSubpass(_settings, _sceneTextures, _passInfo);
-	}
-
-//}
-
-
 //{ Scene Textures
 
 	SceneTextures* DeferredRenderer::InstantiateSceneTexturesClass()
@@ -66,14 +16,17 @@ namespace SA::RND
 		delete static_cast<DeferredSceneTextures*>(_sceneTextures);
 	}
 
-	void DeferredRenderer::CreateSceneTextureResources(const RendererSettings::RenderPassSettings& _settings, SceneTextures* _sceneTextures, uint32_t _frameIndex)
-	{
-		Renderer::CreateSceneTextureResources(_settings, _sceneTextures, _frameIndex);
 
+	void DeferredRenderer::CreateSceneTextureResources(const RendererSettings::RenderPassSettings& _settings, RHI::RenderPassInfo& _outPassInfo, SceneTextures* _sceneTextures, uint32_t _frameIndex)
+	{
 		DeferredSceneTextures& dSceneTextures = *static_cast<DeferredSceneTextures*>(_sceneTextures);
-			
+
+		CreateSceneDepthResourcesAndPass(_settings, _outPassInfo, _sceneTextures);
+
 		// GBuffer
 		{
+			auto& GBufferSubpass = _outPassInfo.AddSubpass("GBuffer Pass");
+
 			RHI::TextureDescriptor desc
 			{
 				.extents = mSwapchain ? mSwapchain->GetExtents() : _settings.extents,
@@ -82,36 +35,60 @@ namespace SA::RND
 				.usage = static_cast<RHI::TextureUsage>(RHI::TextureUsageFlags::Color), // TODO: clean.
 			};
 
+			// Deferred position attachment.
 			dSceneTextures.gbuffer.position = mContext->CreateTexture(desc);
-			dSceneTextures.gbuffer.normal = mContext->CreateTexture(desc);
+			_outPassInfo.RegisterRenderTarget(dSceneTextures.gbuffer.position, desc);
+			GBufferSubpass.AddAttachment(dSceneTextures.gbuffer.position);
 
+			// Deferred normal attachment.
+			dSceneTextures.gbuffer.normal = mContext->CreateTexture(desc);
+			_outPassInfo.RegisterRenderTarget(dSceneTextures.gbuffer.normal, desc);
+			GBufferSubpass.AddAttachment(dSceneTextures.gbuffer.normal);
+
+			// Deferred base color attachment.
 			dSceneTextures.gbuffer.color = mContext->CreateTexture(desc);
+			_outPassInfo.RegisterRenderTarget(dSceneTextures.gbuffer.color, desc);
+			GBufferSubpass.AddAttachment(dSceneTextures.gbuffer.color);
 
 			desc.format = RHI::Format::R8G8_UNORM;
 			dSceneTextures.gbuffer.metallicRoughness = mContext->CreateTexture(desc);
+			_outPassInfo.RegisterRenderTarget(dSceneTextures.gbuffer.metallicRoughness, desc);
+			GBufferSubpass.AddAttachment(dSceneTextures.gbuffer.metallicRoughness);
 
 			desc.format = RHI::Format::R8_UNORM;
 			dSceneTextures.gbuffer.ao = mContext->CreateTexture(desc);
+			_outPassInfo.RegisterRenderTarget(dSceneTextures.gbuffer.ao, desc);
+			GBufferSubpass.AddAttachment(dSceneTextures.gbuffer.ao);
+
+			AddOrLoadSceneDepthAttachment(_settings, GBufferSubpass, _sceneTextures);
+		}
+
+		// Composition and present pass
+		{
+			CreateSceneColorPresentResources(_settings, _outPassInfo, _sceneTextures, _frameIndex);
+
+			auto& colorPresentSubpass = _outPassInfo.AddSubpass("Composition Present Pass");
+
+			colorPresentSubpass.AddAttachment(dSceneTextures.colorPresent.texture, dSceneTextures.colorPresent.resolved);
 		}
 	}
 	
 	void DeferredRenderer::DestroySceneTextureResources(SceneTextures* _sceneTextures)
 	{
-		Renderer::DestroySceneTextureResources(_sceneTextures);
+		DeferredSceneTextures& dSceneTextures = *static_cast<DeferredSceneTextures*>(_sceneTextures);
 
-		// Scene Textures
+		DestroySceneDepthResources(_sceneTextures);
+
+		// GBuffer
 		{
-			DeferredSceneTextures& dSceneTextures = *static_cast<DeferredSceneTextures*>(_sceneTextures);
-
-			// GBuffer
-			{
-				mContext->DestroyTexture(dSceneTextures.gbuffer.position);
-				mContext->DestroyTexture(dSceneTextures.gbuffer.normal);
-				mContext->DestroyTexture(dSceneTextures.gbuffer.color);
-				mContext->DestroyTexture(dSceneTextures.gbuffer.metallicRoughness);
-				mContext->DestroyTexture(dSceneTextures.gbuffer.ao);
-			}
+			mContext->DestroyTexture(dSceneTextures.gbuffer.position);
+			mContext->DestroyTexture(dSceneTextures.gbuffer.normal);
+			mContext->DestroyTexture(dSceneTextures.gbuffer.color);
+			mContext->DestroyTexture(dSceneTextures.gbuffer.metallicRoughness);
+			mContext->DestroyTexture(dSceneTextures.gbuffer.ao);
 		}
+
+		DestroySceneColorPresentResources(_sceneTextures);
 	}
 
 //}

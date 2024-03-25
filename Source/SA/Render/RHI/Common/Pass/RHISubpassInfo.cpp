@@ -6,7 +6,7 @@
 
 namespace SA::RND::RHI
 {
-	AttachmentInfo& SubpassInfo::AddAttachment(RenderTarget* _texture, RenderTarget* _resolvedTexture)
+	AttachmentInfo& SubpassInfo::AddAttachment(Texture* _texture, Texture* _resolvedTexture)
 	{
 		SA_ASSERT((Nullptr, _texture), SA.Render.RHI, L"Valid RenderTarget must be bound as subpass attachment");
 
@@ -21,12 +21,12 @@ namespace SA::RND::RHI
 
 //{ Input Attachments
 
-	void SubpassInfo::AddInputAttachments(const std::vector<RenderTarget*>& _inputs)
+	void SubpassInfo::AddInputAttachments(const std::vector<Texture*>& _inputs)
 	{
 		inputs.insert(inputs.end(), _inputs.begin(), _inputs.end());
 	}
 	
-	bool SubpassInfo::RemoveInputAttachment(RenderTarget* _input)
+	bool SubpassInfo::RemoveInputAttachment(Texture* _input)
 	{
 		for (auto inputIt = inputs.begin(); inputIt != inputs.end(); ++inputIt)
 		{

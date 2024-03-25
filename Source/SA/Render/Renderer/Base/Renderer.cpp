@@ -85,18 +85,15 @@ namespace SA::RND
 				if (frame.sceneTextures == nullptr)
 					frame.sceneTextures = InstantiateSceneTexturesClass();
 
-				CreateSceneTextureResources(_settings.pass, frame.sceneTextures, i);
-
 				RHI::RenderPassInfo MainPassInfo;
-				FillRenderPassInfo(_settings.pass, frame.sceneTextures, MainPassInfo);
+				CreateSceneTextureResources(_settings.pass, MainPassInfo, frame.sceneTextures, i);
 
 				if (mMainRenderPass == nullptr) // Use same render pass for all frames: create only once.
 				{
 					mMainRenderPass = mContext->CreateRenderPass(MainPassInfo);
 				}
 
-				// TODO: impl
-				//frame.frameBuffer = mContext->CreateFrameBuffer(mMainRenderPass, MainPassInfo);
+				frame.frameBuffer = mContext->CreateFrameBuffer(mMainRenderPass, MainPassInfo);
 			}
 		}
 	}
@@ -141,42 +138,11 @@ namespace SA::RND
 //}
 
 
-//{ RenderPass
+//{ Scene Textures
 
-	void Renderer::AddDepthAttachment(const RendererSettings::RenderPassSettings& _settings, SceneTextures* _sceneTextures, SubpassInfo& _subpassInfo)
+	void Renderer::CreateSceneDepthResourcesAndPass(const RendererSettings::RenderPassSettings& _settings, RHI::RenderPassInfo& _outPassInfo, SceneTextures* _sceneTextures)
 	{
-		auto& depthRT = _subpassInfo.AddAttachment(/*"Depth", */_sceneTextures->depth.texture, _sceneTextures->depth.resolved);
-
-		if (_settings.depth.bInvertedDepth)
-		{
-			depthRT.clearColor = Color{ .r = 0.0f, .g = 0.0f };
-		}
-		else
-		{
-			depthRT.clearColor = Color{ .r = 1.0f, .g = 0.0f };
-		}
-	}
-
-	SubpassInfo& Renderer::AddPresentSubpass(const RendererSettings::RenderPassSettings& _settings, SceneTextures* _sceneTextures, RHI::RenderPassInfo& _passInfo)
-	{
-		auto& presentSubpass = _passInfo.AddSubpass("Present Pass");
-
-		auto& presentRT = presentSubpass.AddAttachment(/*"Color", */_sceneTextures->color.texture, _sceneTextures->color.resolved);
-
-		return presentSubpass;
-	}
-
-//}
-
-
-//{ Frames
-
-	void Renderer::CreateSceneTextureResources(const RendererSettings::RenderPassSettings& _settings, SceneTextures* _sceneTextures, uint32_t _frameIndex)
-	{
-		(void)_frameIndex;
-
-		// Depth Textures
-		if(_settings.depth.bEnabled)
+		if (_settings.depth.bEnabled)
 		{
 			RHI::TextureDescriptor desc
 			{
@@ -184,65 +150,116 @@ namespace SA::RND
 				.format = _settings.depth.format,
 				.sampling = _settings.MSAA,
 				.usage = static_cast<RHI::TextureUsage>(RHI::TextureUsageFlags::Depth), // TODO: clean
-				.clearColor = _settings.depth.bInvertedDepth ? Color{ .r = 0.0f, .g = 0.0f } : Color{ .r = 1.0f, .g = 0.0f }
+				.clearColor = _settings.depth.bInvertedDepth ? Color{.r = 0.0f, .g = 0.0f } : Color{.r = 1.0f, .g = 0.0f }
 			};
 
 			_sceneTextures->depth.texture = mContext->CreateTexture(desc);
+			_outPassInfo.RegisterRenderTarget(_sceneTextures->depth.texture, desc);
 
 			if (_settings.MSAA != RHI::Sampling::S1Bit)
 			{
 				desc.sampling = RHI::Sampling::S1Bit;
 				_sceneTextures->depth.resolved = mContext->CreateTexture(desc);
+				_outPassInfo.RegisterRenderTarget(_sceneTextures->depth.resolved, desc);
+			}
+
+			// Depth-Only Prepass
+			if (_settings.depth.bPrepass)
+			{
+				RHI::SubpassInfo& depthPrepass = _outPassInfo.AddSubpass("Depth-Only Prepass");
+
+				auto& depthRT = depthPrepass.AddAttachment(_sceneTextures->depth.texture, _sceneTextures->depth.resolved);
 			}
 		}
+	}
+	
+	void Renderer::DestroySceneDepthResources(SceneTextures* _sceneTextures)
+	{
+		mContext->DestroyTexture(_sceneTextures->depth.texture);
 
-		// Color Textures
+		if (_sceneTextures->depth.resolved)
+			mContext->DestroyTexture(_sceneTextures->depth.resolved);
+	}
+
+	void Renderer::AddOrLoadSceneDepthAttachment(const RendererSettings::RenderPassSettings& _settings, RHI::SubpassInfo& _subpass, SceneTextures* _sceneTextures)
+	{
+		if (_settings.depth.bEnabled)
+		{
+			// Used either as read only from prepass, or read write without depth prepass.
+			auto& depthRT = _subpass.AddAttachment(_sceneTextures->depth.texture);
+
+			if (_settings.depth.bPrepass)
+				depthRT.loadMode = RHI::AttachmentLoadMode::Load;
+		}
+	}
+
+
+	void Renderer::CreateSceneColorPresentResources(const RendererSettings::RenderPassSettings& _settings, RHI::RenderPassInfo& _outPassInfo, SceneTextures* _sceneTextures, uint32_t _frameIndex)
+	{
+		if (mSwapchain)
 		{
 			RHI::TextureDescriptor desc
 			{
-				.extents = mSwapchain ? mSwapchain->GetExtents() : _settings.extents,
-				.format = mSwapchain ? SRGBToUNORMFormat(mSwapchain->GetFormat()) : RHI::Format::R8G8B8A8_UNORM,
-				.sampling = _settings.MSAA,
+				.extents = mSwapchain->GetExtents(),
+				.format = mSwapchain->GetFormat(),
+				.sampling = RHI::Sampling::S1Bit, // Set later only for base texture.
 				.usage = static_cast<RHI::TextureUsage>(RHI::TextureUsageFlags::Color), // TODO: clean.
 				.clearColor = Color{ 0.0f, 0.0f, 0.15f, 1.0f }
 			};
 
 			if (_settings.MSAA != RHI::Sampling::S1Bit)
 			{
-				_sceneTextures->color.texture = mContext->CreateTexture(desc);
+				_sceneTextures->colorPresent.resolved = mContext->CreateTexture(mSwapchain, _frameIndex);
+				_outPassInfo.RegisterRenderTarget(_sceneTextures->colorPresent.resolved, desc);
 
-				if (mSwapchain)
-					_sceneTextures->color.resolved = mContext->CreateTexture(mSwapchain, _frameIndex);
-				else
-					_sceneTextures->color.resolved = mContext->CreateTexture(desc);
+				// Base texture
+				desc.format = SRGBToUNORMFormat(mSwapchain->GetFormat());
+				desc.sampling = _settings.MSAA;
+				_sceneTextures->colorPresent.texture = mContext->CreateTexture(desc);
+				_outPassInfo.RegisterRenderTarget(_sceneTextures->colorPresent.texture, desc);
 			}
 			else
 			{
-				if (mSwapchain)
-					_sceneTextures->color.texture = mContext->CreateTexture(mSwapchain, _frameIndex);
-				else
-					_sceneTextures->color.texture = mContext->CreateTexture(desc);
+				_sceneTextures->colorPresent.texture = mContext->CreateTexture(mSwapchain, _frameIndex);
+				_outPassInfo.RegisterRenderTarget(_sceneTextures->colorPresent.texture, desc);
+			}
+		}
+		else
+		{
+			RHI::TextureDescriptor desc
+			{
+				.extents = _settings.extents,
+				.format = RHI::Format::R8G8B8A8_UNORM,
+				.sampling = RHI::Sampling::S1Bit, // Set later only for base texture.
+				.usage = static_cast<RHI::TextureUsage>(RHI::TextureUsageFlags::Color), // TODO: clean.
+				.clearColor = Color{ 0.0f, 0.0f, 0.15f, 1.0f }
+			};
+
+			if (_settings.MSAA != RHI::Sampling::S1Bit)
+			{
+				_sceneTextures->colorPresent.resolved = mContext->CreateTexture(desc);
+				_outPassInfo.RegisterRenderTarget(_sceneTextures->colorPresent.resolved, desc);
+
+				// Base texture
+				desc.format = SRGBToUNORMFormat(mSwapchain->GetFormat());
+				desc.sampling = _settings.MSAA;
+				_sceneTextures->colorPresent.texture = mContext->CreateTexture(desc);
+				_outPassInfo.RegisterRenderTarget(_sceneTextures->colorPresent.texture, desc);
+			}
+			else
+			{
+				_sceneTextures->colorPresent.texture = mContext->CreateTexture(desc);
+				_outPassInfo.RegisterRenderTarget(_sceneTextures->colorPresent.texture, desc);
 			}
 		}
 	}
-	
-	void Renderer::DestroySceneTextureResources(SceneTextures* _sceneTextures)
+
+	void Renderer::DestroySceneColorPresentResources(SceneTextures* _sceneTextures)
 	{
-		// Depth Textures
-		{
-			mContext->DestroyTexture(_sceneTextures->depth.texture);
+		mContext->DestroyTexture(_sceneTextures->colorPresent.texture);
 
-			if (_sceneTextures->depth.resolved)
-				mContext->DestroyTexture(_sceneTextures->depth.resolved);
-		}
-
-		// Color Textures
-		{
-			mContext->DestroyTexture(_sceneTextures->color.texture);
-
-			if (_sceneTextures->color.resolved)
-				mContext->DestroyTexture(_sceneTextures->color.resolved);
-		}
+		if (_sceneTextures->colorPresent.resolved)
+			mContext->DestroyTexture(_sceneTextures->colorPresent.resolved);
 	}
 
 //}

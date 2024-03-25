@@ -19,7 +19,7 @@ namespace SA::RND::RHI
 	
 		std::vector<AttachmentInfo> attachments;
 
-		AttachmentInfo& AddAttachment(RenderTarget* _texture, RenderTarget* _resolvedTexture = nullptr);
+		AttachmentInfo& AddAttachment(Texture* _texture, Texture* _resolvedTexture = nullptr);
 
 	//}
 
@@ -27,10 +27,10 @@ namespace SA::RND::RHI
 	//{ Input Attachments
 
 		/// Render target from previous subpasses to use as input.
-		std::vector<RenderTarget*> inputs;
+		std::vector<Texture*> inputs;
 
-		void AddInputAttachments(const std::vector<RenderTarget*>& _inputs);
-		bool RemoveInputAttachment(RenderTarget* _input);
+		void AddInputAttachments(const std::vector<Texture*>& _inputs);
+		bool RemoveInputAttachment(Texture* _input);
 
 	//}
 	};
