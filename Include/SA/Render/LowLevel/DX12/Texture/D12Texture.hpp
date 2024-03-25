@@ -22,6 +22,8 @@ namespace SA::RND::DX12
 		MComPtr<ID3D12Resource> mHandle;
 
 	public:
+		using TextureDescT = TextureDescriptor;
+
 		MComPtr<ID3D12Resource> Get() const;
 
 		/**

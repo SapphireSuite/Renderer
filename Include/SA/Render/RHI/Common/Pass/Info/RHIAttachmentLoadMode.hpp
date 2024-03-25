@@ -2,8 +2,8 @@
 
 #pragma once
 
-#ifndef SAPPHIRE_RENDER_COMMON_ATTACHMENT_LOAD_MODE_GUARD
-#define SAPPHIRE_RENDER_COMMON_ATTACHMENT_LOAD_MODE_GUARD
+#ifndef SAPPHIRE_RENDER_RHI_ATTACHMENT_LOAD_MODE_GUARD
+#define SAPPHIRE_RENDER_RHI_ATTACHMENT_LOAD_MODE_GUARD
 
 #include <cstdint>
 
@@ -15,14 +15,17 @@
 
 namespace SA::RND
 {
-	enum class AttachmentLoadMode : uint8_t
+	namespace RHI
 	{
-		None,
+		enum class AttachmentLoadMode : uint8_t
+		{
+			None,
 
-		Load,
+			Load,
 
-		Clear,
-	};
+			Clear,
+		};
+	}
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
@@ -34,4 +37,4 @@ namespace SA::RND
 #endif
 }
 
-#endif // SAPPHIRE_RENDER_COMMON_ATTACHMENT_LOAD_MODE_GUARD
+#endif // SAPPHIRE_RENDER_RHI_ATTACHMENT_LOAD_MODE_GUARD

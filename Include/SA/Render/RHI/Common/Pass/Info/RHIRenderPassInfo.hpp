@@ -7,9 +7,6 @@
 
 #include <SA/Render/LowLevel/Common/Pass/Info/RenderPassInfo.hpp>
 
-#include <SA/Render/RHI/Common/Texture/RHITexture.hpp>
-#include <SA/Render/RHI/Common/Texture/RHITextureDescriptor.hpp>
-
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
 #include <SA/Render/LowLevel/Vulkan/Pass/Info/VkRenderPassInfo.hpp>
@@ -22,13 +19,21 @@
 
 #endif
 
+#include "RHIAttachmentLoadMode.hpp"
+
+#include <SA/Render/RHI/Common/Texture/RHITexture.hpp>
+
 namespace SA::RND
 {
 	namespace RHI
 	{
-		using AttachmentInfo = SA::RND::AttachmentInfo<Texture>;
-		using SubpassInfo = SA::RND::SubpassInfo<Texture>;
-		using RenderPassInfo = SA::RND::RenderPassInfo<Texture, TextureDescriptor>;
+		struct AttachmentInfo : public AttachmentInfoBase<Texture>
+		{
+			AttachmentLoadMode loadOp = AttachmentLoadMode::Clear;
+		};
+
+		using SubpassInfo = SA::RND::SubpassInfo<AttachmentInfo>;
+		using RenderPassInfo = SA::RND::RenderPassInfo<SubpassInfo>;
 	}
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL

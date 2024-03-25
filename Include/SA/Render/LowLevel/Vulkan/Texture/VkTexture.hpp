@@ -23,6 +23,8 @@ namespace SA::RND::VK
 		VkDeviceMemory mMemory = VK_NULL_HANDLE;
 
 	public:
+		using TextureDescT = TextureDescriptor;
+
 		/**
 		* Create Texture from raw texture input.
 		* Used as input texture for sampling.

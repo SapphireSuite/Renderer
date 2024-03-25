@@ -6,15 +6,19 @@
 #define SAPPHIRE_RENDER_VK_RENDER_PASS_INFO_GUARD
 
 #include <SA/Render/LowLevel/Common/Pass/Info/RenderPassInfo.hpp>
+#include <SA/Render/LowLevel/Common/Pass/Info/AttachmentInfoBase.hpp>
 
 #include <SA/Render/LowLevel/Vulkan/Texture/VkTexture.hpp>
-#include <SA/Render/LowLevel/Vulkan/Texture/VkTextureDescriptor.hpp>
 
 namespace SA::RND::VK
 {
-	using AttachmentInfo = SA::RND::AttachmentInfo<Texture>;
-	using SubpassInfo = SA::RND::SubpassInfo<Texture>;
-	using RenderPassInfo = SA::RND::RenderPassInfo<Texture, TextureDescriptor>;
+	struct AttachmentInfo : public AttachmentInfoBase<Texture>
+	{
+		VkAttachmentLoadOp loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+	};
+
+	using SubpassInfo = SA::RND::SubpassInfo<AttachmentInfo>;
+	using RenderPassInfo = SA::RND::RenderPassInfo<SubpassInfo>;
 }
 
 #endif // SAPPHIRE_RENDER_VK_RENDER_PASS_INFO_GUARD

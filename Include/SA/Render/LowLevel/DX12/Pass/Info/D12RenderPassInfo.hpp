@@ -8,13 +8,16 @@
 #include <SA/Render/LowLevel/Common/Pass/Info/RenderPassInfo.hpp>
 
 #include <SA/Render/LowLevel/DX12/Texture/D12Texture.hpp>
-#include <SA/Render/LowLevel/DX12/Texture/D12TextureDescriptor.hpp>
 
 namespace SA::RND::DX12
 {
-	using AttachmentInfo = SA::RND::AttachmentInfo<Texture>;
-	using SubpassInfo = SA::RND::SubpassInfo<Texture>;
-	using RenderPassInfo = SA::RND::RenderPassInfo<Texture, TextureDescriptor>;
+	struct AttachmentInfo : public AttachmentInfoBase<Texture>
+	{
+		bool bClear = true;
+	};
+
+	using SubpassInfo = SA::RND::SubpassInfo<AttachmentInfo>;
+	using RenderPassInfo = SA::RND::RenderPassInfo<SubpassInfo>;
 }
 
 #endif // SAPPHIRE_RENDER_D12_RENDER_PASS_INFO_GUARD

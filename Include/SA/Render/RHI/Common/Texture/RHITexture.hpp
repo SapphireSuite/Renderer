@@ -34,6 +34,8 @@ namespace SA::RND
 		class Texture
 		{
 		public:
+			using TextureDescT = TextureDescriptor;
+
 			virtual ~Texture() = default;
 
 			/**

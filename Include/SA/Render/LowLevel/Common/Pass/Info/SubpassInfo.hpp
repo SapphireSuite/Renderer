@@ -9,20 +9,22 @@
 
 #include <SA/Collections/Debug>
 
-#include "AttachmentInfo.hpp"
+#include "AttachmentInfoBase.hpp"
 
 namespace SA::RND
 {
-	template <typename TextureT>
+	template <typename AttachT>
 	struct SubpassInfo
 	{
+		using TextureT = AttachT::TextureT;
+
 		std::string name;
 
 	//{ Attachments
 	
-		std::vector<AttachmentInfo<TextureT>> attachments;
+		std::vector<AttachT> attachments;
 
-		AttachmentInfo<TextureT>& AddAttachment(const TextureT* _texture, const TextureT* _resolvedTexture = nullptr)
+		AttachT& AddAttachment(const TextureT* _texture, const TextureT* _resolvedTexture = nullptr)
 		{
 			SA_ASSERT((Nullptr, _texture), SA.Render.RHI, L"Valid RenderTarget must be bound as subpass attachment");
 

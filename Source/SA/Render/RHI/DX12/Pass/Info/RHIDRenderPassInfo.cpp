@@ -36,7 +36,7 @@ namespace SA::RND::DX12
 						auto& d12Attach = d12Subpass.attachments.emplace_back();
 						d12Attach.texture = &inAttach.texture->API_DirectX12();
 						d12Attach.resolved = inAttach.resolved ? &inAttach.resolved->API_DirectX12() : nullptr;
-						d12Attach.loadMode = inAttach.loadMode;
+						d12Attach.bClear = inAttach.loadMode == RHI::AttachmentLoadMode::Clear;
 					}
 				}
 

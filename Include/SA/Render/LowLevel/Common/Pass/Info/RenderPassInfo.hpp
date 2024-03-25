@@ -9,9 +9,12 @@
 
 namespace SA::RND
 {
-	template <typename TextureT, typename TextureDescT>
+	template <typename SubpassT>
 	struct RenderPassInfo
 	{
+		using TextureT = SubpassT::TextureT;
+		using TextureDescT = SubpassT::TextureT::TextureDescT;
+
 		/**
 		* WARN: Internal use only.
 		* Use RegisterRenderTarget instead.
@@ -20,9 +23,9 @@ namespace SA::RND
 
 		std::string name;
 
-		std::vector<SubpassInfo<TextureT>> subpasses;
+		std::vector<SubpassInfo> subpasses;
 
-		SubpassInfo<TextureT>& AddSubpass(std::string _name)
+		SubpassInfo& AddSubpass(std::string _name)
 		{
 			SubpassInfo& subpass = subpasses.emplace_back();
 
