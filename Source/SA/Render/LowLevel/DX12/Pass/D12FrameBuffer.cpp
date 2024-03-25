@@ -179,7 +179,7 @@ namespace SA::RND::DX12
 		return mSubpassFrames.size();
 	}
 
-	FrameBuffer::SubpassFrame& FrameBuffer::GetSubpassFrame(uint32_t _subpassIndex)
+	const FrameBuffer::SubpassFrame& FrameBuffer::GetSubpassFrame(uint32_t _subpassIndex) const
 	{
 		SA_ASSERT((OutOfArrayRange, _subpassIndex, mSubpassFrames), SA.Render.DX12);
 

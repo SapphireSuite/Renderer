@@ -23,7 +23,7 @@ namespace SA::RND::DX12
 			MComPtr<ID3D12Resource> texture;
 			MComPtr<ID3D12Resource> resolved;
 			D3D12_CLEAR_VALUE clearValue{};
-			D3D12_RESOURCE_STATES state = D3D12_RESOURCE_STATE_COMMON;
+			mutable D3D12_RESOURCE_STATES state = D3D12_RESOURCE_STATE_COMMON;
 		};
 
 		struct SubpassFrame
@@ -45,7 +45,7 @@ namespace SA::RND::DX12
 		uint32_t GetDSVDescriptorIncrementSize() const;
 
 		uint32_t GetSubpassNum() const;
-		SubpassFrame& GetSubpassFrame(uint32_t _subpassIndex);
+		const SubpassFrame& GetSubpassFrame(uint32_t _subpassIndex) const;
 	};
 }
 

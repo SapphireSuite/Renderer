@@ -18,6 +18,15 @@ namespace SA::RND
 
 #endif
 
+#if SA_RENDER_LOWLEVEL_DX12_IMPL
+
+	namespace DX12
+	{
+		class RenderPass;
+	}
+
+#endif
+
 	namespace RHI
 	{
 		class Device;
@@ -39,6 +48,12 @@ namespace SA::RND
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
 			virtual const VK::RenderPass& API_Vulkan() const;
+
+#endif
+
+#if SA_RENDER_LOWLEVEL_DX12_IMPL
+
+			virtual const DX12::RenderPass& API_DirectX12() const;
 
 #endif
 		};

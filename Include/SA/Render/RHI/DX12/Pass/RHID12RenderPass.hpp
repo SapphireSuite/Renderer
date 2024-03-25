@@ -7,13 +7,13 @@
 
 #include <SA/Render/RHI/Common/Pass/RHIRenderPass.hpp>
 
-//#include <SA/Render/LowLevel/DX12/Pass/D12RenderPass.hpp>
+#include <SA/Render/LowLevel/DX12/Pass/D12RenderPass.hpp>
 
 namespace SA::RND::RHI
 {
 	class D12RenderPass : public RenderPass
 	{
-		//DX12::RenderPass mHandle;
+		DX12::RenderPass mHandle;
 
 	public:
 		void Create(const Device* _device, const RenderPassInfo& _info) override final;
@@ -23,7 +23,7 @@ namespace SA::RND::RHI
 		void NextSubpass(const CommandBuffer* _cmd) override final;
 		void End(const CommandBuffer* _cmd) override final;
 
-		//const DX12::RenderPass& API_DirectX12() const override final;
+		const DX12::RenderPass& API_DirectX12() const override final;
 	};
 }
 

@@ -48,7 +48,6 @@ namespace SA::RND
 
 #if SA_RENDER_LOWLEVEL_DX12_IMPL
 
-			virtual DX12::FrameBuffer& API_DirectX12();
 			virtual const DX12::FrameBuffer& API_DirectX12() const;
 
 #endif

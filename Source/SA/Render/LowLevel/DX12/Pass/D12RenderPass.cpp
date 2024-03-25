@@ -56,7 +56,7 @@ namespace SA::RND::DX12
 	}
 
 
-	void RenderPass::Begin(const CommandList& _cmd, FrameBuffer& _fBuff)
+	void RenderPass::Begin(const CommandList& _cmd, const FrameBuffer& _fBuff)
 	{
 		mCurrSubpassIndex = uint32_t(-1);
 		mCurrFrameBuffer = &_fBuff;
@@ -77,7 +77,7 @@ namespace SA::RND::DX12
 		if (prevSubpassIndex != uint32_t(-1))
 		{
 			auto& prevSubpassFrame = mCurrFrameBuffer->GetSubpassFrame(prevSubpassIndex);
-			std::vector<FrameBuffer::Attachment>& prevFBuffAttachs = prevSubpassFrame.attachments;
+			const std::vector<FrameBuffer::Attachment>& prevFBuffAttachs = prevSubpassFrame.attachments;
 
 			// Resolve
 			{
@@ -216,7 +216,7 @@ namespace SA::RND::DX12
 			uint32_t colorAttachNum = 0u;
 
 			auto& currSubpassFrame = mCurrFrameBuffer->GetSubpassFrame(mCurrSubpassIndex);
-			std::vector<FrameBuffer::Attachment>& currFBuffAttachs = currSubpassFrame.attachments;
+			const std::vector<FrameBuffer::Attachment>& currFBuffAttachs = currSubpassFrame.attachments;
 
 			// Transition
 			{

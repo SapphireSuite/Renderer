@@ -16,7 +16,7 @@ namespace SA::RND::DX12
 	class RenderPass
 	{
 		uint32_t mCurrSubpassIndex = 0u;
-		DX12::FrameBuffer* mCurrFrameBuffer = nullptr;
+		const DX12::FrameBuffer* mCurrFrameBuffer = nullptr;
 
 	//{ Info
 
@@ -45,7 +45,7 @@ namespace SA::RND::DX12
 		void Create(const RenderPassInfo& _info);
 		void Destroy();
 
-		void Begin(const CommandList& _cmd, FrameBuffer& _fBuff);
+		void Begin(const CommandList& _cmd, const FrameBuffer& _fBuff);
 		void NextSubpass(const CommandList& _cmd);
 		void End(const CommandList& _cmd);
 

@@ -7,19 +7,19 @@
 
 #include <SA/Render/RHI/Common/Pass/RHIFrameBuffer.hpp>
 
-//#include <SA/Render/LowLevel/DX12/Pass/D12FrameBuffer.hpp>
+#include <SA/Render/LowLevel/DX12/Pass/D12FrameBuffer.hpp>
 
 namespace SA::RND::RHI
 {
 	class D12FrameBuffer : public FrameBuffer
 	{
-		//DX12::FrameBuffer mHandle;
+		DX12::FrameBuffer mHandle;
 
 	public:
 		void Create(const Device* _device, const RenderPass* _pass, const RenderPassInfo& _info) override final;
 		void Destroy(const Device* _device) override final;
 
-		//const DX12::FrameBuffer& API_DirectX12() const override final;
+		const DX12::FrameBuffer& API_DirectX12() const override final;
 	};
 }
 
