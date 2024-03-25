@@ -29,7 +29,7 @@ namespace SA::RND
 	{
 		struct AttachmentInfo : public AttachmentInfoBase<Texture>
 		{
-			AttachmentLoadMode loadOp = AttachmentLoadMode::Clear;
+			AttachmentLoadMode loadMode = AttachmentLoadMode::Clear;
 		};
 
 		using SubpassInfo = SA::RND::SubpassInfo<AttachmentInfo>;

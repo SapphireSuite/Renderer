@@ -11,6 +11,7 @@ namespace SA::RND::RHI
 			.format = VK::API_GetFormat(format),
 			.sampling = VK::API_GetSampling(sampling),
 			.usage = VK::API_GetTextureUsage(usage),
+			.clearColor = clearColor,
 		};
 	}
 }

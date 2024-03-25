@@ -23,7 +23,7 @@ namespace SA::RND::DX12
 
 		D3D12_RESOURCE_FLAGS usage = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 
-		Color clearColor = Color{ 0.0f, 0.0f, 0.015f, 0.0f };
+		Color clearColor = Color::black;
 	};
 }
 

@@ -36,7 +36,7 @@ namespace SA::RND::VK
 						auto& vkAttach = vkSubpass.attachments.emplace_back();
 						vkAttach.texture = &inAttach.texture->API_Vulkan();
 						vkAttach.resolved = inAttach.resolved ? &inAttach.resolved->API_Vulkan() : nullptr;
-						vkAttach.loadMode = API_GetAttachmentLoadOp(inAttach.loadMode);
+						vkAttach.loadOp = API_GetAttachmentLoadOp(inAttach.loadMode);
 					}
 				}
 
