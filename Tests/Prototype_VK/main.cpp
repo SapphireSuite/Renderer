@@ -37,7 +37,6 @@ VK::RenderPass renderPass;
 std::vector<VK::FrameBuffer> frameBuffers;
 std::vector<VK::CommandBuffer> cmdBuffers;
 VK::Shader vertexShader;
-VK::Shader depthOnlyVertexShader;
 VK::Shader fragmentShader;
 VK::PipelineLayout pipLayout;
 VK::Pipeline depthPrepassPipeline;
@@ -51,9 +50,6 @@ SA::TransformPRSf cameraTr;
 VK::DescriptorPool cameraDescPool;
 VK::DescriptorSetLayout cameraDescSetLayout;
 std::vector<VK::DescriptorSet> cameraSets;
-VK::DescriptorPool depthBufferDescPool;
-VK::DescriptorSetLayout depthBufferDescSetLayout;
-std::vector<VK::DescriptorSet> depthBufferSets;
 VK::Buffer objectBuffer;
 VK::DescriptorPool objectDescPool;
 VK::DescriptorSetLayout objectDescSetLayout;
@@ -173,6 +169,8 @@ void Init()
 
 			for (uint32_t i = 0; i < num; ++i)
 			{
+				VK::RenderPassInfo passInfo;
+
 				// Scene Textures
 				{
 					auto& sceneTexture = sceneTextures[i];
@@ -180,69 +178,58 @@ void Init()
 					SA::RND::VK::TextureDescriptor desc
 					{
 						.extents = swapchain.GetExtents(),
-						.mipLevels = 1u,
-						.format = VK::SRGBToUNORMFormat(swapchain.GetFormat()),
-						.sampling = bMSAA ? VK_SAMPLE_COUNT_8_BIT : VK_SAMPLE_COUNT_1_BIT,
+						.format = swapchain.GetFormat(),
+						.sampling = VK_SAMPLE_COUNT_1_BIT,
 						.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+						.clearColor = Color{ 0.0f, 0.0f, 0.15f, 0.0f },
 					};
 
 					if (bMSAA)
 					{
-						sceneTexture.color.Create(device, desc);
 						sceneTexture.resolvedColor.CreateFromImage(swapchain, i);
+						passInfo.RegisterRenderTarget(&sceneTexture.resolvedColor, desc);
+
+						desc.sampling = VK_SAMPLE_COUNT_8_BIT;
+						desc.format = VK::SRGBToUNORMFormat(swapchain.GetFormat());
+						sceneTexture.color.Create(device, desc);
+						passInfo.RegisterRenderTarget(&sceneTexture.color, desc);
 					}
 					else
 					{
 						sceneTexture.color.CreateFromImage(swapchain, i);
+						passInfo.RegisterRenderTarget(&sceneTexture.color, desc);
 					}
 
 					desc.format = VK_FORMAT_D16_UNORM;
 					desc.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
-					if (bDepthPrepass)
-						desc.usage |= VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;
-
+					desc.clearColor = bDepthInverted ? Color{ .r = 0.0f, .g = 0.0f } : Color{ .r = 1.0f, .g = 0.0f };
 					sceneTexture.depth.Create(device, desc);
+					passInfo.RegisterRenderTarget(&sceneTexture.depth, desc);
 				}
 
 				// RenderPass
 				{
-					VK::RenderPassInfo passInfo;
-
 					// Forward
 					if (true)
 					{
 						if (bDepth && bDepthPrepass)
 						{
 							auto& depthPrepass = passInfo.AddSubpass("Depth-Only Prepass");
-
-							auto& depthRT = depthPrepass.AddAttachment("Depth", &sceneTextures[i].depth);
-
-							if (bDepthInverted)
-								depthRT.clearColor = SA::RND::Color::black;
-							else
-								depthRT.clearColor = SA::RND::Color::white;
+							auto& depthRT = depthPrepass.AddAttachment(&sceneTextures[i].depth);
 						}
 
 						auto& mainSubpass = passInfo.AddSubpass("Main");
 
 						// Color and present attachment.
-						auto& colorRT = mainSubpass.AddAttachment("Color", &sceneTextures[i].color, bMSAA ? &sceneTextures[i].resolvedColor : nullptr);
+						auto& colorRT = mainSubpass.AddAttachment(&sceneTextures[i].color, bMSAA ? &sceneTextures[i].resolvedColor : nullptr);
 
 						if (bDepth)
 						{
-							if (bDepthPrepass)
-							{
-								mainSubpass.AddInputAttachments({ &sceneTextures[i].depth });
-							}
-							else
-							{
-								auto& depthRT = mainSubpass.AddAttachment("Depth", &sceneTextures[i].depth);
+							// Always add depth, even with depth prepass: set depth as read only.
+							auto& depthRT = mainSubpass.AddAttachment("Depth", &sceneTextures[i].depth);
 
-								if (bDepthInverted)
-									depthRT.clearColor = SA::RND::Color::black;
-								else
-									depthRT.clearColor = SA::RND::Color::white;
-							}
+							if (bDepthPrepass)
+								depthRT.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
 						}
 					}
 
@@ -396,30 +383,6 @@ void Init()
 				vertexShader.Create(device, vsShaderRes.rawSPIRV);
 			}
 
-			// DepthOnly Vertex
-			{
-				ShaderCompileInfo vsInfo
-				{
-					.path = L"Resources/Shaders/Passes/MainPass.hlsl",
-					.entrypoint = "mainVS",
-					.target = "vs_6_5",
-				};
-
-				vsInfo.defines.push_back("SA_DEPTH_ONLY=1");
-
-				if (bDepthInverted)
-					vsInfo.defines.push_back("SA_DEPTH_INVERTED=1");
-
-				vsInfo.defines.push_back("SA_CAMERA_BUFFER_ID=0");
-				vsInfo.defines.push_back("SA_OBJECT_BUFFER_ID=0");
-
-				quadRaw.vertices.AppendDefines(vsInfo.defines);
-
-				ShaderCompileResult vsShaderRes = compiler.CompileSPIRV(vsInfo);
-				vsDesc = vsShaderRes.desc;
-
-				depthOnlyVertexShader.Create(device, vsShaderRes.rawSPIRV);
-			}
 
 			// Fragment
 			{
@@ -429,20 +392,6 @@ void Init()
 					.entrypoint = "mainPS",
 					.target = "ps_6_5",
 				};
-
-				psInfo.defines.push_back("SA_VULKAN_API=1");
-
-				if (bDepthInverted)
-					psInfo.defines.push_back("SA_DEPTH_INVERTED=1");
-
-				if (bDepthPrepass)
-				{
-					psInfo.defines.push_back("SA_DEPTH_BUFFER_ID=0");
-					psInfo.defines.push_back("SA_DEPTH_INPUT_ATTACH_ID=0");
-				}
-
-				if(bMSAA)
-					psInfo.defines.push_back("SA_MULTISAMPLED_DEPTH_BUFFER=1");
 
 				quadRaw.vertices.AppendDefines(psInfo.defines);
 
@@ -525,71 +474,6 @@ void Init()
 			}
 		}
 
-		// Depth Prepass Binding
-		if(bDepthPrepass)
-		{
-			// Pool.
-			{
-				VK::DescriptorPoolInfos info;
-				info.poolSizes.emplace_back(VkDescriptorPoolSize{
-					.type = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,
-					.descriptorCount = 1
-				});
-				info.setNum = swapchain.GetImageNum();
-
-				depthBufferDescPool.Create(device, info);
-			}
-
-			// Layout
-			{
-				depthBufferDescSetLayout.Create(device,
-					{
-						{
-							.binding = 0,
-							.descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,
-							.descriptorCount = 1,
-							.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
-							.pImmutableSamplers = nullptr
-						}
-					});
-			}
-
-			// Set
-			{
-				depthBufferSets = depthBufferDescPool.Allocate(device,
-					std::vector<VK::DescriptorSetLayout>(swapchain.GetImageNum(), depthBufferDescSetLayout));
-
-				std::vector<VkDescriptorImageInfo> imageInfo;
-				imageInfo.reserve(swapchain.GetImageNum());
-
-				std::vector<VkWriteDescriptorSet> writes;
-				writes.reserve(swapchain.GetImageNum());
-
-				for (uint32_t i = 0; i < depthBufferSets.size(); ++i)
-				{
-					VkDescriptorImageInfo& imgInfo = imageInfo.emplace_back();
-					imgInfo.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
-					imgInfo.imageView = frameBuffers[i].GetImageView(0);
-
-					VkWriteDescriptorSet& descWrite = writes.emplace_back();
-					descWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-					descWrite.pNext = nullptr;
-					descWrite.dstSet = depthBufferSets[i];
-					descWrite.dstBinding = 0;
-					descWrite.dstArrayElement = 0;
-					descWrite.descriptorCount = 1;
-					descWrite.descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
-					descWrite.pImageInfo = &imgInfo;
-
-				}
-				
-				vkUpdateDescriptorSets(device, (uint32_t)writes.size(), writes.data(), 0, nullptr);
-			}
-		}
-		else
-		{
-			depthBufferSets.resize(swapchain.GetImageNum());
-		}
 
 		// Pipeline layout
 		{
@@ -597,9 +481,6 @@ void Init()
 				static_cast<VkDescriptorSetLayout>(cameraDescSetLayout),
 				static_cast<VkDescriptorSetLayout>(objectDescSetLayout),
 			};
-
-			if (bDepthPrepass)
-				setLayouts.push_back(static_cast<VkDescriptorSetLayout>(depthBufferDescSetLayout));
 
 			VkPipelineLayoutCreateInfo info{};
 			info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
@@ -706,7 +587,7 @@ void Init()
 				.pNext = nullptr,
 				.flags = 0u,
 				.depthTestEnable = VK_TRUE,
-				.depthWriteEnable = VK_TRUE,
+				.depthWriteEnable = bDepthPrepass ? VK_FALSE : VK_TRUE,
 				.depthCompareOp = bDepthInverted ? VK_COMPARE_OP_GREATER_OR_EQUAL : VK_COMPARE_OP_LESS_OR_EQUAL,
 				.depthBoundsTestEnable = VK_FALSE,
 				.stencilTestEnable = VK_FALSE,
@@ -765,7 +646,7 @@ void Init()
 
 			if (bDepthPrepass)
 			{
-				shaderStages[0].module = depthOnlyVertexShader;
+				depthStencilInfo.depthWriteEnable = VK_TRUE;
 
 				VkGraphicsPipelineCreateInfo depthPrepassPipelineCreateInfo{
 					.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
@@ -807,7 +688,6 @@ void Uninit()
 
 		fragmentShader.Destroy(device);
 		vertexShader.Destroy(device);
-		depthOnlyVertexShader.Destroy(device);
 
 		quadMesh.Destroy(device);
 
@@ -820,9 +700,6 @@ void Uninit()
 		objectBuffer.Destroy(device);
 		objectDescSetLayout.Destroy(device);
 		objectDescPool.Destroy(device);
-
-		depthBufferDescSetLayout.Destroy(device);
-		depthBufferDescPool.Destroy(device);
 
 		for(auto& frameBuffer : frameBuffers)
 			frameBuffer.Destroy(device);
@@ -906,9 +783,6 @@ void Loop()
 		static_cast<VkDescriptorSet>(cameraSets[frameIndex]),
 		static_cast<VkDescriptorSet>(objectSet),
 	};
-
-	if (depthBufferSets[frameIndex])
-		boundSets.push_back(static_cast<VkDescriptorSet>(depthBufferSets[frameIndex]));
 
 	vkCmdBindDescriptorSets(cmd,
 		VK_PIPELINE_BIND_POINT_GRAPHICS,
