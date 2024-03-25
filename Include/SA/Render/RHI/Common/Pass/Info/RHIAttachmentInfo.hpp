@@ -7,14 +7,14 @@
 
 #include "RHIAttachmentLoadMode.hpp"
 
-#include <SA/Render/RHI/Common/Texture/RHIRenderTarget.hpp>
+#include <SA/Render/RHI/Common/Texture/RHITexture.hpp>
 
 namespace SA::RND::RHI
 {
 	struct AttachmentInfo
 	{
-		RenderTarget* texture = nullptr;
-		RenderTarget* resolved = nullptr;
+		Texture* texture = nullptr;
+		Texture* resolved = nullptr;
 
 		AttachmentLoadMode loadMode = AttachmentLoadMode::Clear;
 	};
