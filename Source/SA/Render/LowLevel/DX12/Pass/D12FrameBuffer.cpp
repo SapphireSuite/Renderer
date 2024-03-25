@@ -8,13 +8,13 @@ namespace SA::RND::DX12
 {
 	namespace Intl
 	{
-		bool HasDepthAttachment(const DX12::SubpassInfo& _subpass)
+		bool HasDepthAttachment(const RenderPassInfo& _info, const DX12::SubpassInfo& _subpass)
 		{
 			for (auto& attach : _subpass.attachments)
 			{
-				auto desc = attach.texture->GetDescriptor();
+				auto desc = _info.textureToDescriptorMap.at(attach.texture);
 
-				if (desc.usage == D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL)
+				if (desc.usage & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL)
 					return true;
 			}
 
@@ -79,7 +79,7 @@ namespace SA::RND::DX12
 		{
 			auto& subpassFrame = mSubpassFrames.emplace_back();
 			subpassFrame.colorViewHeap = rtvHandle;
-			subpassFrame.depthViewHeap = Intl::HasDepthAttachment(subpass) ? dsvHandle : D3D12_CPU_DESCRIPTOR_HANDLE();
+			subpassFrame.depthViewHeap = Intl::HasDepthAttachment(_info, subpass) ? dsvHandle : D3D12_CPU_DESCRIPTOR_HANDLE();
 			subpassFrame.attachments.reserve(subpass.attachments.size());
 
 			for (auto& attachInfo : subpass.attachments)

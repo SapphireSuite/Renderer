@@ -200,11 +200,14 @@ void Init()
 						passInfo.RegisterRenderTarget(&sceneTexture.color, desc);
 					}
 
-					desc.format = VK_FORMAT_D16_UNORM;
-					desc.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
-					desc.clearColor = bDepthInverted ? Color{ .r = 0.0f, .g = 0.0f } : Color{ .r = 1.0f, .g = 0.0f };
-					sceneTexture.depth.Create(device, desc);
-					passInfo.RegisterRenderTarget(&sceneTexture.depth, desc);
+					if (bDepth)
+					{
+						desc.format = VK_FORMAT_D16_UNORM;
+						desc.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+						desc.clearColor = bDepthInverted ? Color{ .r = 0.0f, .g = 0.0f } : Color{ .r = 1.0f, .g = 0.0f };
+						sceneTexture.depth.Create(device, desc);
+						passInfo.RegisterRenderTarget(&sceneTexture.depth, desc);
+					}
 				}
 
 				// RenderPass
