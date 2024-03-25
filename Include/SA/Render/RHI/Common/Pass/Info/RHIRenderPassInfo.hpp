@@ -2,27 +2,52 @@
 
 #pragma once
 
-#ifndef SAPPHIRE_RHI_RENDER_PASS_INFO_GUARD
-#define SAPPHIRE_RHI_RENDER_PASS_INFO_GUARD
+#ifndef SAPPHIRE_RENDER_RHI_RENDER_PASS_INFO_GUARD
+#define SAPPHIRE_RENDER_RHI_RENDER_PASS_INFO_GUARD
 
-#include "RHISubpassInfo.hpp"
+#include <SA/Render/LowLevel/Common/Pass/Info/RenderPassInfo.hpp>
 
-namespace SA::RND::RHI
+#include <SA/Render/RHI/Common/Texture/RHITexture.hpp>
+#include <SA/Render/RHI/Common/Texture/RHITextureDescriptor.hpp>
+
+#if SA_RENDER_LOWLEVEL_VULKAN_IMPL
+
+#include <SA/Render/LowLevel/Vulkan/Pass/Info/VkRenderPassInfo.hpp>
+
+#endif
+
+#if SA_RENDER_LOWLEVEL_DX12_IMPL
+
+#include <SA/Render/LowLevel/DX12/Pass/Info/D12RenderPassInfo.hpp>
+
+#endif
+
+namespace SA::RND
 {
-	class RenderPassInfo
+	namespace RHI
 	{
-		std::unordered_map<Texture*, TextureDescriptor> mTextureToDescriptorMap;
+		using AttachmentInfo = SA::RND::AttachmentInfo<Texture>;
+		using SubpassInfo = SA::RND::SubpassInfo<Texture>;
+		using RenderPassInfo = SA::RND::RenderPassInfo<Texture, TextureDescriptor>;
+	}
 
-	public:
-		std::string name;
+#if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
-		std::vector<SubpassInfo> subpasses;
+	namespace VK
+	{
+		RenderPassInfo API_GetRenderPassInfo(const RHI::RenderPassInfo& _passInfo);
+	}
 
-		SubpassInfo& AddSubpass(std::string _name);
-		bool RemoveSubpass(std::string_view _name);
+#endif
 
-		bool RegisterRenderTarget(Texture* _texture, const TextureDescriptor& _desc);
-	};
+#if SA_RENDER_LOWLEVEL_DX12_IMPL
+
+	namespace DX12
+	{
+		RenderPassInfo API_GetRenderPassInfo(const RHI::RenderPassInfo& _passInfo);
+	}
+
+#endif
 }
 
-#endif // SAPPHIRE_RHI_RENDER_PASS_INFO_GUARD
+#endif // SAPPHIRE_RENDER_RHI_RENDER_PASS_INFO_GUARD
