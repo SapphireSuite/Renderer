@@ -24,14 +24,14 @@ namespace SA::RND::DX12
 		{
 			struct AttachInfo
 			{
-				struct TextureInfo
-				{
-					bool bPresent = false;
-					bool bUsedAsInput = false;
-				};
+				/// Initial State of the attached resource.
+				D3D12_RESOURCE_STATES initialState = D3D12_RESOURCE_STATE_COMMON;
 
-				TextureInfo texture;
-				TextureInfo resolved;
+				/// Current rendering state of the attached resoure.
+				D3D12_RESOURCE_STATES renderState = D3D12_RESOURCE_STATE_COMMON;
+
+				/// Final state to use to render the attached resource.
+				D3D12_RESOURCE_STATES finalState = D3D12_RESOURCE_STATE_COMMON;
 			};
 
 			std::vector<AttachInfo> attachInfos;

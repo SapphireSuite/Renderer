@@ -133,7 +133,7 @@ namespace SA::RND::DX12
 			.Format = _desc.format,
 		};
 
-		if (_desc.usage == D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL)
+		if (_desc.usage & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL)
 		{
 			clearValue.DepthStencil.Depth = _desc.clearColor.r;
 			clearValue.DepthStencil.Stencil = static_cast<uint8_t>(_desc.clearColor.g);

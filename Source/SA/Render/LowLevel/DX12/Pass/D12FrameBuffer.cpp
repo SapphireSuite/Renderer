@@ -8,6 +8,19 @@ namespace SA::RND::DX12
 {
 	namespace Intl
 	{
+		bool HasColorAttachment(const RenderPassInfo& _info, const DX12::SubpassInfo& _subpass)
+		{
+			for (auto& attach : _subpass.attachments)
+			{
+				auto desc = _info.textureToDescriptorMap.at(attach.texture);
+
+				if (desc.usage & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET)
+					return true;
+			}
+
+			return false;
+		}
+
 		bool HasDepthAttachment(const RenderPassInfo& _info, const DX12::SubpassInfo& _subpass)
 		{
 			for (auto& attach : _subpass.attachments)
@@ -78,7 +91,7 @@ namespace SA::RND::DX12
 		for (auto& subpass : _info.subpasses)
 		{
 			auto& subpassFrame = mSubpassFrames.emplace_back();
-			subpassFrame.colorViewHeap = rtvHandle;
+			subpassFrame.colorViewHeap = Intl::HasColorAttachment(_info, subpass) ? rtvHandle : D3D12_CPU_DESCRIPTOR_HANDLE();
 			subpassFrame.depthViewHeap = Intl::HasDepthAttachment(_info, subpass) ? dsvHandle : D3D12_CPU_DESCRIPTOR_HANDLE();
 			subpassFrame.attachments.reserve(subpass.attachments.size());
 
@@ -176,7 +189,7 @@ namespace SA::RND::DX12
 
 	uint32_t FrameBuffer::GetSubpassNum() const
 	{
-		return mSubpassFrames.size();
+		return static_cast<uint32_t>(mSubpassFrames.size());
 	}
 
 	const FrameBuffer::SubpassFrame& FrameBuffer::GetSubpassFrame(uint32_t _subpassIndex) const
