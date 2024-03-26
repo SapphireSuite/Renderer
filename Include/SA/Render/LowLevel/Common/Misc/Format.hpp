@@ -247,6 +247,7 @@ namespace SA::RND
 		Format API_GetFormat(VkFormat _vkFormat);
 		VkFormat SRGBToUNORMFormat(VkFormat _vkFormat) noexcept;
 		bool IsPresentFormat(VkFormat _vkFormat) noexcept;
+		bool HasStencilComponent(VkFormat _vkFormat) noexcept;
 	}
 
 #endif
