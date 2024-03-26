@@ -53,6 +53,8 @@ namespace SA::RND::VK
 
 		VkImageLayout GetReadOnlyImageLayout(const TextureDescriptor& _desc, bool _bHasStencilFormat)
 		{
+			(void)_bHasStencilFormat;
+
 			VkImageLayout layout = VK_IMAGE_LAYOUT_UNDEFINED;
 
 			if (_desc.usage & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
@@ -68,62 +70,23 @@ namespace SA::RND::VK
 			return layout;
 		}
 
-		VkImageLayout FindInitImageLayout(const std::vector<SubpassInfo>& _subpasses,
-			std::vector<SubpassInfo>::const_iterator _currSubpassIt,
-			const AttachmentInfo& _attach,
-			const TextureDescriptor& _desc,
-			bool _bHasStencilFormat
-			)
+		VkImageLayout GetReadWriteImageLayout(const TextureDescriptor& _desc, bool _bHasStencilFormat)
 		{
-			VkImageLayout initLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+			(void)_bHasStencilFormat;
 
-			if (_attach.accessMode == AttachmentAccessMode::ReadOnly)
+			VkImageLayout layout = VK_IMAGE_LAYOUT_UNDEFINED;
+
+			if (_desc.usage & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
+				layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+			else if (_desc.usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
 			{
-				initLayout = GetReadOnlyImageLayout(_desc, _bHasStencilFormat);
-			}
-			else
-			{
-				for (auto prevSubpassIt = _currSubpassIt; prevSubpassIt != _subpasses.begin() && initLayout == VK_IMAGE_LAYOUT_UNDEFINED;)
-				{
-					--prevSubpassIt;
-
-					// Parse all previous subpass attachments (RT).
-					for (auto& prevAttach : prevSubpassIt->attachments)
-					{
-						// Previously rendered and waiting for this (second) render.
-						if (prevAttach.texture == _attach.texture)
-						{
-							if (_desc.usage & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
-								initLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-							else if (_desc.usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
-							{
-								//if (_bHasStencilFormat)
-									initLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-								//else
-									//initLayout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
-							}
-
-							break;
-						}
-					}
-
-					// Init layout already found.
-					if (initLayout != VK_IMAGE_LAYOUT_UNDEFINED)
-						break;
-
-					// Parse all previous subpass input attachments.
-					for (auto& prevInputTexture : prevSubpassIt->inputs)
-					{
-						if (prevInputTexture == _attach.texture)
-						{
-							initLayout = GetReadOnlyImageLayout(_desc, _bHasStencilFormat);
-							break;
-						}
-					}
-				}
+				//if (_bHasStencilFormat)
+				layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+				//else
+					//layout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
 			}
 
-			return initLayout;
+			return layout;
 		}
 
 		VkImageLayout FindNextImageLayout(const std::vector<SubpassInfo>& _subpasses,
@@ -146,16 +109,7 @@ namespace SA::RND::VK
 						{
 							case AttachmentAccessMode::ReadWrite:
 							{
-								if (_desc.usage & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
-									nextLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-								else if (_desc.usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
-								{
-									//if (_bHasStencilFormat)
-										nextLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-									//else
-									//	nextLayout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
-								}
-
+								nextLayout = GetReadWriteImageLayout(_desc, _bHasStencilFormat);
 								break;
 							}
 							case AttachmentAccessMode::ReadOnly:
@@ -207,9 +161,14 @@ namespace SA::RND::VK
 					// Default read only if sampled/input is enabled.
 					nextLayout = GetReadOnlyImageLayout(_desc, _bHasStencilFormat);
 				}
+				else
+				{
+					// Default read write.
+					nextLayout = GetReadWriteImageLayout(_desc, _bHasStencilFormat);
+				}
 			}
 
-			// else stay as undefined.
+			SA_ERROR(nextLayout != VK_IMAGE_LAYOUT_UNDEFINED, SA.Render.Vulkan.RenderPass, L"Next layout not found!")
 
 			return nextLayout;
 		}
@@ -237,6 +196,7 @@ namespace SA::RND::VK
 		std::vector<std::vector<VkAttachmentReference>> subpassInputAttachmentRefs;
 		subpassInputAttachmentRefs.reserve(subpassNum);
 
+		std::unordered_map<const Texture*, VkImageLayout> textureToLayoutMap;
 		std::unordered_map<const Texture*, std::vector<uint32_t>> textureToAttachIndicesMap;
 
 		for (auto subpassIt = _info.subpasses.begin(); subpassIt != _info.subpasses.end(); ++subpassIt)
@@ -279,8 +239,13 @@ namespace SA::RND::VK
 						.finalLayout = VK_IMAGE_LAYOUT_UNDEFINED,	// Set later.
 					});
 
-					attachDesc.initialLayout = Intl::FindInitImageLayout(_info.subpasses, subpassIt, attach, desc, bHasStencilFormat);
+					auto currLayoutIt = textureToLayoutMap.find(attach.texture);
+					
+					if (currLayoutIt != textureToLayoutMap.end())
+						attachDesc.initialLayout = currLayoutIt->second;
+
 					attachDesc.finalLayout = Intl::FindNextImageLayout(_info.subpasses, subpassIt, attach.texture, desc, attachDesc.initialLayout, bHasStencilFormat);
+					textureToLayoutMap[attach.texture] = attachDesc.finalLayout;
 				}
 
 
@@ -357,6 +322,7 @@ namespace SA::RND::VK
 							});
 
 							resolveAttachDesc.finalLayout = Intl::FindNextImageLayout(_info.subpasses, subpassIt, attach.resolved, resolvedDesc, resolveAttachDesc.initialLayout, bHasStencilFormat);
+							textureToLayoutMap[attach.resolved] = resolveAttachDesc.finalLayout;
 						}
 					}
 				}
