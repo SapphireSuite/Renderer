@@ -216,7 +216,6 @@ namespace SA::RND
 				_outPassInfo.RegisterRenderTarget(_sceneTextures->colorPresent.resolved, desc);
 
 				// Base texture
-				desc.format = SRGBToUNORMFormat(mSwapchain->GetFormat());
 				desc.sampling = _settings.MSAA;
 				_sceneTextures->colorPresent.texture = mContext->CreateTexture(desc);
 				_outPassInfo.RegisterRenderTarget(_sceneTextures->colorPresent.texture, desc);

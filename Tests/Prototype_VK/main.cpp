@@ -190,7 +190,6 @@ void Init()
 						passInfo.RegisterRenderTarget(&sceneTexture.resolvedColor, desc);
 
 						desc.sampling = VK_SAMPLE_COUNT_8_BIT;
-						desc.format = VK::SRGBToUNORMFormat(swapchain.GetFormat());
 						sceneTexture.color.Create(device, desc);
 						passInfo.RegisterRenderTarget(&sceneTexture.color, desc);
 					}

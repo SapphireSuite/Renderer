@@ -170,7 +170,6 @@ void Init()
 						passInfo.RegisterRenderTarget(&sceneTexture.resolvedColor, desc);
 
 						desc.sampling = 8;
-						desc.format = DX12::SRGBToUNORMFormat(swapchain.GetFormat());
 						sceneTexture.color.Create(device, desc);
 						passInfo.RegisterRenderTarget(&sceneTexture.color, desc);
 					}
