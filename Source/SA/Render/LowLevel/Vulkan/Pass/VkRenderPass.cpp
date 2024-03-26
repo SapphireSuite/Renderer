@@ -157,7 +157,7 @@ namespace SA::RND::VK
 		std::vector<std::vector<VkAttachmentReference>> subpassInputAttachmentRefs;
 		subpassInputAttachmentRefs.reserve(subpassNum);
 
-		std::unordered_map<const Texture*, uint32_t> textureToAttachIndexMap;
+		std::unordered_map<const Texture*, std::vector<uint32_t>> textureToAttachIndicesMap;
 
 		for (auto subpassIt = _info.subpasses.begin(); subpassIt != _info.subpasses.end(); ++subpassIt)
 		{
@@ -177,7 +177,7 @@ namespace SA::RND::VK
 			for (auto& attach : subpassIt->attachments)
 			{
 				const uint32_t attachIndex = static_cast<uint32_t>(attachmentDescs.size());
-				textureToAttachIndexMap[attach.texture] = attachIndex;
+				textureToAttachIndicesMap[attach.texture].push_back(attachIndex);
 
 				const TextureDescriptor& desc = _info.textureToDescriptorMap.at(attach.texture);
 				const bool bHasStencilFormat = HasStencilComponent(desc.format);
@@ -298,7 +298,7 @@ namespace SA::RND::VK
 
 						const uint32_t resolvAttachIndex = static_cast<uint32_t>(attachmentDescs.size());
 						resolveAttachRef.attachment = resolvAttachIndex;
-						textureToAttachIndexMap[attach.resolved] = resolvAttachIndex;
+						textureToAttachIndicesMap[attach.resolved].push_back(resolvAttachIndex);
 
 						// Emplace Resolved Attachment Description.
 						{
@@ -309,7 +309,7 @@ namespace SA::RND::VK
 								.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
 								.storeOp = VK_ATTACHMENT_STORE_OP_STORE,
 								.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-								.stencilStoreOp = bHasStencilFormat ? VK_ATTACHMENT_STORE_OP_STORE : VK_ATTACHMENT_STORE_OP_DONT_CARE,,
+								.stencilStoreOp = bHasStencilFormat ? VK_ATTACHMENT_STORE_OP_STORE : VK_ATTACHMENT_STORE_OP_DONT_CARE,
 								.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
 								.finalLayout = VK_IMAGE_LAYOUT_UNDEFINED, // Set later.
 							});
@@ -324,11 +324,56 @@ namespace SA::RND::VK
 				{
 					for (auto& inputTexture : subpassIt->inputs)
 					{
-						// TODO: impl
+						auto findIt = textureToAttachIndicesMap.find(inputTexture);
+						SA_ASSERT((Default, findIt != textureToAttachIndicesMap.end()), SA.Render.Vulkan, L"Input Attachment not found in previous subpass render targets!");
+					
+						const TextureDescriptor& inputDesc = _info.textureToDescriptorMap.at(inputTexture);
+						const uint32_t attachIndex = textureToAttachIndicesMap[inputTexture].back(); // Find last output attachment.
+
+						auto& inputAttachmentRef = inputAttachmentRefs.emplace_back(VkAttachmentReference{ attachIndex, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL });
+
+						if (inputDesc.usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
+						{
+							if(HasStencilComponent(inputDesc.format))
+								inputAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+							else
+								inputAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL;
+						}
 					}
 				}
 			}
+
+			const uint32_t subpassIndex = static_cast<uint32_t>(subpassDescriptions.size());
+			/*VkSubpassDescription& vkSubpassDesc = */subpassDescriptions.emplace_back(VkSubpassDescription{
+				.flags = 0u,
+				.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
+				.inputAttachmentCount = static_cast<uint32_t>(inputAttachmentRefs.size()),
+				.pInputAttachments = inputAttachmentRefs.data(),
+				.colorAttachmentCount = static_cast<uint32_t>(colorAttachmentRefs.size()),
+				.pColorAttachments = colorAttachmentRefs.data(),
+				.pResolveAttachments = resolveAttachmentRefs.data(),
+				.pDepthStencilAttachment = &depthAttachRef,
+				.preserveAttachmentCount = 0u,
+				.pPreserveAttachments = nullptr,
+				});
+
+			// Subpass dependency.
+			// TODO: Rework
+			/*VkSubpassDependency& subpassDep =*/ subpassDependencies.emplace_back(Intl::CreateSubpassDependency(subpassIndex, subpassNum));
 		}
+
+		VkRenderPassCreateInfo vkCreateInfo{};
+		vkCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+		vkCreateInfo.pNext = nullptr;
+		vkCreateInfo.flags = VK_RENDER_PASS_CREATE_TRANSFORM_BIT_QCOM;
+		vkCreateInfo.attachmentCount = static_cast<uint32_t>(attachmentDescs.size());
+		vkCreateInfo.pAttachments = attachmentDescs.data();
+		vkCreateInfo.subpassCount = static_cast<uint32_t>(subpassDescriptions.size());
+		vkCreateInfo.pSubpasses = subpassDescriptions.data();
+		vkCreateInfo.dependencyCount = static_cast<uint32_t>(subpassDependencies.size());
+		vkCreateInfo.pDependencies = subpassDependencies.data();
+
+		Create(_device, vkCreateInfo);
 	}
 
 	void RenderPass::Create(const Device& _device, const VkRenderPassCreateInfo& _vkInfo)
