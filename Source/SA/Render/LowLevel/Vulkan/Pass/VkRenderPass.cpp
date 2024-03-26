@@ -49,15 +49,89 @@ namespace SA::RND::VK
 			return subpassDependency;
 		}
 
+		VkImageLayout FindInitImageLayout(const std::vector<SubpassInfo>& _subpasses,
+			std::vector<SubpassInfo>::const_iterator _currSubpassIt,
+			const AttachmentInfo& _attach,
+			const TextureDescriptor& _desc,
+			bool _bHasStencilFormat
+			)
+		{
+			VkImageLayout initLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+
+			if (_attach.accessMode == AttachmentAccessMode::ReadOnly)
+			{
+				if (_desc.usage & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
+					initLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+				else if (_desc.usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
+				{
+					if (_bHasStencilFormat)
+						initLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+					else
+						initLayout = VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL;
+				}
+			}
+			else
+			{
+				for (auto prevSubpassIt = _currSubpassIt; prevSubpassIt != _subpasses.begin();)
+				{
+					--prevSubpassIt;
+
+					// Parse all previous subpass attachments (RT).
+					for (auto& prevAttach : prevSubpassIt->attachments)
+					{
+						// Previously rendered and waiting for this (second) render.
+						if (prevAttach.texture == _attach.texture)
+						{
+							if (_desc.usage & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
+								initLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+							else if (_desc.usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
+							{
+								if (_bHasStencilFormat)
+									initLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+								else
+									initLayout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
+							}
+
+							break;
+						}
+					}
+
+					// Init layout already found.
+					if (initLayout != VK_IMAGE_LAYOUT_UNDEFINED)
+						break;
+
+					// Parse all previous subpass input attachments.
+					for (auto& prevInputTexture : prevSubpassIt->inputs)
+					{
+						if (prevInputTexture == _attach.texture)
+						{
+							if (_desc.usage & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
+								initLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+							else if (_desc.usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
+							{
+								if (_bHasStencilFormat)
+									initLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+								else
+									initLayout = VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL;
+							}
+						}
+					}
+				}
+			}
+
+			return initLayout;
+		}
+
 		VkImageLayout FindNextImageLayout(const std::vector<SubpassInfo>& _subpasses,
-			std::vector<SubpassInfo>::const_iterator currSubpassIt,
+			std::vector<SubpassInfo>::const_iterator _currSubpassIt,
 			const Texture* _texture,
 			const TextureDescriptor& _desc,
+			VkImageLayout initialLayout,
 			bool _bHasStencilFormat)
 		{
 			VkImageLayout nextLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
-			for (auto nextSubpassIt = currSubpassIt + 1; nextSubpassIt != _subpasses.end(); ++nextSubpassIt)
+			for (auto nextSubpassIt = _currSubpassIt + 1; nextSubpassIt != _subpasses.end(); ++nextSubpassIt)
 			{
 				// Parse all next subpass attachments (RT).
 				for (auto& nextAttach : nextSubpassIt->attachments)
@@ -130,6 +204,30 @@ namespace SA::RND::VK
 				nextLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 			}
 
+			/**
+			* Layer still not found: fallback values.
+			* Attachment not used in any next subpasses and not used as present.
+			*/
+			if (nextLayout == VK_IMAGE_LAYOUT_UNDEFINED)
+			{
+				if (initialLayout != VK_IMAGE_LAYOUT_UNDEFINED)
+				{
+					nextLayout = initialLayout;
+				}
+				else // Default read only
+				{
+					if (_desc.usage & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
+						nextLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+					else if (_desc.usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
+					{
+						if (_bHasStencilFormat)
+							nextLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+						else
+							nextLayout = VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL;
+					}
+				}
+			}
+
 			SA_ERROR(nextLayout != VK_IMAGE_LAYOUT_UNDEFINED, SA.Render.Vulkan.RenderPass, L"Next layout not found!");
 
 			return nextLayout;
@@ -199,75 +297,8 @@ namespace SA::RND::VK
 						.finalLayout = VK_IMAGE_LAYOUT_UNDEFINED,	// Set later.
 						});
 
-					// Initial Layout
-					{
-						VkImageLayout initLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-
-						if (attach.accessMode == AttachmentAccessMode::ReadOnly)
-						{
-							if (desc.usage & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
-								initLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-							else if (desc.usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
-							{
-								if (bHasStencilFormat)
-									initLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
-								else
-									initLayout = VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL;
-							}
-						}
-						else
-						{
-							for (auto prevSubpassIt = subpassIt; prevSubpassIt != _info.subpasses.begin();)
-							{
-								--prevSubpassIt;
-
-								// Parse all previous subpass attachments (RT).
-								for (auto& prevAttach : prevSubpassIt->attachments)
-								{
-									// Previously rendered and waiting for this (second) render.
-									if (prevAttach.texture == attach.texture)
-									{
-										if (desc.usage & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
-											initLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-										else if (desc.usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
-										{
-											if (bHasStencilFormat)
-												initLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-											else
-												initLayout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
-										}
-
-										break;
-									}
-								}
-
-								// Init layout already found.
-								if (initLayout != VK_IMAGE_LAYOUT_UNDEFINED)
-									break;
-
-								// Parse all previous subpass input attachments.
-								for (auto& prevInputTexture : prevSubpassIt->inputs)
-								{
-									if (prevInputTexture == attach.texture)
-									{
-										if (desc.usage & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
-											initLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-										else if (desc.usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
-										{
-											if (bHasStencilFormat)
-												initLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
-											else
-												initLayout = VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL;
-										}
-									}
-								}
-							}
-						}
-
-						attachDesc.initialLayout = initLayout;
-					}
-
-					attachDesc.finalLayout = Intl::FindNextImageLayout(_info.subpasses, subpassIt, attach.texture, desc, bHasStencilFormat);
+					attachDesc.initialLayout = Intl::FindInitImageLayout(_info.subpasses, subpassIt, attach, desc, bHasStencilFormat);
+					attachDesc.finalLayout = Intl::FindNextImageLayout(_info.subpasses, subpassIt, attach.texture, desc, attachDesc.initialLayout, bHasStencilFormat);
 				}
 
 
@@ -314,7 +345,7 @@ namespace SA::RND::VK
 								.finalLayout = VK_IMAGE_LAYOUT_UNDEFINED, // Set later.
 							});
 
-							resolveAttachDesc.finalLayout = Intl::FindNextImageLayout(_info.subpasses, subpassIt, attach.resolved, resolvedDesc, bHasStencilFormat);
+							resolveAttachDesc.finalLayout = Intl::FindNextImageLayout(_info.subpasses, subpassIt, attach.resolved, resolvedDesc, resolveAttachDesc.initialLayout, bHasStencilFormat);
 						}
 					}
 				}
