@@ -8,6 +8,7 @@ namespace SA::RND::RHI
 	{
 		return DX12::TextureDescriptor{
 			.extents = extents,
+			.mipLevels = mipLevels,
 			.format = DX12::API_GetFormat(format),
 			.sampling = DX12::API_GetSampling(sampling),
 			.usage = DX12::API_GetTextureUsage(usage),

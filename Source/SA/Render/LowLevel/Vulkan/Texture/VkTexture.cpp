@@ -167,7 +167,7 @@ namespace SA::RND::VK
 				.imageType = VK_IMAGE_TYPE_2D,
 				.format = _desc.format,
 				.extent = VkExtent3D{ _desc.extents.x, _desc.extents.y, 1 },
-				.mipLevels = 1u,
+				.mipLevels = _desc.mipLevels,
 				.arrayLayers = 1u,
 				.samples = _desc.sampling,
 				.tiling = VK_IMAGE_TILING_OPTIMAL,

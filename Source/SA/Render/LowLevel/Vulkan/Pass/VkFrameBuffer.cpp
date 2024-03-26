@@ -32,7 +32,7 @@ namespace SA::RND::VK
 			.subresourceRange = VkImageSubresourceRange{
 				.aspectMask = 0u,
 				.baseMipLevel = 0u,
-				.levelCount = 1u,
+				.levelCount = desc.mipLevels,
 				.baseArrayLayer = 0u,
 				.layerCount = 1u, // TODO: set to 6 for cubemap.
 			},

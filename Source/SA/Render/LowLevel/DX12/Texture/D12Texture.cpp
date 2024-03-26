@@ -111,7 +111,7 @@ namespace SA::RND::DX12
 			.Width = _desc.extents.x,
 			.Height = _desc.extents.y,
 			.DepthOrArraySize = 1,
-			.MipLevels = 1,
+			.MipLevels = static_cast<UINT16>(_desc.mipLevels),
 			.Format = _desc.format,
 			.SampleDesc = DXGI_SAMPLE_DESC{
 				.Count = _desc.sampling,

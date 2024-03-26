@@ -17,6 +17,8 @@ namespace SA::RND::VK
 	{
 		Vec2ui extents;
 
+		uint32_t mipLevels = 1u;
+
 		VkFormat format = VK_FORMAT_R8G8B8A8_UNORM;
 
 		VkSampleCountFlagBits sampling = VK_SAMPLE_COUNT_1_BIT;

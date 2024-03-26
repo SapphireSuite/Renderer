@@ -8,6 +8,7 @@ namespace SA::RND::RHI
 	{
 		return VK::TextureDescriptor{
 			.extents = extents,
+			.mipLevels = mipLevels,
 			.format = VK::API_GetFormat(format),
 			.sampling = VK::API_GetSampling(sampling),
 			.usage = VK::API_GetTextureUsage(usage),

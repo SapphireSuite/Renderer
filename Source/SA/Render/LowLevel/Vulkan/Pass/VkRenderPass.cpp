@@ -297,7 +297,7 @@ namespace SA::RND::VK
 						.stencilStoreOp = bHasStencilFormat ? VK_ATTACHMENT_STORE_OP_STORE : VK_ATTACHMENT_STORE_OP_DONT_CARE,
 						.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,	// Set later.
 						.finalLayout = VK_IMAGE_LAYOUT_UNDEFINED,	// Set later.
-						});
+					});
 
 					attachDesc.initialLayout = Intl::FindInitImageLayout(_info.subpasses, subpassIt, attach, desc, bHasStencilFormat);
 					attachDesc.finalLayout = Intl::FindNextImageLayout(_info.subpasses, subpassIt, attach.texture, desc, attachDesc.initialLayout, bHasStencilFormat);
