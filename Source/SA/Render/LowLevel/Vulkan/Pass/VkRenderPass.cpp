@@ -148,10 +148,10 @@ namespace SA::RND::VK
 								nextLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 							else if (_desc.usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
 							{
-								if (_bHasStencilFormat)
+								//if (_bHasStencilFormat)
 									nextLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-								else
-									nextLayout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
+								//else
+								//	nextLayout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
 							}
 
 							break;
@@ -308,8 +308,37 @@ namespace SA::RND::VK
 				{
 					if (desc.usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
 					{
-						depthAttachRef.layout = /*bHasStencilFormat ?*/ VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL /*: VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL*/;
-						resolveAttachRef.layout = /*bHasStencilFormat ?*/ VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL /*: VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL*/;
+						VkImageLayout depthRenderLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+
+						switch (attach.accessMode)
+						{
+							case AttachmentAccessMode::ReadWrite:
+							{
+								//if(bHasStencilFormat)
+									depthRenderLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+								//else
+									//depthRenderLayout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
+								
+								break;
+							}
+							case AttachmentAccessMode::ReadOnly:
+							{
+								//if(bHasStencilFormat)
+									depthRenderLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+								//else
+									//depthRenderLayout = VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL;
+								
+								break;
+							}
+							default:
+							{
+								SA_LOG((L"AttachmentAccessMode [%1] not supported yet!", attach.accessMode), Error, SA.Render.Vulkan.RenderPass);
+								break;
+							}
+						}
+
+						depthAttachRef.layout = depthRenderLayout;
+						resolveAttachRef.layout = depthRenderLayout;
 
 						// Emplace depth attachment ref.
 						depthAttachRef.attachment = attachIndex;
