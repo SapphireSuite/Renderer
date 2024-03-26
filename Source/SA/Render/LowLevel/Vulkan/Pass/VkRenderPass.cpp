@@ -48,6 +48,92 @@ namespace SA::RND::VK
 
 			return subpassDependency;
 		}
+
+		VkImageLayout FindNextImageLayout(const std::vector<SubpassInfo>& _subpasses,
+			std::vector<SubpassInfo>::const_iterator currSubpassIt,
+			const Texture* _texture,
+			const TextureDescriptor& _desc,
+			bool _bHasStencilFormat)
+		{
+			VkImageLayout nextLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+
+			for (auto nextSubpassIt = currSubpassIt + 1; nextSubpassIt != _subpasses.end(); ++nextSubpassIt)
+			{
+				// Parse all next subpass attachments (RT).
+				for (auto& nextAttach : nextSubpassIt->attachments)
+				{
+					if (nextAttach.texture == _texture)
+					{
+						switch (nextAttach.accessMode)
+						{
+						case AttachmentAccessMode::ReadWrite:
+						{
+							if (_desc.usage & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
+								nextLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+							else if (_desc.usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
+							{
+								if (_bHasStencilFormat)
+									nextLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+								else
+									nextLayout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
+							}
+
+							break;
+						}
+						case AttachmentAccessMode::ReadOnly:
+						{
+							if (_desc.usage & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
+								nextLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+							else if (_desc.usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
+							{
+								if (_bHasStencilFormat)
+									nextLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+								else
+									nextLayout = VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL;
+							}
+
+							break;
+						}
+						default:
+						{
+							SA_LOG((L"AttachmentAccessMode [%1] not supported yet!", nextAttach.accessMode), Error, SA.Render.Vulkan);
+							break;
+						}
+						}
+					}
+				}
+
+				// Next layout already found.
+				if (nextLayout != VK_IMAGE_LAYOUT_UNDEFINED)
+					break;
+
+				// Parse all next subpass input attachments.
+				for (auto& nextInputTexture : nextSubpassIt->inputs)
+				{
+					if (nextInputTexture == _texture)
+					{
+						if (_desc.usage & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
+							nextLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+						else if (_desc.usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
+						{
+							if (_bHasStencilFormat)
+								nextLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+							else
+								nextLayout = VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL;
+						}
+					}
+				}
+			}
+
+			if (IsPresentFormat(_desc.format))
+			{
+				nextLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+			}
+
+			SA_ERROR(nextLayout != VK_IMAGE_LAYOUT_UNDEFINED, SA.Render.Vulkan.RenderPass, L"Next layout not found!");
+
+			return nextLayout;
+		}
 	}
 
 	void RenderPass::Create(const Device& _device, const RenderPassInfo& _info)
@@ -181,82 +267,7 @@ namespace SA::RND::VK
 						attachDesc.initialLayout = initLayout;
 					}
 
-					// Final layout
-					{
-						VkImageLayout nextLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-
-						for (auto nextSubpassIt = subpassIt + 1; nextSubpassIt != _info.subpasses.end(); ++nextSubpassIt)
-						{
-							// Parse all next subpass attachments (RT).
-							for (auto& nextAttach : nextSubpassIt->attachments)
-							{
-								if (nextAttach.texture == attach.texture)
-								{
-									switch (nextAttach.accessMode)
-									{
-										case AttachmentAccessMode::ReadWrite:
-										{
-											if (desc.usage & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
-												nextLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-											else if (desc.usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
-											{
-												if (bHasStencilFormat)
-													nextLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-												else
-													nextLayout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
-											}
-
-											break;
-										}
-										case AttachmentAccessMode::ReadOnly:
-										{
-											if (desc.usage & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
-												nextLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-											else if (desc.usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
-											{
-												if (bHasStencilFormat)
-													nextLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
-												else
-													nextLayout = VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL;
-											}
-
-											break;
-										}
-										default:
-										{
-											SA_LOG((L"AttachmentAccessMode [%1] not supported yet!", nextAttach.accessMode), Error, SA.Render.Vulkan);
-											break;
-										}
-									}
-								}
-							}
-
-							// Next layout already found.
-							if (nextLayout != VK_IMAGE_LAYOUT_UNDEFINED)
-								break;
-
-							// Parse all next subpass input attachments.
-							for (auto& nextInputTexture : nextSubpassIt->inputs)
-							{
-								if (nextInputTexture == attach.texture)
-								{
-									if (desc.usage & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
-										nextLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-									else if (desc.usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
-									{
-										if (bHasStencilFormat)
-											nextLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
-										else
-											nextLayout = VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL;
-									}
-								}
-							}
-						}
-
-						// TODO: default value if not found?
-
-						attachDesc.finalLayout = nextLayout;
-					}
+					attachDesc.finalLayout = Intl::FindNextImageLayout(_info.subpasses, subpassIt, attach.texture, desc, bHasStencilFormat);
 				}
 
 
@@ -283,9 +294,37 @@ namespace SA::RND::VK
 					if (desc.sampling != VK_SAMPLE_COUNT_1_BIT && attach.resolved)
 					{
 						const TextureDescriptor& resolvedDesc = _info.textureToDescriptorMap.at(attach.resolved);
-						SA_ASSERT((Default, resolvedDesc.sampling == VK_SAMPLE_COUNT_1_BIT), SA.Render.Vulkan, L"Resolved texture must have 1 sample!")
+						SA_ASSERT((Default, resolvedDesc.sampling == VK_SAMPLE_COUNT_1_BIT), SA.Render.Vulkan, L"Resolved texture must have 1 sample!");
 
-						// TODO:
+						const uint32_t resolvAttachIndex = static_cast<uint32_t>(attachmentDescs.size());
+						resolveAttachRef.attachment = resolvAttachIndex;
+						textureToAttachIndexMap[attach.resolved] = resolvAttachIndex;
+
+						// Emplace Resolved Attachment Description.
+						{
+							VkAttachmentDescription& resolveAttachDesc = attachmentDescs.emplace_back(VkAttachmentDescription{
+								.flags = 0u,
+								.format = resolvedDesc.format,
+								.samples = VK_SAMPLE_COUNT_1_BIT,
+								.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+								.storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+								.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+								.stencilStoreOp = bHasStencilFormat ? VK_ATTACHMENT_STORE_OP_STORE : VK_ATTACHMENT_STORE_OP_DONT_CARE,,
+								.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+								.finalLayout = VK_IMAGE_LAYOUT_UNDEFINED, // Set later.
+							});
+
+							resolveAttachDesc.finalLayout = Intl::FindNextImageLayout(_info.subpasses, subpassIt, attach.resolved, resolvedDesc, bHasStencilFormat);
+						}
+					}
+				}
+
+
+				// Input attachments.
+				{
+					for (auto& inputTexture : subpassIt->inputs)
+					{
+						// TODO: impl
 					}
 				}
 			}
