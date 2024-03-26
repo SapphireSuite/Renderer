@@ -149,7 +149,7 @@ namespace SA::RND
 				.extents = mSwapchain ? mSwapchain->GetExtents() : _settings.extents,
 				.format = _settings.depth.format,
 				.sampling = _settings.MSAA,
-				.usage = static_cast<RHI::TextureUsage>(RHI::TextureUsageFlags::Depth), // TODO: clean
+				.usage = +RHI::TextureUsageFlags::Depth,
 				.clearColor = _settings.depth.bInvertedDepth ? Color{.r = 0.0f, .g = 0.0f } : Color{.r = 1.0f, .g = 0.0f }
 			};
 
@@ -206,7 +206,7 @@ namespace SA::RND
 				.extents = mSwapchain->GetExtents(),
 				.format = mSwapchain->GetFormat(),
 				.sampling = RHI::Sampling::S1Bit, // Set later only for base texture.
-				.usage = static_cast<RHI::TextureUsage>(RHI::TextureUsageFlags::Color), // TODO: clean.
+				.usage = +RHI::TextureUsageFlags::Color,
 				.clearColor = Color{ 0.0f, 0.0f, 0.010f, 1.0f }
 			};
 
@@ -233,7 +233,7 @@ namespace SA::RND
 				.extents = _settings.extents,
 				.format = RHI::Format::R8G8B8A8_UNORM,
 				.sampling = RHI::Sampling::S1Bit, // Set later only for base texture.
-				.usage = static_cast<RHI::TextureUsage>(RHI::TextureUsageFlags::Color), // TODO: clean.
+				.usage = +RHI::TextureUsageFlags::Color,
 				.clearColor = Color{ 0.0f, 0.0f, 0.010f, 1.0f }
 			};
 

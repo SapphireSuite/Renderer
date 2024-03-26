@@ -32,7 +32,7 @@ namespace SA::RND
 				.extents = mSwapchain ? mSwapchain->GetExtents() : _settings.extents,
 				.format = RHI::Format::R8G8B8A8_UNORM,
 				.sampling = _settings.MSAA,
-				.usage = static_cast<RHI::TextureUsage>(RHI::TextureUsageFlags::Color), // TODO: clean.
+				.usage = +RHI::TextureUsageFlags::Color,
 			};
 
 			// Deferred position attachment.
