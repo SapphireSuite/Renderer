@@ -51,6 +51,23 @@ namespace SA::RND::VK
 			return subpassDependency;
 		}
 
+		VkImageLayout GetReadOnlyImageLayout(const TextureDescriptor& _desc, bool _bHasStencilFormat)
+		{
+			VkImageLayout layout = VK_IMAGE_LAYOUT_UNDEFINED;
+
+			if (_desc.usage & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
+				layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+			else if (_desc.usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
+			{
+				//if (_bHasStencilFormat)
+				layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+				//else
+					//layout = VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL;
+			}
+
+			return layout;
+		}
+
 		VkImageLayout FindInitImageLayout(const std::vector<SubpassInfo>& _subpasses,
 			std::vector<SubpassInfo>::const_iterator _currSubpassIt,
 			const AttachmentInfo& _attach,
@@ -62,19 +79,11 @@ namespace SA::RND::VK
 
 			if (_attach.accessMode == AttachmentAccessMode::ReadOnly)
 			{
-				if (_desc.usage & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
-					initLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-				else if (_desc.usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
-				{
-					//if (_bHasStencilFormat)
-						initLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
-					//else
-						//initLayout = VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL;
-				}
+				initLayout = GetReadOnlyImageLayout(_desc, _bHasStencilFormat);
 			}
 			else
 			{
-				for (auto prevSubpassIt = _currSubpassIt; prevSubpassIt != _subpasses.begin();)
+				for (auto prevSubpassIt = _currSubpassIt; prevSubpassIt != _subpasses.begin() && initLayout == VK_IMAGE_LAYOUT_UNDEFINED;)
 				{
 					--prevSubpassIt;
 
@@ -107,15 +116,8 @@ namespace SA::RND::VK
 					{
 						if (prevInputTexture == _attach.texture)
 						{
-							if (_desc.usage & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
-								initLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-							else if (_desc.usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
-							{
-								//if (_bHasStencilFormat)
-									initLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
-								//else
-									//initLayout = VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL;
-							}
+							initLayout = GetReadOnlyImageLayout(_desc, _bHasStencilFormat);
+							break;
 						}
 					}
 				}
@@ -133,7 +135,7 @@ namespace SA::RND::VK
 		{
 			VkImageLayout nextLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
-			for (auto nextSubpassIt = _currSubpassIt + 1; nextSubpassIt != _subpasses.end(); ++nextSubpassIt)
+			for (auto nextSubpassIt = _currSubpassIt + 1; nextSubpassIt != _subpasses.end() && nextLayout == VK_IMAGE_LAYOUT_UNDEFINED; ++nextSubpassIt)
 			{
 				// Parse all next subpass attachments (RT).
 				for (auto& nextAttach : nextSubpassIt->attachments)
@@ -142,39 +144,30 @@ namespace SA::RND::VK
 					{
 						switch (nextAttach.accessMode)
 						{
-						case AttachmentAccessMode::ReadWrite:
-						{
-							if (_desc.usage & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
-								nextLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-							else if (_desc.usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
+							case AttachmentAccessMode::ReadWrite:
 							{
-								//if (_bHasStencilFormat)
-									nextLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-								//else
-								//	nextLayout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
-							}
+								if (_desc.usage & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
+									nextLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+								else if (_desc.usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
+								{
+									//if (_bHasStencilFormat)
+										nextLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+									//else
+									//	nextLayout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
+								}
 
-							break;
-						}
-						case AttachmentAccessMode::ReadOnly:
-						{
-							if (_desc.usage & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
-								nextLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-							else if (_desc.usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
+								break;
+							}
+							case AttachmentAccessMode::ReadOnly:
 							{
-								//if (_bHasStencilFormat)
-									nextLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
-								//else
-									//nextLayout = VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL;
+								nextLayout = GetReadOnlyImageLayout(_desc, _bHasStencilFormat);
+								break;
 							}
-
-							break;
-						}
-						default:
-						{
-							SA_LOG((L"AttachmentAccessMode [%1] not supported yet!", nextAttach.accessMode), Error, SA.Render.Vulkan);
-							break;
-						}
+							default:
+							{
+								SA_LOG((L"AttachmentAccessMode [%1] not supported yet!", nextAttach.accessMode), Error, SA.Render.Vulkan);
+								break;
+							}
 						}
 					}
 				}
@@ -188,20 +181,13 @@ namespace SA::RND::VK
 				{
 					if (nextInputTexture == _texture)
 					{
-						if (_desc.usage & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
-							nextLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-						else if (_desc.usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
-						{
-							//if (_bHasStencilFormat)
-								nextLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
-							//else
-								//nextLayout = VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL;
-						}
+						nextLayout = GetReadOnlyImageLayout(_desc, _bHasStencilFormat);
+						break;
 					}
 				}
 			}
 
-			if (IsPresentFormat(_desc.format))
+			if (IsPresentFormat(_desc.format) && _desc.sampling == VK_SAMPLE_COUNT_1_BIT)
 			{
 				nextLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 			}
@@ -216,21 +202,14 @@ namespace SA::RND::VK
 				{
 					nextLayout = initialLayout;
 				}
-				else // Default read only
+				else if(_desc.usage & VK_IMAGE_USAGE_SAMPLED_BIT || _desc.usage & VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT)
 				{
-					if (_desc.usage & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
-						nextLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-					else if (_desc.usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
-					{
-						//if (_bHasStencilFormat)
-							nextLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
-						//else
-							//nextLayout = VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL;
-					}
+					// Default read only if sampled/input is enabled.
+					nextLayout = GetReadOnlyImageLayout(_desc, _bHasStencilFormat);
 				}
 			}
 
-			SA_ERROR(nextLayout != VK_IMAGE_LAYOUT_UNDEFINED, SA.Render.Vulkan.RenderPass, L"Next layout not found!");
+			// else stay as undefined.
 
 			return nextLayout;
 		}
