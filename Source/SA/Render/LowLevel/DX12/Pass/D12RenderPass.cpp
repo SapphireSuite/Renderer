@@ -183,6 +183,7 @@ namespace SA::RND::DX12
 		}
 	}
 
+
 	void RenderPass::Create(const RenderPassInfo& _info)
 	{
 		mSubpassInfos.reserve(_info.subpasses.size());
@@ -326,6 +327,8 @@ namespace SA::RND::DX12
 						barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
 						barrier.Transition.StateBefore = prevAttachInfo.renderState;
 						barrier.Transition.StateAfter = prevAttachInfo.finalState;
+
+						prevFBuffAttach.state = prevAttachInfo.finalState;
 					}
 				}
 			}
@@ -353,15 +356,19 @@ namespace SA::RND::DX12
 					auto& fBuffAttach = currFBuffAttachs[i];
 					auto& attachInfo = mSubpassInfos[mCurrSubpassIndex].attachInfos[i];
 
-					if (attachInfo.initialState != attachInfo.renderState)
+					// TODO: compare fBuffAttach.state to attachInfo.initialState?
+
+					if (fBuffAttach.state != attachInfo.renderState)
 					{
 						D3D12_RESOURCE_BARRIER& barrier = barriers.emplace_back();
 						barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
 						barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
 						barrier.Transition.pResource = fBuffAttach.texture.Get();
 						barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-						barrier.Transition.StateBefore = attachInfo.initialState;
+						barrier.Transition.StateBefore = fBuffAttach.state;
 						barrier.Transition.StateAfter = attachInfo.renderState;
+
+						fBuffAttach.state = attachInfo.renderState;
 					}
 				}
 
