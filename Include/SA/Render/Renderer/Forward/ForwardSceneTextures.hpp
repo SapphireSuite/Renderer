@@ -9,9 +9,8 @@
 
 namespace SA::RND
 {
-	class ForwardSceneTextures : public SceneTextures
+	struct ForwardSceneTextures : public SceneTextures
 	{
-		RHI::Texture* color;
 	};
 }
 

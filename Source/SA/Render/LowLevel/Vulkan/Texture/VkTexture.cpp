@@ -1,60 +1,15 @@
-// Copyright (c) 2023 Sapphire's Suite. All Rights Reserved.
+// Copyright (c) 2024 Sapphire's Suite. All Rights Reserved.
 
 #include <Texture/VkTexture.hpp>
 
 #include <Device/VkDevice.hpp>
 #include <VkResourceInitializer.hpp>
+#include <Surface/VkSwapchain.hpp>
 
 #include <Buffers/VkBuffer.hpp>
 
 namespace SA::RND::VK
 {
-	void Texture::Create(const Device& _device, const TextureDescriptor& _desc)
-	{
-		// Image
-		{
-			const VkImageCreateInfo infos{
-				.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
-				.pNext = nullptr,
-				.flags = 0u,
-				.imageType = VK_IMAGE_TYPE_2D,
-				.format = API_GetFormat(_desc.format),
-				.extent = VkExtent3D{ _desc.extents.x, _desc.extents.y, 1 },
-				.mipLevels = _desc.mipLevels,
-				.arrayLayers = 1u,
-				.samples = API_GetSampling(_desc.sampling),
-				.tiling = VK_IMAGE_TILING_OPTIMAL,
-				.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
-				.sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-				.queueFamilyIndexCount = 0u,
-				.pQueueFamilyIndices = nullptr,
-				.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED
-			};
-
-			SA_VK_API(vkCreateImage(_device, &infos, nullptr, &mImage), L"Failed to create texture image!");
-			SA_LOG(L"Texture image created.", Info, SA.Render.Vulkan, (L"Handle [%1]", mImage));
-		}
-
-		// Memory
-		{
-			VkMemoryRequirements memRequirements;
-			vkGetImageMemoryRequirements(_device, mImage, &memRequirements);
-
-			const uint32_t memoryTypeIndex = BufferBase::FindMemoryType(_device, memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-
-			const VkMemoryAllocateInfo memoryAllocInfo{
-				.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-				.pNext = nullptr,
-				.allocationSize = memRequirements.size,
-				.memoryTypeIndex = memoryTypeIndex,
-			};
-
-			SA_VK_API(vkAllocateMemory(_device, &memoryAllocInfo, nullptr, &mMemory), L"Failed to allocate texture memory!");
-			SA_LOG(L"Texture memory created.", Info, SA.Render.Vulkan, (L"Handle [%1]", mMemory));
-
-			SA_VK_API(vkBindImageMemory(_device, mImage, mMemory, 0));
-		}
-	}
 
 	void Texture::Create(const Device& _device, ResourceInitializer& _init, const RawTexture& _raw)
 	{
@@ -201,6 +156,58 @@ namespace SA::RND::VK
 		}
 	}
 
+	void Texture::Create(const Device& _device, const TextureDescriptor& _desc)
+	{
+		// Image
+		{
+			const VkImageCreateInfo infos{
+				.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+				.pNext = nullptr,
+				.flags = 0u,
+				.imageType = VK_IMAGE_TYPE_2D,
+				.format = _desc.format,
+				.extent = VkExtent3D{ _desc.extents.x, _desc.extents.y, 1 },
+				.mipLevels = _desc.mipLevels,
+				.arrayLayers = 1u,
+				.samples = _desc.sampling,
+				.tiling = VK_IMAGE_TILING_OPTIMAL,
+				.usage = _desc.usage,
+				.sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+				.queueFamilyIndexCount = 0u,
+				.pQueueFamilyIndices = nullptr,
+				.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED
+			};
+
+			SA_VK_API(vkCreateImage(_device, &infos, nullptr, &mImage), L"Failed to create texture image!");
+			SA_LOG(L"Texture image created.", Info, SA.Render.Vulkan, (L"Handle [%1]", mImage));
+		}
+
+		// Memory
+		{
+			VkMemoryRequirements memRequirements;
+			vkGetImageMemoryRequirements(_device, mImage, &memRequirements);
+
+			const uint32_t memoryTypeIndex = BufferBase::FindMemoryType(_device, memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+			const VkMemoryAllocateInfo memoryAllocInfo{
+				.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+				.pNext = nullptr,
+				.allocationSize = memRequirements.size,
+				.memoryTypeIndex = memoryTypeIndex,
+			};
+
+			SA_VK_API(vkAllocateMemory(_device, &memoryAllocInfo, nullptr, &mMemory), L"Failed to allocate texture memory!");
+			SA_LOG(L"Texture memory created.", Info, SA.Render.Vulkan, (L"Handle [%1]", mMemory));
+
+			SA_VK_API(vkBindImageMemory(_device, mImage, mMemory, 0));
+		}
+	}
+
+	void Texture::CreateFromImage(const Swapchain& _swapchain, uint32_t _imageIndex)
+	{
+		mImage = _swapchain.GetBackBufferHandle(_imageIndex);
+	}
+
 	void Texture::Destroy(const Device& _device)
 	{
 		// In case the image was given to the texture (using CreateFromImage).
@@ -225,5 +232,11 @@ namespace SA::RND::VK
 			// Image owned by Swapchain.
 			mImage = VK_NULL_HANDLE;
 		}
+	}
+
+
+	Texture::operator VkImage() const noexcept
+	{
+		return mImage;
 	}
 }

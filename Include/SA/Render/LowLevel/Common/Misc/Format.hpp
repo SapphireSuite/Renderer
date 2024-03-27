@@ -237,6 +237,7 @@ namespace SA::RND
 	};
 	
 	uint32_t API_GetChannelNum(Format _format);
+	Format SRGBToUNORMFormat(Format _format);
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
@@ -244,6 +245,9 @@ namespace SA::RND
 	{
 		VkFormat API_GetFormat(Format _format);
 		Format API_GetFormat(VkFormat _vkFormat);
+		VkFormat SRGBToUNORMFormat(VkFormat _vkFormat) noexcept;
+		bool IsPresentFormat(VkFormat _vkFormat) noexcept;
+		bool HasStencilComponent(VkFormat _vkFormat) noexcept;
 	}
 
 #endif
@@ -254,6 +258,9 @@ namespace SA::RND
 	{
 		DXGI_FORMAT API_GetFormat(Format _format);
 		Format API_GetFormat(DXGI_FORMAT _d12Format);
+		DXGI_FORMAT SRGBToUNORMFormat(DXGI_FORMAT _d12Format) noexcept;
+		DXGI_FORMAT UNORMToSRGBFormat(DXGI_FORMAT _d12Format) noexcept;
+		bool IsPresentFormat(DXGI_FORMAT _d12Format) noexcept;
 	}
 
 #endif

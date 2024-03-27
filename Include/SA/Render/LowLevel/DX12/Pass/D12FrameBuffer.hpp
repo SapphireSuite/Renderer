@@ -1,16 +1,14 @@
-// Copyright (c) 2023 Sapphire's Suite. All Rights Reserved.
+// Copyright (c) 2024 Sapphire's Suite. All Rights Reserved.
 
 #pragma once
 
-#ifndef SAPPHIRE_RENDER_DX12_FRAME_BUFFER_GUARD
-#define SAPPHIRE_RENDER_DX12_FRAME_BUFFER_GUARD
+#ifndef SAPPHIRE_RENDER_D12_FRAMEBUFFER_GUARD
+#define SAPPHIRE_RENDER_D12_FRAMEBUFFER_GUARD
 
 #include "Info/D12RenderPassInfo.hpp"
 
 namespace SA::RND::DX12
 {
-	class Device;
-
 	class FrameBuffer
 	{
 		MComPtr<ID3D12DescriptorHeap> mRenderTargetViewHeap = nullptr;
@@ -22,16 +20,14 @@ namespace SA::RND::DX12
 	public:
 		struct Attachment
 		{
-			MComPtr<ID3D12Resource> imageBuffer;
-			MComPtr<ID3D12Resource> resolveImageBuffer;
+			Texture* texture = nullptr;
+			Texture* resolved = nullptr;
 			D3D12_CLEAR_VALUE clearValue{};
-			D3D12_RESOURCE_STATES state = D3D12_RESOURCE_STATE_COMMON;
 		};
 
 		struct SubpassFrame
 		{
 			std::vector<Attachment> attachments;
-			Attachment depthAttachment;
 
 			D3D12_CPU_DESCRIPTOR_HANDLE colorViewHeap{ 0 };
 			D3D12_CPU_DESCRIPTOR_HANDLE depthViewHeap{ 0 };
@@ -41,15 +37,15 @@ namespace SA::RND::DX12
 		std::vector<SubpassFrame> mSubpassFrames;
 
 	public:
-		void Create(const Device& _device, const RenderPassInfo& _info, MComPtr<ID3D12Resource> _presentImage = nullptr);
+		void Create(const Device& _device, const RenderPassInfo& _info);
 		void Destroy();
 
 		uint32_t GetRTVDescriptorIncrementSize() const;
 		uint32_t GetDSVDescriptorIncrementSize() const;
 
-		SubpassFrame& GetSubpassFrame(uint32_t _subpassIndex);
-		std::vector<Attachment>& GetSubpassAttachments(uint32_t _subpassIndex);
+		uint32_t GetSubpassNum() const;
+		const SubpassFrame& GetSubpassFrame(uint32_t _subpassIndex) const;
 	};
 }
 
-#endif // SAPPHIRE_RENDER_DX12_FRAME_BUFFER_GUARD
+#endif // SAPPHIRE_RENDER_D12_FRAMEBUFFER_GUARD

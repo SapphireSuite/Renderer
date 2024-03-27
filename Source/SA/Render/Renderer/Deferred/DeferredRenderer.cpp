@@ -4,53 +4,92 @@
 
 namespace SA::RND
 {
-	void DeferredRenderer::MakeRenderPassInfo(const RendererSettings::RenderPassSettings& _settings, RHI::RenderPassInfo& _passInfo)
+//{ Scene Textures
+
+	SceneTextures* DeferredRenderer::InstantiateSceneTexturesClass()
 	{
-		const Vec2ui extents = GetRenderExtents(_settings);
-		
-		_passInfo.subpasses.reserve(2u);
+		return new DeferredSceneTextures();
+	}
+
+	void DeferredRenderer::DeleteSceneTexturesClass(SceneTextures* _sceneTextures)
+	{
+		delete static_cast<DeferredSceneTextures*>(_sceneTextures);
+	}
+
+
+	void DeferredRenderer::CreateSceneTextureResources(const RendererSettings::RenderPassSettings& _settings, RHI::RenderPassInfo& _outPassInfo, SceneTextures* _sceneTextures, uint32_t _frameIndex)
+	{
+		DeferredSceneTextures& dSceneTextures = *static_cast<DeferredSceneTextures*>(_sceneTextures);
+
+		CreateSceneDepthResourcesAndAddPrepass(_settings, _outPassInfo, _sceneTextures);
 
 		// GBuffer
 		{
-			auto& GBufferSubpass = _passInfo.AddSubpass("GBuffer Pass");
+			auto& GBufferSubpass = _outPassInfo.AddSubpass("GBuffer Pass");
 
-			GBufferSubpass.sampling = _settings.MSAA;
-
-			// Render Targets
+			RHI::TextureDescriptor desc
 			{
-				// Deferred position attachment.
-				auto& posRT = GBufferSubpass.AddAttachment("GBuffer_Position");
+				.extents = mSwapchain ? mSwapchain->GetExtents() : _settings.extents,
+				.format = RHI::Format::R8G8B8A8_UNORM,
+				.sampling = _settings.MSAA,
+				.usage = +RHI::TextureUsageFlags::Color,
+			};
 
-				// Deferred normal attachment.
-				auto& normRT = GBufferSubpass.AddAttachment("GBuffer_Normal");
+			// Deferred position attachment.
+			dSceneTextures.gbuffer.position = mContext->CreateTexture(desc);
+			_outPassInfo.RegisterRenderTarget(dSceneTextures.gbuffer.position, desc);
+			GBufferSubpass.AddAttachment(dSceneTextures.gbuffer.position);
 
-				// Deferred base color attachment.
-				auto& colorRT = GBufferSubpass.AddAttachment("GBuffer_Color");
+			// Deferred normal attachment.
+			dSceneTextures.gbuffer.normal = mContext->CreateTexture(desc);
+			_outPassInfo.RegisterRenderTarget(dSceneTextures.gbuffer.normal, desc);
+			GBufferSubpass.AddAttachment(dSceneTextures.gbuffer.normal);
 
-				// Deferred PBR (Metallic, Roughness, Ambiant occlusion) attachment.
-				auto& pbrRT = GBufferSubpass.AddAttachment("GBuffer_PBR");
+			// Deferred base color attachment.
+			dSceneTextures.gbuffer.color = mContext->CreateTexture(desc);
+			_outPassInfo.RegisterRenderTarget(dSceneTextures.gbuffer.color, desc);
+			GBufferSubpass.AddAttachment(dSceneTextures.gbuffer.color);
 
-				// Depth
-				if (_settings.depth.bEnabled && !_settings.depth.bPrepass)
-				{
-					AddDepthAttachment(_settings, GBufferSubpass);
-				}
-			}
+			desc.format = RHI::Format::R8G8_UNORM;
+			dSceneTextures.gbuffer.metallicRoughness = mContext->CreateTexture(desc);
+			_outPassInfo.RegisterRenderTarget(dSceneTextures.gbuffer.metallicRoughness, desc);
+			GBufferSubpass.AddAttachment(dSceneTextures.gbuffer.metallicRoughness);
 
-			GBufferSubpass.SetAllAttachmentExtents(extents);
+			desc.format = RHI::Format::R8_UNORM;
+			dSceneTextures.gbuffer.ao = mContext->CreateTexture(desc);
+			_outPassInfo.RegisterRenderTarget(dSceneTextures.gbuffer.ao, desc);
+			GBufferSubpass.AddAttachment(dSceneTextures.gbuffer.ao);
+
+			AddOrLoadSceneDepthAttachment(_settings, GBufferSubpass, _sceneTextures);
 		}
 
-		// Present Subpass
+		// Composition and present pass
 		{
-			auto& presentSubpass = _passInfo.AddSubpass("Present Pass");
+			CreateSceneColorPresentResources(_settings, _outPassInfo, _sceneTextures, _frameIndex);
 
-			presentSubpass.sampling = _settings.MSAA;
+			auto& colorPresentSubpass = _outPassInfo.AddSubpass("Composition Present Pass");
 
-			auto& presentRT = presentSubpass.AddAttachment("Color");
-			presentRT.format = mSwapchain ? mSwapchain->GetFormat() : RHI::Format::R8G8B8A8_SRGB;
-			presentRT.usage = AttachmentUsage::Present;
-
-			presentSubpass.SetAllAttachmentExtents(extents);
+			colorPresentSubpass.AddAttachment(dSceneTextures.colorPresent.texture, dSceneTextures.colorPresent.resolved);
 		}
 	}
+	
+	void DeferredRenderer::DestroySceneTextureResources(SceneTextures* _sceneTextures)
+	{
+		DeferredSceneTextures& dSceneTextures = *static_cast<DeferredSceneTextures*>(_sceneTextures);
+
+		DestroySceneDepthResources(_sceneTextures);
+
+		// GBuffer
+		{
+			mContext->DestroyTexture(dSceneTextures.gbuffer.position);
+			mContext->DestroyTexture(dSceneTextures.gbuffer.normal);
+			mContext->DestroyTexture(dSceneTextures.gbuffer.color);
+			mContext->DestroyTexture(dSceneTextures.gbuffer.metallicRoughness);
+			mContext->DestroyTexture(dSceneTextures.gbuffer.ao);
+		}
+
+		DestroySceneColorPresentResources(_sceneTextures);
+	}
+
+//}
 }

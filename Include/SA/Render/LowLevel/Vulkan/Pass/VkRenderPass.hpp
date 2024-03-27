@@ -1,4 +1,4 @@
-// Copyright (c) 2023 Sapphire's Suite. All Rights Reserved.
+// Copyright (c) 2024 Sapphire's Suite. All Rights Reserved.
 
 #pragma once
 

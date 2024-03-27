@@ -4,25 +4,42 @@
 
 namespace SA::RND
 {
-	void ForwardRenderer::MakeRenderPassInfo(const RendererSettings::RenderPassSettings& _settings, RHI::RenderPassInfo& _passInfo)
+//{ Scene Textures
+
+	SceneTextures* ForwardRenderer::InstantiateSceneTexturesClass()
 	{
-		const Vec2ui extents = GetRenderExtents(_settings);
-
-		auto& mainSubpass = _passInfo.AddSubpass("Main");
-
-		mainSubpass.sampling = _settings.MSAA;
-
-		// Color and present attachment.
-		auto& colorRT = mainSubpass.AddAttachment("Color");
-		colorRT.format = mSwapchain ? mSwapchain->GetFormat() : RHI::Format::R8G8B8A8_SRGB;
-		colorRT.usage = AttachmentUsage::Present;
-
-		// Depth
-		if (_settings.depth.bEnabled && !_settings.depth.bPrepass)
-		{
-			AddDepthAttachment(_settings, mainSubpass);
-		}
-
-		mainSubpass.SetAllAttachmentExtents(extents);
+		return new ForwardSceneTextures();
 	}
+
+	void ForwardRenderer::DeleteSceneTexturesClass(SceneTextures* _sceneTextures)
+	{
+		delete static_cast<ForwardSceneTextures*>(_sceneTextures);
+	}
+
+
+	void ForwardRenderer::CreateSceneTextureResources(const RendererSettings::RenderPassSettings& _settings, RHI::RenderPassInfo& _outPassInfo, SceneTextures* _sceneTextures, uint32_t _frameIndex)
+	{
+		ForwardSceneTextures& fSceneTextures = *static_cast<ForwardSceneTextures*>(_sceneTextures);
+
+		CreateSceneDepthResourcesAndAddPrepass(_settings, _outPassInfo, _sceneTextures);
+
+		CreateSceneColorPresentResources(_settings, _outPassInfo, _sceneTextures, _frameIndex);
+
+		// Scene Color Present Pass.
+		{
+			auto& colorPresentSubpass = _outPassInfo.AddSubpass("Color Present Pass");
+
+			colorPresentSubpass.AddAttachment(fSceneTextures.colorPresent.texture, fSceneTextures.colorPresent.resolved);
+
+			AddOrLoadSceneDepthAttachment(_settings, colorPresentSubpass, _sceneTextures);
+		}
+	}
+
+	void ForwardRenderer::DestroySceneTextureResources(SceneTextures* _sceneTextures)
+	{
+		DestroySceneDepthResources(_sceneTextures);
+		DestroySceneColorPresentResources(_sceneTextures);
+	}
+
+//}
 }

@@ -2,7 +2,7 @@
 
 #include <Base/Renderer.hpp>
 
-#include <SA/Render/RHI/Device/RHIDevice.hpp>
+#include <SA/Render/RHI/Common/Device/RHIDevice.hpp>
 
 namespace SA::RND
 {
@@ -29,35 +29,16 @@ namespace SA::RND
 			mDevice = mInterface->CreateDevice(infos[0].get());
 		}
 
-		if (mWindowSurface)
-		{
-			RHI::SwapchainSettings swapchainSettings{};
-			swapchainSettings.frameNum = _settings.swapchain.bufferingCount,
-
-			mSwapchain = mInterface->CreateSwapchain(mDevice, mWindowSurface, swapchainSettings);
-		}
-
-		const uint32_t bufferingCount = mSwapchain ? mSwapchain->GetImageNum() : _settings.swapchain.bufferingCount;
-
-		SA_ASSERT((NotEquals, bufferingCount, uint32_t(-1)), L"Must provide valid bufferingCount parameters without mWindowSurface.");
-
 		mContext = mDevice->CreateContext();
 
-		CreateRenderPass(_settings.pass);
-		
-		mFrameBuffers.resize(mSwapchain ? mSwapchain->GetImageNum() : _settings.swapchain.bufferingCount);
-		for (uint32_t i = 0; i < mFrameBuffers.size(); ++i)
-			mFrameBuffers[i] = mContext->CreateFrameBuffer(mMainPass, mSwapchain ? mSwapchain->GetBackBufferHandle(i) : nullptr);
-
 		mCmdPool = mContext->CreateCommandPool();
-		mCmdBuffers = mCmdPool->Allocate(mSwapchain ? mSwapchain->GetImageNum() : _settings.swapchain.bufferingCount);
+
+		CreateWindowDependentResources(_settings);
 	}
 
 	void Renderer::Destroy()
 	{
 		mDevice->WaitIdle();
-
-		DestroyRenderPass();
 
 		mInterface->DestroyDevice(mDevice);
 		
@@ -71,62 +52,215 @@ namespace SA::RND
 		return RHI::DeviceRequirements();
 	}
 
-//{ RenderPass
 
-	Vec2ui Renderer::GetRenderExtents(const RendererSettings::RenderPassSettings& _settings) const
+//{ Surface
+
+	void Renderer::CreateWindowDependentResources(const RendererSettings& _settings)
 	{
-		if (_settings.extents != Vec2ui(-1))
-			return _settings.extents;
-
-		SA_ASSERT((Default, mSwapchain), SA.Render.Renderer, L"Must provide valid render extents without swapchain!");
-
-		return mSwapchain->GetExtents();
-	}
-
-	void Renderer::MakeRenderPassInfo(const RendererSettings::RenderPassSettings& _settings, RHI::RenderPassInfo& _passInfo)
-	{
-		const Vec2ui extents = GetRenderExtents(_settings);
-
-		if (_settings.depth.bEnabled && _settings.depth.bPrepass)
+		if (mWindowSurface)
 		{
-			auto& depthPass = _passInfo.AddSubpass("Depth-Only Prepass");
-			depthPass.sampling = _settings.MSAA;
+			RHI::SwapchainSettings swapchainSettings{};
+			swapchainSettings.frameNum = _settings.swapchain.bufferingCount;
 
-			AddDepthAttachment(_settings, depthPass);
-
-			depthPass.SetAllAttachmentExtents(extents);
-		}
-	}
-	
-	void Renderer::AddDepthAttachment(const RendererSettings::RenderPassSettings& _settings, RHI::SubpassInfo& _subpassInfo)
-	{
-		auto& depthRT = _subpassInfo.AddAttachment("Depth");
-		depthRT.format = _settings.depth.format;
-		depthRT.type = AttachmentType::Depth;
-		depthRT.usage = AttachmentUsage::InputNext;
-
-		if (_settings.depth.bInvertedDepth)
-		{
-			depthRT.clearColor = Color::black;
+			mSwapchain = mInterface->CreateSwapchain(mDevice, mWindowSurface, swapchainSettings);
 		}
 		else
 		{
-			depthRT.clearColor = Color::white;
+			SA_ASSERT((NotEquals, _settings.swapchain.bufferingCount, uint32_t(-1)), L"Must provide valid bufferingCount parameters without mWindowSurface.");
+			SA_ASSERT((NotEquals, _settings.pass.extents, Vec2ui(-1)), L"Must provide valid pass extents parameters without mWindowSurface.");
+		}
+
+		// Create frames
+		{
+			const uint32_t bufferingCount = mSwapchain ? mSwapchain->GetImageNum() : _settings.swapchain.bufferingCount;
+			mFrames.resize(bufferingCount);
+
+			for (uint32_t i = 0; i < bufferingCount; ++i)
+			{
+				auto& frame = mFrames[i];
+
+				if(frame.cmdBuffer == nullptr)
+					frame.cmdBuffer = mCmdPool->Allocate();
+
+				if (frame.sceneTextures == nullptr)
+					frame.sceneTextures = InstantiateSceneTexturesClass();
+
+				RHI::RenderPassInfo MainPassInfo;
+				CreateSceneTextureResources(_settings.pass, MainPassInfo, frame.sceneTextures, i);
+
+				if (mMainRenderPass == nullptr) // Use same render pass for all frames: create only once.
+				{
+					mMainRenderPass = mContext->CreateRenderPass(MainPassInfo);
+				}
+
+				frame.frameBuffer = mContext->CreateFrameBuffer(mMainRenderPass, MainPassInfo);
+			}
+		}
+	}
+	
+	void Renderer::DestroyWindowDependentResources(bool bResizeEvent)
+	{
+		// Destroy frames
+		{
+			for (auto& frame : mFrames)
+			{
+				mContext->DestroyFrameBuffer(frame.frameBuffer);
+				DestroySceneTextureResources(frame.sceneTextures);
+
+				if (!bResizeEvent)
+				{
+					mContext->DestroyRenderPass(mMainRenderPass);
+					mMainRenderPass = nullptr;
+
+					DeleteSceneTexturesClass(frame.sceneTextures);
+
+					mCmdPool->Free(frame.cmdBuffer);
+				}
+			}
+
+			if (!bResizeEvent)
+				mFrames.clear();
+		}
+
+		if (mSwapchain)
+		{
+			mInterface->DestroySwapchain(mDevice, mSwapchain);
+			mSwapchain = nullptr;
 		}
 	}
 
-	void Renderer::CreateRenderPass(const RendererSettings::RenderPassSettings& _settings)
+	void Renderer::ResizeWindowCallback()
 	{
-		RHI::RenderPassInfo passInfo;
-		MakeRenderPassInfo(_settings, passInfo);
-
-		mMainPass = mContext->CreateRenderPass(passInfo);
+		DestroyWindowDependentResources(true);
+		CreateWindowDependentResources(RendererSettings()); // TODO: Save Settings.
 	}
 
-	void Renderer::DestroyRenderPass()
+//}
+
+
+//{ Scene Textures
+
+	void Renderer::CreateSceneDepthResourcesAndAddPrepass(const RendererSettings::RenderPassSettings& _settings, RHI::RenderPassInfo& _outPassInfo, SceneTextures* _sceneTextures)
 	{
-		mContext->DestroyRenderPass(mMainPass);
-		mMainPass = nullptr;
+		if (_settings.depth.bEnabled)
+		{
+			RHI::TextureDescriptor desc
+			{
+				.extents = mSwapchain ? mSwapchain->GetExtents() : _settings.extents,
+				.format = _settings.depth.format,
+				.sampling = _settings.MSAA,
+				.usage = +RHI::TextureUsageFlags::Depth,
+				.clearColor = _settings.depth.bInvertedDepth ? Color{.r = 0.0f, .g = 0.0f } : Color{.r = 1.0f, .g = 0.0f }
+			};
+
+			_sceneTextures->depth.texture = mContext->CreateTexture(desc);
+			_outPassInfo.RegisterRenderTarget(_sceneTextures->depth.texture, desc);
+
+			if (_settings.MSAA != RHI::Sampling::S1Bit)
+			{
+				desc.sampling = RHI::Sampling::S1Bit;
+				_sceneTextures->depth.resolved = mContext->CreateTexture(desc);
+				_outPassInfo.RegisterRenderTarget(_sceneTextures->depth.resolved, desc);
+			}
+
+			// Depth-Only Prepass
+			if (_settings.depth.bPrepass)
+			{
+				RHI::SubpassInfo& depthPrepass = _outPassInfo.AddSubpass("Depth-Only Prepass");
+
+				/*auto& depthRT = */depthPrepass.AddAttachment(_sceneTextures->depth.texture, _sceneTextures->depth.resolved);
+			}
+		}
+	}
+	
+	void Renderer::DestroySceneDepthResources(SceneTextures* _sceneTextures)
+	{
+		mContext->DestroyTexture(_sceneTextures->depth.texture);
+
+		if (_sceneTextures->depth.resolved)
+			mContext->DestroyTexture(_sceneTextures->depth.resolved);
+	}
+
+	void Renderer::AddOrLoadSceneDepthAttachment(const RendererSettings::RenderPassSettings& _settings, RHI::SubpassInfo& _subpass, SceneTextures* _sceneTextures)
+	{
+		if (_settings.depth.bEnabled)
+		{
+			// Used either as read only from prepass, or read write without depth prepass.
+			auto& depthRT = _subpass.AddAttachment(_sceneTextures->depth.texture, _sceneTextures->depth.resolved);
+
+			if (_settings.depth.bPrepass)
+			{
+				depthRT.loadMode = RHI::AttachmentLoadMode::Load;
+				depthRT.accessMode = RHI::AttachmentAccessMode::ReadOnly;
+			}
+		}
+	}
+
+
+	void Renderer::CreateSceneColorPresentResources(const RendererSettings::RenderPassSettings& _settings, RHI::RenderPassInfo& _outPassInfo, SceneTextures* _sceneTextures, uint32_t _frameIndex)
+	{
+		if (mSwapchain)
+		{
+			RHI::TextureDescriptor desc
+			{
+				.extents = mSwapchain->GetExtents(),
+				.format = mSwapchain->GetFormat(),
+				.sampling = RHI::Sampling::S1Bit, // Set later only for base texture.
+				.usage = +RHI::TextureUsageFlags::Color,
+				.clearColor = Color{ 0.0f, 0.0f, 0.010f, 1.0f }
+			};
+
+			if (_settings.MSAA != RHI::Sampling::S1Bit)
+			{
+				_sceneTextures->colorPresent.resolved = mContext->CreateTexture(mSwapchain, _frameIndex);
+				_outPassInfo.RegisterRenderTarget(_sceneTextures->colorPresent.resolved, desc);
+
+				// Base texture
+				desc.sampling = _settings.MSAA;
+				_sceneTextures->colorPresent.texture = mContext->CreateTexture(desc);
+				_outPassInfo.RegisterRenderTarget(_sceneTextures->colorPresent.texture, desc);
+			}
+			else
+			{
+				_sceneTextures->colorPresent.texture = mContext->CreateTexture(mSwapchain, _frameIndex);
+				_outPassInfo.RegisterRenderTarget(_sceneTextures->colorPresent.texture, desc);
+			}
+		}
+		else
+		{
+			RHI::TextureDescriptor desc
+			{
+				.extents = _settings.extents,
+				.format = RHI::Format::R8G8B8A8_UNORM,
+				.sampling = RHI::Sampling::S1Bit, // Set later only for base texture.
+				.usage = +RHI::TextureUsageFlags::Color,
+				.clearColor = Color{ 0.0f, 0.0f, 0.010f, 1.0f }
+			};
+
+			if (_settings.MSAA != RHI::Sampling::S1Bit)
+			{
+				_sceneTextures->colorPresent.resolved = mContext->CreateTexture(desc);
+				_outPassInfo.RegisterRenderTarget(_sceneTextures->colorPresent.resolved, desc);
+
+				// Base texture
+				desc.sampling = _settings.MSAA;
+				_sceneTextures->colorPresent.texture = mContext->CreateTexture(desc);
+				_outPassInfo.RegisterRenderTarget(_sceneTextures->colorPresent.texture, desc);
+			}
+			else
+			{
+				_sceneTextures->colorPresent.texture = mContext->CreateTexture(desc);
+				_outPassInfo.RegisterRenderTarget(_sceneTextures->colorPresent.texture, desc);
+			}
+		}
+	}
+
+	void Renderer::DestroySceneColorPresentResources(SceneTextures* _sceneTextures)
+	{
+		mContext->DestroyTexture(_sceneTextures->colorPresent.texture);
+
+		if (_sceneTextures->colorPresent.resolved)
+			mContext->DestroyTexture(_sceneTextures->colorPresent.resolved);
 	}
 
 //}

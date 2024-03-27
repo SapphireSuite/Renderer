@@ -1,4 +1,4 @@
-// Copyright (c) 2023 Sapphire's Suite. All Rights Reserved.
+// Copyright (c) 2024 Sapphire's Suite. All Rights Reserved.
 
 #pragma once
 
@@ -6,8 +6,6 @@
 #define SAPPHIRE_RENDER_VK_FRAME_BUFFER_GUARD
 
 #include "Info/VkRenderPassInfo.hpp"
-
-#include <SA/Render/LowLevel/Vulkan/Buffers/VkImageBuffer.hpp>
 
 namespace SA::RND::VK
 {
@@ -18,22 +16,21 @@ namespace SA::RND::VK
 	{
 		VkFramebuffer mHandle = VK_NULL_HANDLE;
 
-		std::vector<ImageBuffer> mAttachments;
+		std::vector<VkImageView> mImageViews;
 		std::vector<VkClearValue> mClearValues;
 
 		Vec2ui mExtents;
 
+		void EmplaceImage(const Device& _device, const RenderPassInfo& _info, const AttachmentInfo& _attach, const Texture* _texture);
+
 	public:
 		void Create(const Device& _device,
 			const RenderPass& _pass,
-			const RenderPassInfo& _info,
-			VkImage _presentImage = VK_NULL_HANDLE);
+			const RenderPassInfo& _info);
 		void Destroy(const Device& _device);
 
 		const Vec2ui& GetExtents() const;
 		const std::vector<VkClearValue>& GetClearValues() const;
-
-		const ImageBuffer& GetAttachment(uint32_t _index) const;
 
 		operator VkFramebuffer() const noexcept;
 	};
