@@ -179,4 +179,10 @@ namespace SA::RND::DX12
 
 		mHandle.Reset();
 	}
+
+
+	Texture::operator bool() const noexcept
+	{
+		return mHandle.Get();
+	}
 }

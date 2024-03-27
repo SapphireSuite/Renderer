@@ -51,6 +51,8 @@ namespace SA::RND::DX12
 		void CreateFromImage(const Swapchain& _swapchain, uint32_t _imageIndex);
 
 		void Destroy();
+
+		operator bool() const noexcept;
 	};
 }
 

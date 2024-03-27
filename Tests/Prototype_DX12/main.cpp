@@ -520,6 +520,18 @@ void Uninit()
 
 		renderPass.Destroy();
 
+		for (auto& sceneTexture : sceneTextures)
+		{
+			if (sceneTexture.depth)
+				sceneTexture.depth.Destroy();
+
+			if (sceneTexture.color)
+				sceneTexture.color.Destroy();
+
+			if (sceneTexture.resolvedColor)
+				sceneTexture.resolvedColor.Destroy();
+		}
+
 		cmdPool.FreeMultiple(cmdBuffers);
 		cmdPool.Destroy();
 
