@@ -14,6 +14,15 @@ SA_FetchOrInclude(
 # Entrypoints
 
 add_subdirectory(Prototype)
-add_subdirectory(Prototype_VK)
-add_subdirectory(Prototype_DX12)
-add_subdirectory(Prototype_OGL)
+
+if(SA_RENDER_VULKAN_OPT)
+	add_subdirectory(Prototype_VK)
+endif()
+
+if(SA_RENDER_DX12_OPT)
+	add_subdirectory(Prototype_DX12)
+endif()
+
+if(SA_RENDER_OPENGL_OPT)
+	add_subdirectory(Prototype_OGL)
+endif()

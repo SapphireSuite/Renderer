@@ -144,9 +144,13 @@ endif()
 
 
 # DX12 Wrapper
-option(SA_RENDER_DX12_OPT "Should compile DirectX12 wrapper" OFF)
+if(WIN32)
+	option(SA_RENDER_DX12_OPT "Should compile DirectX12 wrapper" ON)
+else()
+	set(SA_RENDER_DX12_OPT OFF)
+endif()
 
-if(SA_RENDER_DX12_OPT AND WIN32)
+if(SA_RENDER_DX12_OPT)
 
 	## LowLevel DX12
 	add_library(SA_Render_LowLevel_DX12 STATIC)
