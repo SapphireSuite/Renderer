@@ -24,9 +24,6 @@ namespace SA::RND::DX12
 		{
 			struct AttachInfo
 			{
-				/// Initial State of the attached resource.
-				D3D12_RESOURCE_STATES initialState = D3D12_RESOURCE_STATE_COMMON;
-
 				/// Current rendering state of the attached resoure.
 				D3D12_RESOURCE_STATES renderState = D3D12_RESOURCE_STATE_COMMON;
 

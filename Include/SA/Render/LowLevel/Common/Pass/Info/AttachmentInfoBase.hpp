@@ -14,8 +14,8 @@ namespace SA::RND
 	{
 		using TextureT = InTextureT;
 
-		const TextureT* texture = nullptr;
-		const TextureT* resolved = nullptr;
+		TextureT* texture = nullptr;
+		TextureT* resolved = nullptr;
 
 		AttachmentAccessMode accessMode = AttachmentAccessMode::ReadWrite;
 	};

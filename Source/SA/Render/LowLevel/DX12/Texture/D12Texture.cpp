@@ -14,6 +14,23 @@ namespace SA::RND::DX12
 		return mHandle;
 	}
 
+	ID3D12Resource* Texture::GetInternalPtr() const
+	{
+		return mHandle.Get();
+	}
+
+
+	D3D12_RESOURCE_STATES Texture::GetState() const noexcept
+	{
+		return mState;
+	}
+
+	void Texture::SetPendingState(D3D12_RESOURCE_STATES _state) noexcept
+	{
+		mState = _state;
+	}
+
+
 	void Texture::Create(const Device& _device, ResourceInitializer& _init, const RawTexture& _raw)
 	{
 		const DXGI_FORMAT dxFormat = API_GetFormat(_raw.format);
@@ -98,6 +115,8 @@ namespace SA::RND::DX12
 			};
 
 			_init.cmd->ResourceBarrier(1, &barrier);
+
+			mState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
 		}
 
 		SA_LOG(L"Texture created.", Info, SA.Render.DX12, (L"Handle [%1]", mHandle.Get()));

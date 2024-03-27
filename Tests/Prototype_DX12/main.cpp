@@ -68,8 +68,8 @@ struct SceneTexture
 std::vector<SceneTexture> sceneTextures;
 
 constexpr bool bDepth = true;
-constexpr bool bDepthPrepass = false;
-constexpr bool bDepthInverted = false;
+constexpr bool bDepthPrepass = true;
+constexpr bool bDepthInverted = true;
 constexpr bool bMSAA = false;
 
 void GLFWErrorCallback(int32_t error, const char* description)

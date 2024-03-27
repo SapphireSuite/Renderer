@@ -240,7 +240,6 @@ namespace SA::RND::VK
 					});
 
 					auto currLayoutIt = textureToLayoutMap.find(attach.texture);
-					
 					if (currLayoutIt != textureToLayoutMap.end())
 						attachDesc.initialLayout = currLayoutIt->second;
 

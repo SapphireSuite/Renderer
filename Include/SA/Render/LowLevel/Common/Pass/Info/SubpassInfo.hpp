@@ -24,7 +24,7 @@ namespace SA::RND
 	
 		std::vector<AttachT> attachments;
 
-		AttachT& AddAttachment(const TextureT* _texture, const TextureT* _resolvedTexture = nullptr)
+		AttachT& AddAttachment(TextureT* _texture, TextureT* _resolvedTexture = nullptr)
 		{
 			SA_ASSERT((Nullptr, _texture), SA.Render.RHI, L"Valid RenderTarget must be bound as subpass attachment");
 

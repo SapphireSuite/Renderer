@@ -21,10 +21,16 @@ namespace SA::RND::DX12
 	{
 		MComPtr<ID3D12Resource> mHandle;
 
+		D3D12_RESOURCE_STATES mState = D3D12_RESOURCE_STATE_COMMON;
+
 	public:
 		using TextureDescT = TextureDescriptor;
 
 		MComPtr<ID3D12Resource> Get() const;
+		ID3D12Resource* GetInternalPtr() const;
+
+		D3D12_RESOURCE_STATES GetState() const noexcept;
+		void SetPendingState(D3D12_RESOURCE_STATES _state) noexcept;
 
 		/**
 		* Create Texture from raw texture input.

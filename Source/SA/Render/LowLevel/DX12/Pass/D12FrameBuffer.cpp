@@ -115,10 +115,10 @@ namespace SA::RND::DX12
 
 				// Resource
 				{
-					attach.texture = attachInfo.texture->Get();
+					attach.texture = attachInfo.texture;
 
 					if (attachInfo.resolved)
-						attach.resolved = attachInfo.resolved->Get();
+						attach.resolved = attachInfo.resolved;
 
 
 					// Clear color
@@ -150,12 +150,12 @@ namespace SA::RND::DX12
 				// View.
 				if (desc.usage & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET)
 				{
-					_device->CreateRenderTargetView(attach.texture.Get(), &viewDesc, rtvHandle);
+					_device->CreateRenderTargetView(attach.texture->GetInternalPtr(), &viewDesc, rtvHandle);
 					rtvHandle.ptr += mRTVDescriptorIncrementSize;
 				}
 				else if (desc.usage & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL)
 				{
-					_device->CreateDepthStencilView(attach.texture.Get(), nullptr, dsvHandle);
+					_device->CreateDepthStencilView(attach.texture->GetInternalPtr(), nullptr, dsvHandle);
 					dsvHandle.ptr += mDSVDescriptorIncrementSize;
 				}
 

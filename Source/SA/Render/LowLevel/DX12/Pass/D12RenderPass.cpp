@@ -23,56 +23,16 @@ namespace SA::RND::DX12
 			return state;
 		}
 
-		D3D12_RESOURCE_STATES FindInitState(const std::vector<SubpassInfo>& _subpasses,
-			std::vector<SubpassInfo>::const_iterator _currSubpassIt,
-			const AttachmentInfo& _attach,
-			const TextureDescriptor& _desc
-		)
+		D3D12_RESOURCE_STATES GetReadWriteImageLayout(const TextureDescriptor& _desc)
 		{
-			D3D12_RESOURCE_STATES initState = D3D12_RESOURCE_STATE_COMMON;
+			D3D12_RESOURCE_STATES state = D3D12_RESOURCE_STATE_COMMON;
 
-			if (_attach.accessMode == AttachmentAccessMode::ReadOnly)
-			{
-				initState = GetReadOnlyImageLayout(_desc);
-			}
-			else
-			{
-				for (auto prevSubpassIt = _currSubpassIt; prevSubpassIt != _subpasses.begin() && initState == D3D12_RESOURCE_STATE_COMMON;)
-				{
-					--prevSubpassIt;
+			if (_desc.usage & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET)
+				state = D3D12_RESOURCE_STATE_RENDER_TARGET;
+			else if (_desc.usage & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL)
+				state = D3D12_RESOURCE_STATE_DEPTH_WRITE;
 
-					// Parse all previous subpass attachments (RT).
-					for (auto& prevAttach : prevSubpassIt->attachments)
-					{
-						// Previously rendered and waiting for this (second) render.
-						if (prevAttach.texture == _attach.texture)
-						{
-							if (_desc.usage & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET)
-								initState = D3D12_RESOURCE_STATE_RENDER_TARGET;
-							else if (_desc.usage & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL)
-								initState = D3D12_RESOURCE_STATE_DEPTH_WRITE;
-
-							break;
-						}
-					}
-
-					// Init layout already found.
-					if (initState != D3D12_RESOURCE_STATE_COMMON)
-						break;
-
-					// Parse all previous subpass input attachments.
-					for (auto& prevInputTexture : prevSubpassIt->inputs)
-					{
-						if (prevInputTexture == _attach.texture)
-						{
-							initState = GetReadOnlyImageLayout(_desc);
-							break;
-						}
-					}
-				}
-			}
-
-			return initState;
+			return state;
 		}
 
 		D3D12_RESOURCE_STATES FindRenderState(const AttachmentInfo& _attach,
@@ -122,11 +82,7 @@ namespace SA::RND::DX12
 						{
 							case AttachmentAccessMode::ReadWrite:
 							{
-								if (_desc.usage & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET)
-									nextState = D3D12_RESOURCE_STATE_RENDER_TARGET;
-								else if (_desc.usage & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL)
-									nextState = D3D12_RESOURCE_STATE_DEPTH_WRITE;
-
+								nextState = GetReadWriteImageLayout(_desc);
 								break;
 							}
 							case AttachmentAccessMode::ReadOnly:
@@ -173,8 +129,14 @@ namespace SA::RND::DX12
 				{
 					nextState = initialState;
 				}
-				else // Default read only
+				else if(_desc.usage & D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE)
 				{
+					// Default read write.
+					nextState = GetReadWriteImageLayout(_desc);
+				}
+				else
+				{
+					// Default read only if sampled/input is enabled.
 					nextState = GetReadOnlyImageLayout(_desc);
 				}
 			}
@@ -188,6 +150,8 @@ namespace SA::RND::DX12
 	{
 		mSubpassInfos.reserve(_info.subpasses.size());
 
+		std::unordered_map<const Texture*, D3D12_RESOURCE_STATES> textureToStateMap;
+
 		for (auto inSubpassIt = _info.subpasses.begin(); inSubpassIt != _info.subpasses.end(); ++inSubpassIt)
 		{
 			auto& subpassInfo = mSubpassInfos.emplace_back();
@@ -197,9 +161,16 @@ namespace SA::RND::DX12
 				const TextureDescriptor& desc = _info.textureToDescriptorMap.at(inAttach.texture);
 
 				auto& attachInfo = subpassInfo.attachInfos.emplace_back();
-				attachInfo.initialState = Intl::FindInitState(_info.subpasses, inSubpassIt, inAttach, desc);
+
+				D3D12_RESOURCE_STATES initialState = D3D12_RESOURCE_STATE_COMMON;
+
+				auto currStateIt = textureToStateMap.find(inAttach.texture);
+				if (currStateIt != textureToStateMap.end())
+					initialState = currStateIt->second;
+
 				attachInfo.renderState = Intl::FindRenderState(inAttach, desc);
-				attachInfo.finalState = Intl::FindNextState(_info.subpasses, inSubpassIt, inAttach.texture, desc, attachInfo.initialState);
+				attachInfo.finalState = Intl::FindNextState(_info.subpasses, inSubpassIt, inAttach.texture, desc, initialState);
+				textureToStateMap[inAttach.texture] = attachInfo.finalState;
 			}
 		}
 	}
@@ -233,6 +204,7 @@ namespace SA::RND::DX12
 			auto& prevSubpassFrame = mCurrFrameBuffer->GetSubpassFrame(prevSubpassIndex);
 			const std::vector<FrameBuffer::Attachment>& prevFBuffAttachs = prevSubpassFrame.attachments;
 
+			/*
 			// Resolve
 			if(false)
 			{
@@ -310,6 +282,7 @@ namespace SA::RND::DX12
 					}
 				}
 			}
+			*/
 
 			// Transition to next subpass.
 			{
@@ -323,12 +296,12 @@ namespace SA::RND::DX12
 						D3D12_RESOURCE_BARRIER& barrier = barriers.emplace_back();
 						barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
 						barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-						barrier.Transition.pResource = prevFBuffAttach.texture.Get();
+						barrier.Transition.pResource = prevFBuffAttach.texture->GetInternalPtr();
 						barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
 						barrier.Transition.StateBefore = prevAttachInfo.renderState;
 						barrier.Transition.StateAfter = prevAttachInfo.finalState;
 
-						prevFBuffAttach.state = prevAttachInfo.finalState;
+						prevFBuffAttach.texture->SetPendingState(prevAttachInfo.finalState);
 					}
 				}
 			}
@@ -356,19 +329,19 @@ namespace SA::RND::DX12
 					auto& fBuffAttach = currFBuffAttachs[i];
 					auto& attachInfo = mSubpassInfos[mCurrSubpassIndex].attachInfos[i];
 
-					// TODO: compare fBuffAttach.state to attachInfo.initialState?
+					const D3D12_RESOURCE_STATES currState = fBuffAttach.texture->GetState();
 
-					if (fBuffAttach.state != attachInfo.renderState)
+					if (currState != attachInfo.renderState)
 					{
 						D3D12_RESOURCE_BARRIER& barrier = barriers.emplace_back();
 						barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
 						barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-						barrier.Transition.pResource = fBuffAttach.texture.Get();
+						barrier.Transition.pResource = fBuffAttach.texture->GetInternalPtr();
 						barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-						barrier.Transition.StateBefore = fBuffAttach.state;
+						barrier.Transition.StateBefore = currState;
 						barrier.Transition.StateAfter = attachInfo.renderState;
 
-						fBuffAttach.state = attachInfo.renderState;
+						fBuffAttach.texture->SetPendingState(attachInfo.renderState);
 					}
 				}
 
@@ -388,7 +361,7 @@ namespace SA::RND::DX12
 					if (fBuffAttach.clearValue.Color[0] < 0.0f)
 						continue;
 
-					auto desc = fBuffAttach.texture->GetDesc();
+					auto desc = fBuffAttach.texture->Get()->GetDesc();
 
 					if (desc.Flags & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET)
 					{

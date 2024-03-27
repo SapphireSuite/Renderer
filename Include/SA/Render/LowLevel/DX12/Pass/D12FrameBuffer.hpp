@@ -20,10 +20,9 @@ namespace SA::RND::DX12
 	public:
 		struct Attachment
 		{
-			MComPtr<ID3D12Resource> texture;
-			MComPtr<ID3D12Resource> resolved;
+			Texture* texture = nullptr;
+			Texture* resolved = nullptr;
 			D3D12_CLEAR_VALUE clearValue{};
-			mutable D3D12_RESOURCE_STATES state = D3D12_RESOURCE_STATE_COMMON;
 		};
 
 		struct SubpassFrame
