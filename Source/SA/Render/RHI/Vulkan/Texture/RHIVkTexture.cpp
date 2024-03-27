@@ -26,4 +26,15 @@ namespace SA::RND::RHI
 	{
 		mHandle.Destroy(_device->API_Vulkan());
 	}
+
+
+	VK::Texture& VkTexture::API_Vulkan()
+	{
+		return mHandle;
+	}
+
+	const VK::Texture& VkTexture::API_Vulkan() const
+	{
+		return mHandle;
+	}
 }

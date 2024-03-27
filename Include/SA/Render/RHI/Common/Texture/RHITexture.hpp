@@ -57,12 +57,14 @@ namespace SA::RND
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
+			virtual VK::Texture& API_Vulkan();
 			virtual const VK::Texture& API_Vulkan() const;
 
 #endif
 
 #if SA_RENDER_LOWLEVEL_DX12_IMPL
 
+			virtual DX12::Texture& API_DirectX12();
 			virtual const DX12::Texture& API_DirectX12() const;
 
 #endif

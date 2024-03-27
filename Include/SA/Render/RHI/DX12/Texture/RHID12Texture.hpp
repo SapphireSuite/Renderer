@@ -20,6 +20,9 @@ namespace SA::RND::RHI
 		void Create(const Device* _device, const TextureDescriptor& _desc) override final;
 		void CreateFromImage(const Swapchain* _swapchain, uint32_t _imageIndex) override final;
 		void Destroy(const Device* _device) override final;
+
+		DX12::Texture& API_DirectX12() override final;
+		const DX12::Texture& API_DirectX12() const override final;
 	};
 }
 

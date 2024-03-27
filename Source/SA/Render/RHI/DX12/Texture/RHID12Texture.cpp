@@ -28,4 +28,15 @@ namespace SA::RND::RHI
 
 		mHandle.Destroy();
 	}
+
+
+	DX12::Texture& D12Texture::API_DirectX12()
+	{
+		return mHandle;
+	}
+
+	const DX12::Texture& D12Texture::API_DirectX12() const
+	{
+		return mHandle;
+	}
 }

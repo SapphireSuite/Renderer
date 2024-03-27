@@ -20,6 +20,9 @@ namespace SA::RND::RHI
 		void Create(const Device* _device, const TextureDescriptor& _desc) override final;
 		void CreateFromImage(const Swapchain* _swapchain, uint32_t _imageIndex) override final;
 		void Destroy(const Device* _device) override final;
+
+		VK::Texture& API_Vulkan() override final;
+		const VK::Texture& API_Vulkan() const override final;
 	};
 }
 
