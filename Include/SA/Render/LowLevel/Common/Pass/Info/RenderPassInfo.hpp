@@ -1,4 +1,4 @@
-// Copyright (c) 2023 Sapphire's Suite. All Rights Reserved.
+// Copyright (c) 2024 Sapphire's Suite. All Rights Reserved.
 
 #pragma once
 
@@ -9,17 +9,25 @@
 
 namespace SA::RND
 {
-	template <typename TextureT>
+	template <typename SubpassT>
 	struct RenderPassInfo
 	{
+		using TextureT = SubpassT::TextureT;
+		using TextureDescT = SubpassT::TextureT::TextureDescT;
+
+		/**
+		* WARN: Internal use only.
+		* Use RegisterRenderTarget instead.
+		*/
+		std::unordered_map<const TextureT*, TextureDescT> textureToDescriptorMap;
+
 		std::string name;
 
-		std::vector<SubpassInfo<TextureT>> subpasses;
+		std::vector<SubpassT> subpasses;
 
-
-		SubpassInfo<TextureT>& AddSubpass(std::string _name)
+		SubpassT& AddSubpass(std::string _name)
 		{
-			SubpassInfo<TextureT>& subpass = subpasses.emplace_back();
+			SubpassT& subpass = subpasses.emplace_back();
 
 			subpass.name = std::move(_name);
 
@@ -37,7 +45,24 @@ namespace SA::RND
 				}
 			}
 
+			SA_LOG((L"Subpass with name [%1] not found", _name), Error, SA.Render.RHI);
 			return false;
+		}
+
+
+		bool RegisterRenderTarget(const TextureT* _texture, const TextureDescT& _desc)
+		{
+			auto it = textureToDescriptorMap.find(_texture);
+
+			if (it != textureToDescriptorMap.end())
+			{
+				SA_LOG((L"Texture [%1] already registered.", _texture), Error, SA.Render.RHI);
+				return false;
+			}
+
+			textureToDescriptorMap[_texture] = _desc;
+
+			return true;
 		}
 	};
 }

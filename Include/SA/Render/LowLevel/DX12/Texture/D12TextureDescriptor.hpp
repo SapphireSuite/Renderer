@@ -1,4 +1,4 @@
-// Copyright (c) 2023 Sapphire's Suite. All Rights Reserved.
+// Copyright (c) 2024 Sapphire's Suite. All Rights Reserved.
 
 #pragma once
 
@@ -6,6 +6,8 @@
 #define SAPPHIRE_RENDER_DX12_TEXTURE_DESCRIPTOR_GUARD
 
 #include <SA/Maths/Space/Vector2.hpp>
+
+#include <SA/Render/LowLevel/Common/Misc/Color.hpp>
 
 #include <SA/Render/LowLevel/DX12/DX12API.hpp>
 
@@ -22,6 +24,8 @@ namespace SA::RND::DX12
 		uint32_t sampling = 1u;
 
 		D3D12_RESOURCE_FLAGS usage = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+
+		Color clearColor = Color::black;
 	};
 }
 

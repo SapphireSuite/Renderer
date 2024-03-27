@@ -1,4 +1,4 @@
-// Copyright (c) 2023 Sapphire's Suite. All Rights Reserved.
+// Copyright (c) 2024 Sapphire's Suite. All Rights Reserved.
 
 #pragma once
 
@@ -16,12 +16,14 @@ namespace SA::RND::RHI
 		DX12::RenderPass mHandle;
 
 	public:
-		void Create(const Device* _device, RenderPassInfo _info) override final;
+		void Create(const Device* _device, const RenderPassInfo& _info) override final;
 		void Destroy(const Device* _device) override final;
 
 		void Begin(const CommandBuffer* _cmd, FrameBuffer* _fBuff) override final;
 		void NextSubpass(const CommandBuffer* _cmd) override final;
 		void End(const CommandBuffer* _cmd) override final;
+
+		const DX12::RenderPass& API_DirectX12() const override final;
 	};
 }
 

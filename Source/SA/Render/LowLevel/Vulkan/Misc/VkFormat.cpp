@@ -108,4 +108,9 @@ namespace SA::RND::VK
 	{
 		return _vkFormat == VK_FORMAT_R8G8B8A8_SRGB || _vkFormat == VK_FORMAT_B8G8R8A8_SRGB;
 	}
+
+	bool HasStencilComponent(VkFormat _vkFormat) noexcept
+	{
+		return _vkFormat == VK_FORMAT_D24_UNORM_S8_UINT;
+	}
 }

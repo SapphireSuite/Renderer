@@ -1,4 +1,4 @@
-// Copyright (c) 2023 Sapphire's Suite. All Rights Reserved.
+// Copyright (c) 2024 Sapphire's Suite. All Rights Reserved.
 
 #include <Texture/D12Texture.hpp>
 
@@ -14,48 +14,22 @@ namespace SA::RND::DX12
 		return mHandle;
 	}
 
-	TextureDescriptor Texture::GetDescriptor() const noexcept
+	ID3D12Resource* Texture::GetInternalPtr() const
 	{
-		D3D12_RESOURCE_DESC d12Desc = mHandle->GetDesc();
-
-		return TextureDescriptor
-		{
-			.extents = Vec2ui{ static_cast<uint32_t>(d12Desc.Width), static_cast<uint32_t>(d12Desc.Height) },
-			.mipLevels = d12Desc.MipLevels,
-			.format = mIntlFormat == DXGI_FORMAT_UNKNOWN ? d12Desc.Format : mIntlFormat,
-			.sampling = d12Desc.SampleDesc.Count,
-			.usage = d12Desc.Flags,
-		};
+		return mHandle.Get();
 	}
 
-	void Texture::Create(const Device& _device, const TextureDescriptor& _desc)
+
+	D3D12_RESOURCE_STATES Texture::GetState() const noexcept
 	{
-		const D3D12_RESOURCE_DESC desc{
-			.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D,
-			.Alignment = 0u,
-			.Width = _desc.extents.x,
-			.Height = _desc.extents.y,
-			.DepthOrArraySize = 1,
-			.MipLevels = static_cast<UINT16>(_desc.mipLevels),
-			.Format = _desc.format,
-			.SampleDesc = DXGI_SAMPLE_DESC{
-				.Count = _desc.sampling,
-				.Quality = 0,
-			},
-			.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN,
-			.Flags = _desc.usage,
-		};
-
-		const D3D12_HEAP_PROPERTIES heap{
-			.Type = D3D12_HEAP_TYPE_DEFAULT,
-			.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN,
-			.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN,
-			.CreationNodeMask = 1,
-			.VisibleNodeMask = 1,
-		};
-
-		SA_DX12_API(_device->CreateCommittedResource(&heap, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_COMMON, nullptr, IID_PPV_ARGS(&mHandle)));
+		return mState;
 	}
+
+	void Texture::SetPendingState(D3D12_RESOURCE_STATES _state) noexcept
+	{
+		mState = _state;
+	}
+
 
 	void Texture::Create(const Device& _device, ResourceInitializer& _init, const RawTexture& _raw)
 	{
@@ -121,7 +95,7 @@ namespace SA::RND::DX12
 					.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX,
 					.SubresourceIndex = currMipLevel
 				};
-				
+
 				_init.cmd->CopyTextureRegion(&dst, 0u, 0u, 0u, &src, nullptr);
 			}
 		}
@@ -141,15 +115,62 @@ namespace SA::RND::DX12
 			};
 
 			_init.cmd->ResourceBarrier(1, &barrier);
+
+			mState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
 		}
 
 		SA_LOG(L"Texture created.", Info, SA.Render.DX12, (L"Handle [%1]", mHandle.Get()));
 	}
-	
+
+	void Texture::Create(const Device& _device, const TextureDescriptor& _desc)
+	{
+		const D3D12_RESOURCE_DESC desc{
+			.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D,
+			.Alignment = 0u,
+			.Width = _desc.extents.x,
+			.Height = _desc.extents.y,
+			.DepthOrArraySize = 1,
+			.MipLevels = static_cast<UINT16>(_desc.mipLevels),
+			.Format = _desc.format,
+			.SampleDesc = DXGI_SAMPLE_DESC{
+				.Count = _desc.sampling,
+				.Quality = 0,
+			},
+			.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN,
+			.Flags = _desc.usage,
+		};
+
+		const D3D12_HEAP_PROPERTIES heap{
+			.Type = D3D12_HEAP_TYPE_DEFAULT,
+			.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN,
+			.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN,
+			.CreationNodeMask = 1,
+			.VisibleNodeMask = 1,
+		};
+
+		D3D12_CLEAR_VALUE clearValue{
+			.Format = _desc.format,
+		};
+
+		if (_desc.usage & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL)
+		{
+			clearValue.DepthStencil.Depth = _desc.clearColor.r;
+			clearValue.DepthStencil.Stencil = static_cast<uint8_t>(_desc.clearColor.g);
+		}
+		else
+		{
+			clearValue.Color[0] = _desc.clearColor.r;
+			clearValue.Color[1] = _desc.clearColor.g;
+			clearValue.Color[2] = _desc.clearColor.b;
+			clearValue.Color[3] = _desc.clearColor.a;
+		}
+
+		SA_DX12_API(_device->CreateCommittedResource(&heap, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_COMMON, &clearValue, IID_PPV_ARGS(&mHandle)));
+	}
+
 	void Texture::CreateFromImage(const Swapchain& _swapchain, uint32_t _imageIndex)
 	{
 		mHandle = _swapchain.GetBackBufferHandle(_imageIndex);
-		mIntlFormat = UNORMToSRGBFormat(mHandle->GetDesc().Format);
 	}
 
 	void Texture::Destroy()
@@ -157,6 +178,11 @@ namespace SA::RND::DX12
 		SA_LOG_RAII(L"Texture destroyed.", Info, SA.Render.DX12, (L"Handle [%1]", mHandle.Get()));
 
 		mHandle.Reset();
-		mIntlFormat = DXGI_FORMAT_UNKNOWN;
+	}
+
+
+	Texture::operator bool() const noexcept
+	{
+		return mHandle.Get();
 	}
 }

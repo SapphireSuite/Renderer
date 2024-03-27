@@ -1,9 +1,9 @@
-// Copyright (c) 2023 Sapphire's Suite. All Rights Reserved.
+// Copyright (c) 2024 Sapphire's Suite. All Rights Reserved.
 
 #pragma once
 
-#ifndef SAPPHIRE_RENDER_RHI_DX12_FRAMEBUFFER_GUARD
-#define SAPPHIRE_RENDER_RHI_DX12_FRAMEBUFFER_GUARD
+#ifndef SAPPHIRE_RENDER_RHI_D12_FRAMEBUFFER_GUARD
+#define SAPPHIRE_RENDER_RHI_D12_FRAMEBUFFER_GUARD
 
 #include <SA/Render/RHI/Common/Pass/RHIFrameBuffer.hpp>
 
@@ -16,12 +16,11 @@ namespace SA::RND::RHI
 		DX12::FrameBuffer mHandle;
 
 	public:
-		void Create(const Device* _device, const RenderPass* _pass) override final;
+		void Create(const Device* _device, const RenderPass* _pass, const RenderPassInfo& _info) override final;
 		void Destroy(const Device* _device) override final;
 
-		DX12::FrameBuffer& API_DirectX12() override final;
 		const DX12::FrameBuffer& API_DirectX12() const override final;
 	};
 }
 
-#endif // SAPPHIRE_RENDER_RHI_DX12_FRAMEBUFFER_GUARD
+#endif // SAPPHIRE_RENDER_RHI_D12_FRAMEBUFFER_GUARD

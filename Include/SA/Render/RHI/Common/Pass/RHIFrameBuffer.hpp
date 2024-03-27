@@ -1,9 +1,11 @@
-// Copyright (c) 2023 Sapphire's Suite. All Rights Reserved.
+// Copyright (c) 2024 Sapphire's Suite. All Rights Reserved.
 
 #pragma once
 
 #ifndef SAPPHIRE_RENDER_RHI_FRAMEBUFFER_GUARD
 #define SAPPHIRE_RENDER_RHI_FRAMEBUFFER_GUARD
+
+#include "Info/RHIRenderPassInfo.hpp"
 
 namespace SA::RND
 {
@@ -35,7 +37,7 @@ namespace SA::RND
 		public:
 			virtual ~FrameBuffer() = default;
 
-			virtual void Create(const Device* _device, const RenderPass* _pass) = 0;
+			virtual void Create(const Device* _device, const RenderPass* _pass, const RenderPassInfo& _info) = 0;
 			virtual void Destroy(const Device* _device) = 0;
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
@@ -46,7 +48,6 @@ namespace SA::RND
 
 #if SA_RENDER_LOWLEVEL_DX12_IMPL
 
-			virtual DX12::FrameBuffer& API_DirectX12();
 			virtual const DX12::FrameBuffer& API_DirectX12() const;
 
 #endif

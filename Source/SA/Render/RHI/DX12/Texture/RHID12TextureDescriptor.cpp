@@ -1,4 +1,4 @@
-// Copyright (c) 2023 Sapphire's Suite. All Rights Reserved.
+// Copyright (c) 2024 Sapphire's Suite. All Rights Reserved.
 
 #include <SA/Render/RHI/Common/Texture/RHITextureDescriptor.hpp>
 
@@ -11,7 +11,8 @@ namespace SA::RND::RHI
 			.mipLevels = mipLevels,
 			.format = DX12::API_GetFormat(format),
 			.sampling = DX12::API_GetSampling(sampling),
-			.usage = DX12::API_GetTextureUsage(usage)
+			.usage = DX12::API_GetTextureUsage(usage),
+			.clearColor = clearColor,
 		};
 	}
 }

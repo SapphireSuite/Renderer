@@ -1,4 +1,4 @@
-// Copyright (c) 2023 Sapphire's Suite. All Rights Reserved.
+// Copyright (c) 2024 Sapphire's Suite. All Rights Reserved.
 
 #pragma once
 
@@ -6,6 +6,8 @@
 #define SAPPHIRE_RENDER_VK_TEXTURE_DESCRIPTOR_GUARD
 
 #include <SA/Maths/Space/Vector2.hpp>
+
+#include <SA/Render/LowLevel/Common/Misc/Color.hpp>
 
 #include <SA/Render/LowLevel/Vulkan/VulkanAPI.hpp>
 
@@ -22,6 +24,8 @@ namespace SA::RND::VK
 		VkSampleCountFlagBits sampling = VK_SAMPLE_COUNT_1_BIT;
 
 		VkImageUsageFlags usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+
+		Color clearColor = Color::black;
 	};
 }
 

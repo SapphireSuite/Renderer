@@ -1,4 +1,4 @@
-// Copyright (c) 2023 Sapphire's Suite. All Rights Reserved.
+// Copyright (c) 2024 Sapphire's Suite. All Rights Reserved.
 
 #pragma once
 
@@ -8,6 +8,7 @@
 #include <SA/Render/LowLevel/Vulkan/VulkanAPI.hpp>
 
 #include <SA/Render/LowLevel/Common/Texture/RawTexture.hpp>
+
 #include "VkTextureDescriptor.hpp"
 
 namespace SA::RND::VK
@@ -21,30 +22,29 @@ namespace SA::RND::VK
 		VkImage mImage = VK_NULL_HANDLE;
 		VkDeviceMemory mMemory = VK_NULL_HANDLE;
 
-		TextureDescriptor mDescriptor;
-
 	public:
-		const TextureDescriptor& GetDescriptor() const noexcept;
+		using TextureDescT = TextureDescriptor;
+
+		/**
+		* Create Texture from raw texture input.
+		* Used as input texture for sampling.
+		*/
+		void Create(const Device& _device, ResourceInitializer& _init, const RawTexture& _raw);
 
 		/**
 		* Create Texture from descriptor
 		* Used as framebuffer attachment.
 		*/
 		void Create(const Device& _device, const TextureDescriptor& _desc);
-		
-		/**
-		* Create Texture from raw texture input.
-		* Used as input texture for sampling.
-		*/
-		void Create(const Device& _device, ResourceInitializer& _init, const RawTexture& _raw);
-		
+
 		/**
 		* Create texture from swapchain backbuffer image handle.
 		* Used as frambuffer present attachment.
 		*/
 		void CreateFromImage(const Swapchain& _swapchain, uint32_t _imageIndex);
-		
+
 		void Destroy(const Device& _device);
+
 
 		operator VkImage() const noexcept;
 	};

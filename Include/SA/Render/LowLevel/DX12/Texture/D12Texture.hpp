@@ -1,4 +1,4 @@
-// Copyright (c) 2023 Sapphire's Suite. All Rights Reserved.
+// Copyright (c) 2024 Sapphire's Suite. All Rights Reserved.
 
 #pragma once
 
@@ -21,19 +21,16 @@ namespace SA::RND::DX12
 	{
 		MComPtr<ID3D12Resource> mHandle;
 
-		/// Internal format used to handle SRGB conversion.
-		DXGI_FORMAT mIntlFormat = DXGI_FORMAT_UNKNOWN;
+		D3D12_RESOURCE_STATES mState = D3D12_RESOURCE_STATE_COMMON;
 
 	public:
+		using TextureDescT = TextureDescriptor;
+
 		MComPtr<ID3D12Resource> Get() const;
+		ID3D12Resource* GetInternalPtr() const;
 
-		TextureDescriptor GetDescriptor() const noexcept;
-
-		/**
-		* Create Texture from descriptor
-		* Used as framebuffer attachment.
-		*/
-		void Create(const Device& _device, const TextureDescriptor& _desc);
+		D3D12_RESOURCE_STATES GetState() const noexcept;
+		void SetPendingState(D3D12_RESOURCE_STATES _state) noexcept;
 
 		/**
 		* Create Texture from raw texture input.
@@ -42,12 +39,20 @@ namespace SA::RND::DX12
 		void Create(const Device& _device, ResourceInitializer& _init, const RawTexture& _raw);
 
 		/**
+		* Create Texture from descriptor
+		* Used as framebuffer attachment.
+		*/
+		void Create(const Device& _device, const TextureDescriptor& _desc);
+
+		/**
 		* Create texture from swapchain backbuffer image handle.
 		* Used as frambuffer present attachment.
 		*/
 		void CreateFromImage(const Swapchain& _swapchain, uint32_t _imageIndex);
 
 		void Destroy();
+
+		operator bool() const noexcept;
 	};
 }
 

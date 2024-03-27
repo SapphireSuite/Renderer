@@ -1,11 +1,11 @@
-// Copyright (c) 2023 Sapphire's Suite. All Rights Reserved.
+// Copyright (c) 2024 Sapphire's Suite. All Rights Reserved.
 
 #pragma once
 
 #ifndef SAPPHIRE_RENDER_VK_RENDER_PASS_GUARD
 #define SAPPHIRE_RENDER_VK_RENDER_PASS_GUARD
 
-#include "VkRenderPassInfo.hpp"
+#include "Info/VkRenderPassInfo.hpp"
 
 namespace SA::RND::VK
 {

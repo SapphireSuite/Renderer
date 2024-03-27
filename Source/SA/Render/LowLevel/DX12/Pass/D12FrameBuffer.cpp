@@ -1,4 +1,4 @@
-// Copyright (c) 2023 Sapphire's Suite. All Rights Reserved.
+// Copyright (c) 2024 Sapphire's Suite. All Rights Reserved.
 
 #include <Pass/D12FrameBuffer.hpp>
 
@@ -8,13 +8,26 @@ namespace SA::RND::DX12
 {
 	namespace Intl
 	{
-		bool HasDepthAttachment(const DX12::SubpassInfo& _subpass)
+		bool HasColorAttachment(const RenderPassInfo& _info, const DX12::SubpassInfo& _subpass)
 		{
 			for (auto& attach : _subpass.attachments)
 			{
-				auto desc = attach.texture->GetDescriptor();
+				auto desc = _info.textureToDescriptorMap.at(attach.texture);
 
-				if (desc.usage == D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL)
+				if (desc.usage & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET)
+					return true;
+			}
+
+			return false;
+		}
+
+		bool HasDepthAttachment(const RenderPassInfo& _info, const DX12::SubpassInfo& _subpass)
+		{
+			for (auto& attach : _subpass.attachments)
+			{
+				auto desc = _info.textureToDescriptorMap.at(attach.texture);
+
+				if (desc.usage & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL)
 					return true;
 			}
 
@@ -31,11 +44,11 @@ namespace SA::RND::DX12
 			uint32_t renderTargetNum = 0u;
 			uint32_t depthStencilNum = 0u;
 
-			for(auto& subpass : _info.subpasses)
+			for (auto& subpass : _info.subpasses)
 			{
-				for(auto& attach : subpass.attachments)
+				for (auto& attach : subpass.attachments)
 				{
-					auto desc = attach.texture->GetDescriptor();
+					auto& desc = _info.textureToDescriptorMap.at(attach.texture);
 
 					if (desc.usage & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL)
 						++depthStencilNum;
@@ -44,7 +57,7 @@ namespace SA::RND::DX12
 				}
 			}
 
-			if(renderTargetNum > 0)
+			if (renderTargetNum > 0)
 			{
 				D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
 				rtvHeapDesc.NumDescriptors = renderTargetNum;
@@ -54,7 +67,7 @@ namespace SA::RND::DX12
 				SA_DX12_API(_device->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&mRenderTargetViewHeap)));
 			}
 
-			if(depthStencilNum > 0)
+			if (depthStencilNum > 0)
 			{
 				D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc = {};
 				dsvHeapDesc.NumDescriptors = depthStencilNum;
@@ -75,23 +88,23 @@ namespace SA::RND::DX12
 		D3D12_HEAP_PROPERTIES heapProps = {};
 		heapProps.Type = D3D12_HEAP_TYPE_DEFAULT;
 
-		for(auto& subpass : _info.subpasses)
+		for (auto& subpass : _info.subpasses)
 		{
 			auto& subpassFrame = mSubpassFrames.emplace_back();
-			subpassFrame.colorViewHeap = rtvHandle;
-			subpassFrame.depthViewHeap = Intl::HasDepthAttachment(subpass) ? dsvHandle : D3D12_CPU_DESCRIPTOR_HANDLE();
+			subpassFrame.colorViewHeap = Intl::HasColorAttachment(_info, subpass) ? rtvHandle : D3D12_CPU_DESCRIPTOR_HANDLE();
+			subpassFrame.depthViewHeap = Intl::HasDepthAttachment(_info, subpass) ? dsvHandle : D3D12_CPU_DESCRIPTOR_HANDLE();
 			subpassFrame.attachments.reserve(subpass.attachments.size());
 
-			for(auto& attachInfo : subpass.attachments)
+			for (auto& attachInfo : subpass.attachments)
 			{
-				auto textureDesc = attachInfo.texture->GetDescriptor();
+				auto& desc = _info.textureToDescriptorMap.at(attachInfo.texture);
 
 				Attachment attach;
 
 				D3D12_RENDER_TARGET_VIEW_DESC viewDesc
 				{
-					.Format = textureDesc.format,
-					.ViewDimension = textureDesc.sampling > 1 ? D3D12_RTV_DIMENSION_TEXTURE2DMS : D3D12_RTV_DIMENSION_TEXTURE2D,
+					.Format = desc.format,
+					.ViewDimension = desc.sampling > 1 ? D3D12_RTV_DIMENSION_TEXTURE2DMS : D3D12_RTV_DIMENSION_TEXTURE2D,
 
 					.Texture2D
 					{
@@ -102,29 +115,29 @@ namespace SA::RND::DX12
 
 				// Resource
 				{
-					attach.texture = attachInfo.texture->Get();
+					attach.texture = attachInfo.texture;
 
-					if(attachInfo.resolved)
-						attach.resolved = attachInfo.resolved->Get();
+					if (attachInfo.resolved)
+						attach.resolved = attachInfo.resolved;
 
 
 					// Clear color
 					{
-						attach.clearValue.Format = textureDesc.format;
+						attach.clearValue.Format = desc.format;
 
-						if (attachInfo.loadMode == AttachmentLoadMode::Clear)
+						if (attachInfo.bClear)
 						{
-							if (textureDesc.usage & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL)
+							if (desc.usage & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL)
 							{
-								attach.clearValue.DepthStencil.Depth = attachInfo.clearColor.r;
-								attach.clearValue.DepthStencil.Stencil = static_cast<uint8_t>(attachInfo.clearColor.g);
+								attach.clearValue.DepthStencil.Depth = desc.clearColor.r;
+								attach.clearValue.DepthStencil.Stencil = static_cast<uint8_t>(desc.clearColor.g);
 							}
 							else
 							{
-								attach.clearValue.Color[0] = attachInfo.clearColor.r;
-								attach.clearValue.Color[1] = attachInfo.clearColor.g;
-								attach.clearValue.Color[2] = attachInfo.clearColor.b;
-								attach.clearValue.Color[3] = attachInfo.clearColor.a;
+								attach.clearValue.Color[0] = desc.clearColor.r;
+								attach.clearValue.Color[1] = desc.clearColor.g;
+								attach.clearValue.Color[2] = desc.clearColor.b;
+								attach.clearValue.Color[3] = desc.clearColor.a;
 							}
 						}
 						else
@@ -135,17 +148,17 @@ namespace SA::RND::DX12
 				}
 
 				// View.
-				if(textureDesc.usage & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET)
+				if (desc.usage & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET)
 				{
-					_device->CreateRenderTargetView(attach.texture.Get(), &viewDesc, rtvHandle);
+					_device->CreateRenderTargetView(attach.texture->GetInternalPtr(), &viewDesc, rtvHandle);
 					rtvHandle.ptr += mRTVDescriptorIncrementSize;
 				}
-				else if(textureDesc.usage & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL)
+				else if (desc.usage & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL)
 				{
-					_device->CreateDepthStencilView(attach.texture.Get(), nullptr, dsvHandle);
+					_device->CreateDepthStencilView(attach.texture->GetInternalPtr(), nullptr, dsvHandle);
 					dsvHandle.ptr += mDSVDescriptorIncrementSize;
 				}
-				
+
 				subpassFrame.attachments.emplace_back(attach);
 			}
 		}
@@ -176,18 +189,13 @@ namespace SA::RND::DX12
 
 	uint32_t FrameBuffer::GetSubpassNum() const
 	{
-		return mSubpassFrames.size();
+		return static_cast<uint32_t>(mSubpassFrames.size());
 	}
 
-	FrameBuffer::SubpassFrame& FrameBuffer::GetSubpassFrame(uint32_t _subpassIndex)
+	const FrameBuffer::SubpassFrame& FrameBuffer::GetSubpassFrame(uint32_t _subpassIndex) const
 	{
 		SA_ASSERT((OutOfArrayRange, _subpassIndex, mSubpassFrames), SA.Render.DX12);
 
 		return mSubpassFrames[_subpassIndex];
-	}
-
-	std::vector<FrameBuffer::Attachment>& FrameBuffer::GetSubpassAttachments(uint32_t _subpassIndex)
-	{
-		return GetSubpassFrame(_subpassIndex).attachments;
 	}
 }

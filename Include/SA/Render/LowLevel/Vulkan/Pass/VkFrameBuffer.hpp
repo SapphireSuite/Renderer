@@ -1,11 +1,11 @@
-// Copyright (c) 2023 Sapphire's Suite. All Rights Reserved.
+// Copyright (c) 2024 Sapphire's Suite. All Rights Reserved.
 
 #pragma once
 
 #ifndef SAPPHIRE_RENDER_VK_FRAME_BUFFER_GUARD
 #define SAPPHIRE_RENDER_VK_FRAME_BUFFER_GUARD
 
-#include "VkRenderPassInfo.hpp"
+#include "Info/VkRenderPassInfo.hpp"
 
 namespace SA::RND::VK
 {
@@ -21,7 +21,7 @@ namespace SA::RND::VK
 
 		Vec2ui mExtents;
 
-		void EmplaceImage(const Device& _device, const AttachmentInfo& _attach, Texture* _texture);
+		void EmplaceImage(const Device& _device, const RenderPassInfo& _info, const AttachmentInfo& _attach, const Texture* _texture);
 
 	public:
 		void Create(const Device& _device,
@@ -31,8 +31,6 @@ namespace SA::RND::VK
 
 		const Vec2ui& GetExtents() const;
 		const std::vector<VkClearValue>& GetClearValues() const;
-
-		VkImageView GetImageView(uint32_t _index);
 
 		operator VkFramebuffer() const noexcept;
 	};

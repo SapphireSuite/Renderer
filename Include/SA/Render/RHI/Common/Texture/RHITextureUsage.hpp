@@ -1,11 +1,11 @@
-// Copyright (c) 2023 Sapphire's Suite. All Rights Reserved.
+// Copyright (c) 2024 Sapphire's Suite. All Rights Reserved.
 
 #pragma once
 
 #ifndef SAPPHIRE_RENDER_RHI_TEXTURE_USAGE_GUARD
 #define SAPPHIRE_RENDER_RHI_TEXTURE_USAGE_GUARD
 
-#include <cstdint>
+#include <SA/Support/Flags.hpp>
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
@@ -23,32 +23,29 @@ namespace SA::RND
 {
 	namespace RHI
 	{
-		enum TextureUsage : uint8_t
+		enum class TextureUsageFlags : uint8_t
 		{
-			//None = 0,
+			None = 0,
 
-			/// Texture used as render target.
-			RenderTarget = (1 << 0),
+			/// Texture used as color render target.
+			Color = (1 << 0),
 
 			/// Texture used as depth attachment/render target.
 			Depth = (1 << 1),
 
 			/// Texture used as input attachment in next subpass.
 			Input = (1 << 2),
-
-			/// TExture used as Shader Resource.
-			SRV = (1 << 3),
-
-			/// Texture used as Unordered Access.
-			UAV = (1 << 4),
 		};
+
+		using TextureUsage = uint8_t;
+		SA_DEFINE_ENUM_CLASS_FLAGS(TextureUsageFlags)
 	}
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
 	namespace VK
 	{
-		VkImageUsageFlags API_GetTextureUsage(uint8_t _usage);
+		VkImageUsageFlags API_GetTextureUsage(RHI::TextureUsage _usage);
 	}
 
 #endif
@@ -57,7 +54,7 @@ namespace SA::RND
 
 	namespace DX12
 	{
-		D3D12_RESOURCE_FLAGS API_GetTextureUsage(uint8_t _usage);
+		D3D12_RESOURCE_FLAGS API_GetTextureUsage(RHI::TextureUsage _usage);
 	}
 
 #endif

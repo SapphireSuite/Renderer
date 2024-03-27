@@ -1,4 +1,4 @@
-// Copyright (c) 2023 Sapphire's Suite. All Rights Reserved.
+// Copyright (c) 2024 Sapphire's Suite. All Rights Reserved.
 
 #pragma once
 
@@ -16,7 +16,7 @@ namespace SA::RND::RHI
 		VK::RenderPass mHandle;
 
 	public:
-		void Create(const Device* _device, RenderPassInfo _info) override final;
+		void Create(const Device* _device, const RenderPassInfo& _info) override final;
 		void Destroy(const Device* _device) override final;
 
 		void Begin(const CommandBuffer* _cmd, FrameBuffer* _fBuff) override final;

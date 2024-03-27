@@ -1,4 +1,4 @@
-// Copyright (c) 2023 Sapphire's Suite. All Rights Reserved.
+// Copyright (c) 2024 Sapphire's Suite. All Rights Reserved.
 
 #include <Pass/RHIRenderPass.hpp>
 
@@ -6,18 +6,6 @@
 
 namespace SA::RND::RHI
 {
-	const RenderPassInfo& RenderPass::GetInfo() const
-	{
-		return mPassInfo;
-	}
-
-	void RenderPass::Create(const Device* _device, RenderPassInfo _info)
-	{
-		(void)_device;
-		
-		mPassInfo = std::move(_info);
-	}
-
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
 	const VK::RenderPass& RenderPass::API_Vulkan() const

@@ -1,12 +1,12 @@
-// Copyright (c) 2023 Sapphire's Suite. All Rights Reserved.
+// Copyright (c) 2024 Sapphire's Suite. All Rights Reserved.
 
-#include <SA/Render/LowLevel/Common/Pass/Info/AttachmentLoadMode.hpp>
+#include <SA/Render/RHI/Common/Pass/Info/RHIAttachmentLoadMode.hpp>
 
 #include <SA/Collections/Debug>
 
 namespace SA::RND::VK
 {
-	VkAttachmentLoadOp API_GetAttachmentLoadOp(AttachmentLoadMode _mode)
+	VkAttachmentLoadOp API_GetAttachmentLoadOp(RHI::AttachmentLoadMode _mode)
 	{
 		static constexpr VkAttachmentLoadOp vkAttachLoadOpIndexMap[] = {
 			VK_ATTACHMENT_LOAD_OP_DONT_CARE,

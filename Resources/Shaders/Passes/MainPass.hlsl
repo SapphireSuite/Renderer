@@ -4,7 +4,6 @@
 #include <Common/Preprocessors.hlsl>
 #include <Common/Object.hlsl>
 #include <Common/Camera.hlsl>
-#include <Common/Depth.hlsl>
 
 //-------------------- Vertex Shader --------------------
 
@@ -69,13 +68,6 @@ VertexOutput mainVS(SA::VertexInputAssembly _input,
 
 #endif
 
-#if SA_DEPTH_ONLY
-	
-	// Slightly displace all the geometry away from the camera to avoid z-fighting.
-    output.svPosition.z += SA::depthBias;
-	
-#endif
-	
 #if SA_DEPTH_INVERTED
 
 	/**

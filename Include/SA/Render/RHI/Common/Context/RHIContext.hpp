@@ -47,7 +47,7 @@ namespace SA::RND::RHI
 		virtual void DeleteRenderPassClass(RenderPass* _pass);
 
 	public:
-		RenderPass* CreateRenderPass(RenderPassInfo _info);
+		RenderPass* CreateRenderPass(const RenderPassInfo& _info);
 		void DestroyRenderPass(RenderPass* _pass);
 		void DestroyAllRenderPasses();
 
@@ -64,7 +64,7 @@ namespace SA::RND::RHI
 		virtual void DeleteFrameBufferClass(FrameBuffer* _frameBuffer);
 
 	public:
-		FrameBuffer* CreateFrameBuffer(const RenderPass* _pass);
+		FrameBuffer* CreateFrameBuffer(const RenderPass* _pass, const RenderPassInfo& _info);
 		void DestroyFrameBuffer(FrameBuffer* _frameBuffer);
 		void DestroyAllFrameBuffers();
 
@@ -217,9 +217,9 @@ namespace SA::RND::RHI
 		virtual void DeleteTextureClass(Texture* _texture);
 
 	public:
-		Texture* CreateTexture(const Swapchain* _swapchain, uint32_t _imageIndex);
-		Texture* CreateTexture(const TextureDescriptor& _desc);
 		Texture* CreateTexture(ResourceInitializer* _init, const RawTexture& _texture);
+		Texture* CreateTexture(const TextureDescriptor& _desc);
+		Texture* CreateTexture(const Swapchain* _swapchain, uint32_t _imageIndex);
 		void DestroyTexture(Texture* _texture);
 		void DestroyAllTextures();
 

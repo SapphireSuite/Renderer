@@ -1,11 +1,11 @@
-// Copyright (c) 2023 Sapphire's Suite. All Rights Reserved.
+// Copyright (c) 2024 Sapphire's Suite. All Rights Reserved.
 
 #pragma once
 
-#ifndef SAPPHIRE_RENDER_DX12_RENDER_PASS_GUARD
-#define SAPPHIRE_RENDER_DX12_RENDER_PASS_GUARD
+#ifndef SAPPHIRE_RENDER_D12_RENDER_PASS_GUARD
+#define SAPPHIRE_RENDER_D12_RENDER_PASS_GUARD
 
-#include "D12RenderPassInfo.hpp"
+#include "Info/D12RenderPassInfo.hpp"
 
 namespace SA::RND::DX12
 {
@@ -16,7 +16,7 @@ namespace SA::RND::DX12
 	class RenderPass
 	{
 		uint32_t mCurrSubpassIndex = 0u;
-		DX12::FrameBuffer* mCurrFrameBuffer = nullptr;
+		const DX12::FrameBuffer* mCurrFrameBuffer = nullptr;
 
 	//{ Info
 
@@ -24,14 +24,14 @@ namespace SA::RND::DX12
 		{
 			struct AttachInfo
 			{
-				struct TextureInfo
-				{
-					bool bPresent = false;
-					bool bUsedAsInput = false;
-				};
+				/// Render state used to render the attached resource.
+				D3D12_RESOURCE_STATES renderState = D3D12_RESOURCE_STATE_COMMON;
 
-				TextureInfo texture;
-				TextureInfo resolved;
+				/// Final state used **after** the rendering is completed.
+				D3D12_RESOURCE_STATES finalState = D3D12_RESOURCE_STATE_COMMON;
+
+				/// Final state of the resolved texture (if any) used **after** the rendering is completed.
+				D3D12_RESOURCE_STATES finalResolvedState = D3D12_RESOURCE_STATE_COMMON;
 			};
 
 			std::vector<AttachInfo> attachInfos;
@@ -45,7 +45,7 @@ namespace SA::RND::DX12
 		void Create(const RenderPassInfo& _info);
 		void Destroy();
 
-		void Begin(const CommandList& _cmd, FrameBuffer& _fBuff);
+		void Begin(const CommandList& _cmd, const FrameBuffer& _fBuff);
 		void NextSubpass(const CommandList& _cmd);
 		void End(const CommandList& _cmd);
 
@@ -53,4 +53,4 @@ namespace SA::RND::DX12
 	};
 }
 
-#endif // SAPPHIRE_RENDER_DX12_RENDER_PASS_GUARD
+#endif // SAPPHIRE_RENDER_D12_RENDER_PASS_GUARD

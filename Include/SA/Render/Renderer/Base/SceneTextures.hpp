@@ -17,11 +17,11 @@ namespace SA::RND
 			RHI::Texture* resolved;
 		} depth;
 
-		struct ColorTextures
+		struct ColorPresentTextures
 		{
 			RHI::Texture* texture;
 			RHI::Texture* resolved;
-		} color;
+		} colorPresent;
 	};
 }
 

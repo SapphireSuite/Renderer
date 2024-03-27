@@ -38,7 +38,6 @@ DX12::RenderPass renderPass;
 std::vector<DX12::FrameBuffer> frameBuffers;
 std::vector<DX12::CommandBuffer> cmdBuffers;
 DX12::Shader vertexShader;
-DX12::Shader depthOnlyVertexShader;
 DX12::Shader fragmentShader;
 DX12::RootSignature rootSign;
 DX12::GraphicsPipeline pipeline;
@@ -59,7 +58,6 @@ DX12::Buffer objectBuffer;
 //DX12::DescriptorPool objectDescPool;
 //DX12::DescriptorSetLayout objectDescSetLayout;
 //DX12::DescriptorSet objectSet;
-std::vector<SA::MComPtr<ID3D12DescriptorHeap>> depthHeaps;
 
 struct SceneTexture
 {
@@ -70,9 +68,9 @@ struct SceneTexture
 std::vector<SceneTexture> sceneTextures;
 
 constexpr bool bDepth = true;
-constexpr bool bDepthPrepass = false;
-constexpr bool bDepthInverted = false;
-constexpr bool bMSAA = false;
+constexpr bool bDepthPrepass = true;
+constexpr bool bDepthInverted = true;
+constexpr bool bMSAA = true;
 
 void GLFWErrorCallback(int32_t error, const char* description)
 {
@@ -151,6 +149,8 @@ void Init()
 
 			for (uint32_t i = 0; i < num; ++i)
 			{
+				DX12::RenderPassInfo passInfo;
+
 				// Scene Textures
 				{
 					auto& sceneTexture = sceneTextures[i];
@@ -158,71 +158,67 @@ void Init()
 					DX12::TextureDescriptor desc
 					{
 						.extents = swapchain.GetExtents(),
-						.mipLevels = 1u,
-						.format = DX12::SRGBToUNORMFormat(swapchain.GetFormat()),
-						.sampling = bMSAA ? 8 : 1,
+						.format = swapchain.GetFormat(),
+						.sampling = 1,
 						.usage = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET,
+						.clearColor = Color{ 0.0f, 0.0f, 0.010f, 0.0f },
 					};
 
 					if (bMSAA)
 					{
-						sceneTexture.color.Create(device, desc);
 						sceneTexture.resolvedColor.CreateFromImage(swapchain, i);
+						passInfo.RegisterRenderTarget(&sceneTexture.resolvedColor, desc);
+
+						desc.sampling = 8;
+						sceneTexture.color.Create(device, desc);
+						passInfo.RegisterRenderTarget(&sceneTexture.color, desc);
 					}
 					else
 					{
 						sceneTexture.color.CreateFromImage(swapchain, i);
+						passInfo.RegisterRenderTarget(&sceneTexture.color, desc);
 					}
 
-					desc.format = DXGI_FORMAT_D16_UNORM;
-					desc.usage = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
-
-					sceneTexture.depth.Create(device, desc);
+					if (bDepth)
+					{
+						desc.format = DXGI_FORMAT_D16_UNORM;
+						desc.usage = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+						desc.clearColor = bDepthInverted ? Color{ .r = 0.0f, .g = 0.0f } : Color{ .r = 1.0f, .g = 0.0f };
+						sceneTexture.depth.Create(device, desc);
+						passInfo.RegisterRenderTarget(&sceneTexture.depth, desc);
+					}
 				}
 
 				// RenderPass
 				{
-					DX12::RenderPassInfo passInfo;
-
 					// Forward
 					if (true)
 					{
 						if (bDepth && bDepthPrepass)
 						{
 							auto& depthPrepass = passInfo.AddSubpass("Depth-Only Prepass");
-
-							auto& depthRT = depthPrepass.AddAttachment("Depth", &sceneTextures[i].depth);
-
-							if (bDepthInverted)
-								depthRT.clearColor = SA::RND::Color::black;
-							else
-								depthRT.clearColor = SA::RND::Color::white;
+							auto& depthRT = depthPrepass.AddAttachment(&sceneTextures[i].depth);
 						}
 
 						auto& mainSubpass = passInfo.AddSubpass("Main");
 
 						// Color and present attachment.
-						auto& colorRT = mainSubpass.AddAttachment("Color", &sceneTextures[i].color, bMSAA ? &sceneTextures[i].resolvedColor : nullptr);
+						auto& colorRT = mainSubpass.AddAttachment(&sceneTextures[i].color, bMSAA ? &sceneTextures[i].resolvedColor : nullptr);
 
 						if (bDepth)
 						{
+							// Always add depth, even with depth prepass: set depth as read only.
+							auto& depthRT = mainSubpass.AddAttachment(&sceneTextures[i].depth);
+
 							if (bDepthPrepass)
 							{
-								mainSubpass.AddInputAttachments({ &sceneTextures[i].depth });
-							}
-							else
-							{
-								auto& depthRT = mainSubpass.AddAttachment("Depth", &sceneTextures[i].depth);
-
-								if (bDepthInverted)
-									depthRT.clearColor = SA::RND::Color::black;
-								else
-									depthRT.clearColor = SA::RND::Color::white;
+								depthRT.bClear = false;
+								depthRT.accessMode = AttachmentAccessMode::ReadOnly;
 							}
 						}
 					}
 
-					//if (!renderPass) // TODO fix.
+					if (!renderPass)
 						renderPass.Create(passInfo);
 
 					// FrameBuffers
@@ -312,31 +308,6 @@ void Init()
 				vertexShader.Create(vsShaderRes.dxShader);
 			}
 
-			// Depth-Only Vertex
-			{
-				ShaderCompileInfo vsInfo
-				{
-					.path = L"Resources/Shaders/Passes/MainPass.hlsl",
-					.entrypoint = "mainVS",
-					.target = "vs_6_5",
-				};
-
-				vsInfo.defines.push_back("SA_DEPTH_ONLY=1");
-
-				if (bDepthInverted)
-					vsInfo.defines.push_back("SA_DEPTH_INVERTED=1");
-
-				vsInfo.defines.push_back("SA_CAMERA_BUFFER_ID=0");
-				vsInfo.defines.push_back("SA_OBJECT_BUFFER_ID=0");
-
-				quadRaw.vertices.AppendDefines(vsInfo.defines);
-
-				ShaderCompileResult vsShaderRes = compiler.CompileDX(vsInfo);
-				vsDesc = vsShaderRes.desc;
-
-				depthOnlyVertexShader.Create(vsShaderRes.dxShader);
-			}
-
 
 			// Fragment
 			{
@@ -348,17 +319,6 @@ void Init()
 				};
 
 				quadRaw.vertices.AppendDefines(psInfo.defines);
-
-				psInfo.defines.push_back("SA_DX12_API=1");
-
-				if (bDepthInverted)
-					psInfo.defines.push_back("SA_DEPTH_INVERTED=1");
-
-				if (bDepthPrepass)
-					psInfo.defines.push_back("SA_DEPTH_BUFFER_ID=0");
-
-				if (bMSAA)
-					psInfo.defines.push_back("SA_MULTISAMPLED_DEPTH_BUFFER=1");
 
 				ShaderCompileResult psShaderRes = compiler.CompileDX(psInfo);
 				fsDesc = psShaderRes.desc;
@@ -397,28 +357,6 @@ void Init()
 			}
 		}
 
-		// Depth Buffer
-		if(bDepthPrepass)
-		{
-			depthHeaps.resize(swapchain.GetImageNum());
-
-			for (uint32_t i = 0; i < swapchain.GetImageNum(); ++i)
-			{
-				D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc = {};
-				srvHeapDesc.NumDescriptors = 1;
-				srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-				srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-				SA_DX12_API(device->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(&depthHeaps[i])));
-
-				// Describe and create a SRV for the texture.
-				D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-				srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-				srvDesc.Format = DXGI_FORMAT_R16_UNORM;
-				srvDesc.ViewDimension = bMSAA ? D3D12_SRV_DIMENSION_TEXTURE2DMS : D3D12_SRV_DIMENSION_TEXTURE2D;
-				srvDesc.Texture2D.MipLevels = 1;
-				//device->CreateShaderResourceView(frameBuffers[i].GetSubpassFrame(0).depthAttachment.imageBuffer.Get(), &srvDesc, depthHeaps[i]->GetCPUDescriptorHandleForHeapStart());
-			}
-		}
 
 		// Root Signature
 		{
@@ -442,24 +380,6 @@ void Init()
 					.Flags = D3D12_ROOT_DESCRIPTOR_FLAG_DATA_STATIC,
 				},
 				.ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX,
-			});
-
-			D3D12_DESCRIPTOR_RANGE1 depthRangeDesc{
-				.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
-				.NumDescriptors = 1,
-				.BaseShaderRegister = 0,
-				.RegisterSpace = 2,
-				.Flags = D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC_WHILE_SET_AT_EXECUTE,
-				.OffsetInDescriptorsFromTableStart = 0
-			};
-
-			params.push_back(D3D12_ROOT_PARAMETER1{
-				.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE,
-				.DescriptorTable{
-					.NumDescriptorRanges = 1,
-					.pDescriptorRanges = &depthRangeDesc
-				},
-				.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL,
 			});
 
 			D3D12_VERSIONED_ROOT_SIGNATURE_DESC info{
@@ -506,8 +426,8 @@ void Init()
 
 				.depthStencil
 				{
-					.DepthEnable = bDepthPrepass || !bDepth ? FALSE : TRUE,
-					.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL,
+					.DepthEnable = !bDepth ? FALSE : TRUE,
+					.DepthWriteMask = bDepthPrepass ? D3D12_DEPTH_WRITE_MASK_ZERO : D3D12_DEPTH_WRITE_MASK_ALL,
 					.DepthFunc = bDepthInverted ? D3D12_COMPARISON_FUNC_GREATER_EQUAL : D3D12_COMPARISON_FUNC_LESS_EQUAL,
 					.StencilEnable = FALSE,
 					.StencilReadMask = D3D12_DEFAULT_STENCIL_READ_MASK,
@@ -531,7 +451,7 @@ void Init()
 				.vertexInputElements = vsDesc.MakeDX12VertexInputElementDescsSingleVertexBuffer(),
 
 				.rtvFormats = { swapchain.GetFormat() },
-				.dsvFormat = bDepthPrepass || !bDepth ? DXGI_FORMAT_UNKNOWN : DXGI_FORMAT_D16_UNORM,
+				.dsvFormat = bDepth ? DXGI_FORMAT_D16_UNORM : DXGI_FORMAT_UNKNOWN,
 
 				.sampling = bMSAA ? 8u : 1u,
 			};
@@ -541,13 +461,10 @@ void Init()
 
 			if (bDepthPrepass)
 			{
-				info.shaderStages.vs.BytecodeLength = depthOnlyVertexShader->GetBufferSize();
-				info.shaderStages.vs.pShaderBytecode = depthOnlyVertexShader->GetBufferPointer();
-
 				info.shaderStages.ps.BytecodeLength = 0u;
 				info.shaderStages.ps.pShaderBytecode = nullptr;
 
-				info.depthStencil.DepthEnable = TRUE;
+				info.depthStencil.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
 				info.dsvFormat = DXGI_FORMAT_D16_UNORM;
 
 				depthOnlyPipeline.Create(device, info);
@@ -587,7 +504,6 @@ void Uninit()
 
 		fragmentShader.Destroy();
 		vertexShader.Destroy();
-		depthOnlyVertexShader.Destroy();
 
 		quadMesh.Destroy();
 
@@ -597,15 +513,24 @@ void Uninit()
 		//for (auto& cameraCBVHeap : cameraCBVHeaps)
 		//	cameraCBVHeap.Reset();
 
-		for (auto& depthHeap : depthHeaps)
-			depthHeap.Reset();
-
 		objectBuffer.Destroy();
 
 		for (auto& frameBuffer : frameBuffers)
 			frameBuffer.Destroy();
 
 		renderPass.Destroy();
+
+		for (auto& sceneTexture : sceneTextures)
+		{
+			if (sceneTexture.depth)
+				sceneTexture.depth.Destroy();
+
+			if (sceneTexture.color)
+				sceneTexture.color.Destroy();
+
+			if (sceneTexture.resolvedColor)
+				sceneTexture.resolvedColor.Destroy();
+		}
 
 		cmdPool.FreeMultiple(cmdBuffers);
 		cmdPool.Destroy();
@@ -665,14 +590,6 @@ void Loop()
 
 	//ID3D12DescriptorHeap* ppHeaps[] = { cameraCBVHeaps[frameIndex].Get() };
 	//cmd->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
-
-	if (bDepthPrepass)
-	{
-		ID3D12DescriptorHeap* ppHeaps[] = { depthHeaps[frameIndex].Get() };
-		cmd->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
-
-		cmd->SetGraphicsRootDescriptorTable(2, depthHeaps[frameIndex]->GetGPUDescriptorHandleForHeapStart());
-	}
 
 	cmd->SetGraphicsRootConstantBufferView(0, cameraBuffers[frameIndex]->GetGPUVirtualAddress());
 	cmd->SetGraphicsRootConstantBufferView(1, objectBuffer->GetGPUVirtualAddress());

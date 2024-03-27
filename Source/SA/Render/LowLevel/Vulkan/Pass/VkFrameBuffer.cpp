@@ -1,4 +1,4 @@
-// Copyright (c) 2023 Sapphire's Suite. All Rights Reserved.
+// Copyright (c) 2024 Sapphire's Suite. All Rights Reserved.
 
 #include <Pass/VkFrameBuffer.hpp>
 
@@ -7,9 +7,9 @@
 
 namespace SA::RND::VK
 {
-	void FrameBuffer::EmplaceImage(const Device& _device, const AttachmentInfo& _attach, Texture* _texture)
+	void FrameBuffer::EmplaceImage(const Device& _device, const RenderPassInfo& _info, const AttachmentInfo& _attach, const Texture* _texture)
 	{
-		const TextureDescriptor& desc = _texture->GetDescriptor();
+		const TextureDescriptor& desc = _info.textureToDescriptorMap.at(_texture);
 
 		// TODO: better impl.
 		mExtents.x = std::min(mExtents.x, desc.extents.x);
@@ -42,12 +42,12 @@ namespace SA::RND::VK
 		{
 			info.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_DEPTH_BIT;
 
-			if (_attach.loadMode == AttachmentLoadMode::Clear)
+			if (_attach.loadOp == VK_ATTACHMENT_LOAD_OP_CLEAR)
 			{
 				VkClearValue depthClearValue{
 					.depthStencil = VkClearDepthStencilValue{
-						.depth = _attach.clearColor.r,
-						.stencil = static_cast<uint32_t>(_attach.clearColor.g),
+						.depth = desc.clearColor.r,
+						.stencil = static_cast<uint32_t>(desc.clearColor.g),
 					}
 				};
 				mClearValues.push_back(depthClearValue);
@@ -57,8 +57,8 @@ namespace SA::RND::VK
 		{
 			info.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_COLOR_BIT;
 
-			if (_attach.loadMode == AttachmentLoadMode::Clear)
-				mClearValues.push_back(_attach.clearColor);
+			if (_attach.loadOp == VK_ATTACHMENT_LOAD_OP_CLEAR)
+				mClearValues.push_back(desc.clearColor);
 		}
 
 		auto& imageView = mImageViews.emplace_back();
@@ -68,10 +68,10 @@ namespace SA::RND::VK
 	}
 
 	void FrameBuffer::Create(const Device& _device,
-			const RenderPass& _pass,
-			const RenderPassInfo& _info)
+		const RenderPass& _pass,
+		const RenderPassInfo& _info)
 	{
-		mExtents = Vec2ui{INT_MAX, INT_MAX};
+		mExtents = Vec2ui{ INT_MAX, INT_MAX };
 
 		mImageViews.reserve(_info.subpasses.size() * 8);
 
@@ -79,13 +79,13 @@ namespace SA::RND::VK
 		{
 			for (auto& attach : subpass.attachments)
 			{
-				EmplaceImage(_device, attach, attach.texture);
+				EmplaceImage(_device, _info, attach, attach.texture);
 
-				if(attach.resolved)
-					EmplaceImage(_device, attach, attach.resolved);
+				if (attach.resolved)
+					EmplaceImage(_device, _info, attach, attach.resolved);
 			}
 		}
-	
+
 		VkFramebufferCreateInfo createInfo{};
 		createInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
 		createInfo.pNext = nullptr;
@@ -99,10 +99,10 @@ namespace SA::RND::VK
 
 
 		SA_VK_API(vkCreateFramebuffer(_device, &createInfo, nullptr, &mHandle), L"Failed to create framebuffer!");
-	
+
 		SA_LOG("FrameBuffer created.", Info, SA.Render.Vulkan, (L"Handle [%1]", mHandle))
 	}
-	
+
 	void FrameBuffer::Destroy(const Device& _device)
 	{
 		SA_VK_API(vkDestroyFramebuffer(_device, mHandle, nullptr));
@@ -132,13 +132,6 @@ namespace SA::RND::VK
 	const std::vector<VkClearValue>& FrameBuffer::GetClearValues() const
 	{
 		return mClearValues;
-	}
-
-	VkImageView FrameBuffer::GetImageView(uint32_t _index)
-	{
-		SA_ASSERT((OutOfArrayRange, _index, mImageViews), SA.Render.Vulkan, L"ImageView index out of framebuffer ImageViews range");
-
-		return mImageViews[_index];
 	}
 
 	FrameBuffer::operator VkFramebuffer() const noexcept

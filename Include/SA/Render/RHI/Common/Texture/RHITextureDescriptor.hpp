@@ -1,15 +1,18 @@
-// Copyright (c) 2023 Sapphire's Suite. All Rights Reserved.
+// Copyright (c) 2024 Sapphire's Suite. All Rights Reserved.
 
 #pragma once
 
-#ifndef SAPPHIRE_RENDER_COMMON_TEXTURE_DESCRIPTOR_GUARD
-#define SAPPHIRE_RENDER_COMMON_TEXTURE_DESCRIPTOR_GUARD
+#ifndef SAPPHIRE_RENDER_RHI_TEXTURE_DESCRIPTOR_GUARD
+#define SAPPHIRE_RENDER_RHI_TEXTURE_DESCRIPTOR_GUARD
 
 #include <SA/Maths/Space/Vector2.hpp>
 
+#include <SA/Render/LowLevel/Common/Misc/Color.hpp>
+
 #include <SA/Render/RHI/Common/Misc/RHIFormat.hpp>
 #include <SA/Render/RHI/Common/Misc/RHISampling.hpp>
-#include <SA/Render/RHI/Common/Texture/RHITextureUsage.hpp>
+
+#include "RHITextureUsage.hpp"
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
@@ -35,11 +38,13 @@ namespace SA::RND::RHI
 
 		Sampling sampling = Sampling::S1Bit;
 
-		uint8_t usage = TextureUsage::RenderTarget;
+		TextureUsage usage = static_cast<TextureUsage>(TextureUsageFlags::Color); // TODO clean.
+
+		Color clearColor = Color::black;
 
 #if SA_RENDER_LOWLEVEL_VULKAN_IMPL
 
-		VK::TextureDescriptor API_Vulkan() const noexcept;
+		VK::TextureDescriptor API_Vulkan() const;
 
 #endif
 
@@ -51,4 +56,4 @@ namespace SA::RND::RHI
 	};
 }
 
-#endif // SAPPHIRE_RENDER_COMMON_TEXTURE_DESCRIPTOR_GUARD
+#endif // SAPPHIRE_RENDER_RHI_TEXTURE_DESCRIPTOR_GUARD

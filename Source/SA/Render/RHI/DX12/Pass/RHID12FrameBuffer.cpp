@@ -1,30 +1,21 @@
-// Copyright (c) 2023 Sapphire's Suite. All Rights Reserved.
+// Copyright (c) 2024 Sapphire's Suite. All Rights Reserved.
 
 #include <Pass/RHID12FrameBuffer.hpp>
 
 #include <Device/RHID12Device.hpp>
+#include <Pass/RHID12RenderPass.hpp>
 
 namespace SA::RND::RHI
 {
-	void D12FrameBuffer::Create(const Device* _device, const RenderPass* _pass)
+	void D12FrameBuffer::Create(const Device* _device, const RenderPass* _pass, const RenderPassInfo& _info)
 	{
-		//mHandle.Create(_device->API_DirectX12(), _pass->GetInfo().API_DirectX12());
+		(void)_pass;
+		mHandle.Create(_device->API_DirectX12(), DX12::API_GetRenderPassInfo(_info));
 	}
-	
+
 	void D12FrameBuffer::Destroy(const Device* _device)
 	{
 		(void)_device;
 		mHandle.Destroy();
-	}
-
-	
-	DX12::FrameBuffer& D12FrameBuffer::API_DirectX12()
-	{
-		return mHandle;
-	}
-
-	const DX12::FrameBuffer& D12FrameBuffer::API_DirectX12() const
-	{
-		return mHandle;
 	}
 }

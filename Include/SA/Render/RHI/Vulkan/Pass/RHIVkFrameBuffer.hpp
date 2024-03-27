@@ -1,4 +1,4 @@
-// Copyright (c) 2023 Sapphire's Suite. All Rights Reserved.
+// Copyright (c) 2024 Sapphire's Suite. All Rights Reserved.
 
 #pragma once
 
@@ -16,7 +16,7 @@ namespace SA::RND::RHI
 		VK::FrameBuffer mHandle;
 
 	public:
-		void Create(const Device* _device, const RenderPass* _pass) override final;
+		void Create(const Device* _device, const RenderPass* _pass, const RenderPassInfo& _info) override final;
 		void Destroy(const Device* _device) override final;
 
 		const VK::FrameBuffer& API_Vulkan() const override final;

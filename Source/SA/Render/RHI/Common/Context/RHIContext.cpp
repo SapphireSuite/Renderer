@@ -24,15 +24,19 @@ namespace SA::RND::RHI
 	
 	void Context::Destroy()
 	{
-		DestroyAllStaticMeshes();
-		DestroyAllResourceInitializers();
-		DestroyAllBuffers();
-		DestroyAllCommandPools();
 		DestroyAllPipelines();
 		DestroyAllPipelineLayouts();
-		DestroyAllShaders();
+		
 		DestroyAllFrameBuffers();
 		DestroyAllRenderPasses();
+		
+		DestroyAllTextures();
+		DestroyAllStaticMeshes();
+		DestroyAllShaders();
+		DestroyAllBuffers();
+		DestroyAllResourceInitializers();
+		
+		DestroyAllCommandPools();
 
 		mDevice = nullptr;
 
@@ -49,13 +53,13 @@ namespace SA::RND::RHI
 		delete _pass;
 	}
 
-	RenderPass* Context::CreateRenderPass(RenderPassInfo _info)
+	RenderPass* Context::CreateRenderPass(const RenderPassInfo& _info)
 	{
 		RenderPass* const pass = mRenderPasses.emplace_front(InstantiateRenderPassClass());
 
 		SA_ASSERT((Nullptr, pass), SA.Render.RHI, (L"RenderPass instantiate class failed!"));
 
-		pass->Create(mDevice, std::move(_info));
+		pass->Create(mDevice, _info);
 
 		return pass;
 	}
@@ -96,7 +100,7 @@ namespace SA::RND::RHI
 		delete _frameBuffer;
 	}
 
-	FrameBuffer* Context::CreateFrameBuffer(const RenderPass* _pass)
+	FrameBuffer* Context::CreateFrameBuffer(const RenderPass* _pass, const RenderPassInfo& _info)
 	{
 		SA_ASSERT((Nullptr, _pass), SA.Render.RHI);
 
@@ -104,7 +108,7 @@ namespace SA::RND::RHI
 
 		SA_ASSERT((Nullptr, frameBuffer), SA.Render.RHI, (L"FrameBuffer instantiate class failed!"));
 
-		frameBuffer->Create(mDevice, _pass);
+		frameBuffer->Create(mDevice, _pass, _info);
 
 		return frameBuffer;
 	}
@@ -513,7 +517,7 @@ namespace SA::RND::RHI
 //}
 
 
-//{ Textures
+//{ Texture
 
 	void Context::DeleteTextureClass(Texture* _texture)
 	{
@@ -523,13 +527,13 @@ namespace SA::RND::RHI
 	}
 
 
-	Texture* Context::CreateTexture(const Swapchain* _swapchain, uint32_t _imageIndex)
+	Texture* Context::CreateTexture(ResourceInitializer* _init, const RawTexture& _raw)
 	{
 		Texture* const texture = mTextures.emplace_front(InstantiateTextureClass());
 
 		SA_ASSERT((Nullptr, texture), SA.Render.RHI, (L"Texture instantiate class failed!"));
 
-		texture->CreateFromImage(_swapchain, _imageIndex);
+		texture->Create(mDevice, _init, _raw);
 
 		return texture;
 	}
@@ -545,13 +549,13 @@ namespace SA::RND::RHI
 		return texture;
 	}
 
-	Texture* Context::CreateTexture(ResourceInitializer* _init, const RawTexture& _raw)
+	Texture* Context::CreateTexture(const Swapchain* _swapchain, uint32_t _imageIndex)
 	{
 		Texture* const texture = mTextures.emplace_front(InstantiateTextureClass());
 
 		SA_ASSERT((Nullptr, texture), SA.Render.RHI, (L"Texture instantiate class failed!"));
 
-		texture->Create(mDevice, _init, _raw);
+		texture->CreateFromImage(_swapchain, _imageIndex);
 
 		return texture;
 	}

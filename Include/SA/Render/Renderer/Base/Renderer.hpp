@@ -64,16 +64,7 @@ namespace SA::RND
 
 		std::vector<Frame> mFrames;
 
-	//}
-
-
-	//{ RenderPass
-
 		RHI::RenderPass* mMainRenderPass = nullptr;
-
-		void AddDepthAttachment(const RendererSettings::RenderPassSettings& _settings, SceneTextures* _sceneTextures, SubpassInfo<RHI::Texture>& _subpassInfo);
-		SubpassInfo<RHI::Texture>& AddPresentSubpass(const RendererSettings::RenderPassSettings& _settings, SceneTextures* _sceneTextures, RHI::RenderPassInfo& _passInfo);
-		virtual void FillRenderPassInfo(const RendererSettings::RenderPassSettings& _settings, SceneTextures* _sceneTextures, RHI::RenderPassInfo& _passInfo) = 0;
 
 	//}
 
@@ -83,8 +74,22 @@ namespace SA::RND
 		virtual SceneTextures* InstantiateSceneTexturesClass() = 0;
 		virtual void DeleteSceneTexturesClass(SceneTextures* _sceneTextures) = 0;
 
-		virtual void CreateSceneTextureResources(const RendererSettings::RenderPassSettings& _settings, SceneTextures* _sceneTextures, uint32_t _frameIndex);
-		virtual void DestroySceneTextureResources(SceneTextures* _sceneTextures);
+		/**
+		* Create Scene depth resources and add Depth-Only prepass if required.
+		*/
+		void CreateSceneDepthResourcesAndAddPrepass(const RendererSettings::RenderPassSettings& _settings, RHI::RenderPassInfo& _outPassInfo, SceneTextures* _sceneTextures);
+		void DestroySceneDepthResources(SceneTextures* _sceneTextures);
+		
+		/**
+		* Add or load scene depth attachment to subpass depending on settings `depth.bEnabled` and `depth.bPrepass`.
+		*/
+		void AddOrLoadSceneDepthAttachment(const RendererSettings::RenderPassSettings& _settings, RHI::SubpassInfo& _subpass, SceneTextures* _sceneTextures);
+
+		void CreateSceneColorPresentResources(const RendererSettings::RenderPassSettings& _settings, RHI::RenderPassInfo& _outPassInfo, SceneTextures* _sceneTextures, uint32_t _frameIndex);
+		void DestroySceneColorPresentResources(SceneTextures* _sceneTextures);
+
+		virtual void CreateSceneTextureResources(const RendererSettings::RenderPassSettings& _settings, RHI::RenderPassInfo& _outPassInfo, SceneTextures* _sceneTextures, uint32_t _frameIndex) = 0;
+		virtual void DestroySceneTextureResources(SceneTextures* _sceneTextures) = 0;
 
 	//}
 
