@@ -24,11 +24,14 @@ namespace SA::RND::DX12
 		{
 			struct AttachInfo
 			{
-				/// Current rendering state of the attached resoure.
+				/// Render state used to render the attached resource.
 				D3D12_RESOURCE_STATES renderState = D3D12_RESOURCE_STATE_COMMON;
 
-				/// Final state to use to render the attached resource.
+				/// Final state used **after** the rendering is completed.
 				D3D12_RESOURCE_STATES finalState = D3D12_RESOURCE_STATE_COMMON;
+
+				/// Final state of the resolved texture (if any) used **after** the rendering is completed.
+				D3D12_RESOURCE_STATES finalResolvedState = D3D12_RESOURCE_STATE_COMMON;
 			};
 
 			std::vector<AttachInfo> attachInfos;

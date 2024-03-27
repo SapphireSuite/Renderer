@@ -169,8 +169,17 @@ namespace SA::RND::DX12
 					initialState = currStateIt->second;
 
 				attachInfo.renderState = Intl::FindRenderState(inAttach, desc);
+				
 				attachInfo.finalState = Intl::FindNextState(_info.subpasses, inSubpassIt, inAttach.texture, desc, initialState);
 				textureToStateMap[inAttach.texture] = attachInfo.finalState;
+
+				if (inAttach.resolved)
+				{
+					const TextureDescriptor& resolvedDesc = _info.textureToDescriptorMap.at(inAttach.resolved);
+
+					attachInfo.finalResolvedState = Intl::FindNextState(_info.subpasses, inSubpassIt, inAttach.resolved, resolvedDesc, initialState);
+					textureToStateMap[inAttach.resolved] = attachInfo.finalResolvedState;
+				}
 			}
 		}
 	}
@@ -204,9 +213,7 @@ namespace SA::RND::DX12
 			auto& prevSubpassFrame = mCurrFrameBuffer->GetSubpassFrame(prevSubpassIndex);
 			const std::vector<FrameBuffer::Attachment>& prevFBuffAttachs = prevSubpassFrame.attachments;
 
-			/*
 			// Resolve
-			if(false)
 			{
 				// Transition To Resolve src/dst
 				{
@@ -222,18 +229,23 @@ namespace SA::RND::DX12
 						D3D12_RESOURCE_BARRIER& barrier1 = barriers.emplace_back();
 						barrier1.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
 						barrier1.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-						barrier1.Transition.pResource = prevFBuffAttach.texture.Get();
+						barrier1.Transition.pResource = prevFBuffAttach.texture->GetInternalPtr();
 						barrier1.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-						barrier1.Transition.StateBefore = prevAttachInfo.finalState;
+						barrier1.Transition.StateBefore = prevAttachInfo.renderState;
 						barrier1.Transition.StateAfter = D3D12_RESOURCE_STATE_RESOLVE_SOURCE;
 
-						D3D12_RESOURCE_BARRIER& barrier2 = barriers.emplace_back();
-						barrier2.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-						barrier2.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-						barrier2.Transition.pResource = prevFBuffAttach.resolved.Get();
-						barrier2.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-						barrier2.Transition.StateBefore = D3D12_RESOURCE_STATE_COMMON; // TODO
-						barrier2.Transition.StateAfter = D3D12_RESOURCE_STATE_RESOLVE_DEST;
+						const D3D12_RESOURCE_STATES resolvedCurrState = prevFBuffAttach.resolved->GetState();
+
+						if (resolvedCurrState != D3D12_RESOURCE_STATE_RESOLVE_DEST)
+						{
+							D3D12_RESOURCE_BARRIER& barrier2 = barriers.emplace_back();
+							barrier2.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+							barrier2.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+							barrier2.Transition.pResource = prevFBuffAttach.resolved->GetInternalPtr();
+							barrier2.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+							barrier2.Transition.StateBefore = resolvedCurrState;
+							barrier2.Transition.StateAfter = D3D12_RESOURCE_STATE_RESOLVE_DEST;
+						}
 					}
 
 					if (barriers.size())
@@ -251,38 +263,13 @@ namespace SA::RND::DX12
 						if (!prevFBuffAttach.resolved)
 							continue;
 
-						_cmd->ResolveSubresource(prevFBuffAttach.resolved.Get(), 0,
-							prevFBuffAttach.texture.Get(), 0,
-							prevFBuffAttach.resolved->GetDesc().Format
+						_cmd->ResolveSubresource(prevFBuffAttach.resolved->GetInternalPtr(), 0,
+							prevFBuffAttach.texture->GetInternalPtr(), 0,
+							prevFBuffAttach.resolved->Get()->GetDesc().Format
 						);
 					}
 				}
-
-
-				// Transition from Resolve src/dst
-				{
-					for (uint32_t i = 0; i < prevFBuffAttachs.size(); ++i)
-					{
-						auto& prevFBuffAttach = prevFBuffAttachs[i];
-
-						if (!prevFBuffAttach.resolved)
-							continue;
-
-						auto& prevAttachInfo = mSubpassInfos[prevSubpassIndex].attachInfos[i];
-
-						D3D12_RESOURCE_BARRIER& barrier1 = barriers.emplace_back();
-						barrier1.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-						barrier1.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-						barrier1.Transition.pResource = prevFBuffAttach.texture.Get();
-						barrier1.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-						barrier1.Transition.StateBefore = D3D12_RESOURCE_STATE_RESOLVE_SOURCE;
-						barrier1.Transition.StateAfter = prevAttachInfo.finalState;
-
-						// TODO: Resolve barrier?
-					}
-				}
 			}
-			*/
 
 			// Transition to next subpass.
 			{
@@ -291,7 +278,30 @@ namespace SA::RND::DX12
 					auto& prevFBuffAttach = prevFBuffAttachs[i];
 					auto& prevAttachInfo = mSubpassInfos[prevSubpassIndex].attachInfos[i];
 
-					if (prevAttachInfo.renderState != prevAttachInfo.finalState)
+					if (prevFBuffAttach.resolved) // Transition from Resolve src/dst
+					{
+						D3D12_RESOURCE_BARRIER& barrier1 = barriers.emplace_back();
+						barrier1.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+						barrier1.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+						barrier1.Transition.pResource = prevFBuffAttach.texture->GetInternalPtr();
+						barrier1.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+						barrier1.Transition.StateBefore = D3D12_RESOURCE_STATE_RESOLVE_SOURCE;
+						barrier1.Transition.StateAfter = prevAttachInfo.finalState;
+
+						prevFBuffAttach.texture->SetPendingState(prevAttachInfo.finalState);
+
+
+						D3D12_RESOURCE_BARRIER& barrier2 = barriers.emplace_back();
+						barrier2.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+						barrier2.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+						barrier2.Transition.pResource = prevFBuffAttach.resolved->GetInternalPtr();
+						barrier2.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+						barrier2.Transition.StateBefore = D3D12_RESOURCE_STATE_RESOLVE_DEST;
+						barrier2.Transition.StateAfter = prevAttachInfo.finalResolvedState;
+
+						prevFBuffAttach.resolved->SetPendingState(prevAttachInfo.finalResolvedState);
+					}
+					else if (prevAttachInfo.renderState != prevAttachInfo.finalState)
 					{
 						D3D12_RESOURCE_BARRIER& barrier = barriers.emplace_back();
 						barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;

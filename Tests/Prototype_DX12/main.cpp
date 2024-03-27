@@ -70,7 +70,7 @@ std::vector<SceneTexture> sceneTextures;
 constexpr bool bDepth = true;
 constexpr bool bDepthPrepass = true;
 constexpr bool bDepthInverted = true;
-constexpr bool bMSAA = false;
+constexpr bool bMSAA = true;
 
 void GLFWErrorCallback(int32_t error, const char* description)
 {
