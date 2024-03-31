@@ -6,7 +6,7 @@ namespace SA::RND::DX12
 {
 	D3D12_RESOURCE_FLAGS API_GetTextureUsage(RHI::TextureUsage _usage)
 	{
-		D3D12_RESOURCE_FLAGS d12Flags;
+		D3D12_RESOURCE_FLAGS d12Flags = D3D12_RESOURCE_FLAG_NONE;
 
 		// TODO: Warning check only one of Color and Depth is set.
 

@@ -34,7 +34,7 @@ namespace SA::RND
 			* Custom extents
 			* Default is -1 (use swapchain extents).
 			*/
-			Vec2ui extents = Vec2ui(-1);
+			Vec2ui extents = Vec2ui(uint32_t(-1));
 
 			struct Depth
 			{

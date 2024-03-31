@@ -67,7 +67,7 @@ namespace SA::RND
 		else
 		{
 			SA_ASSERT((NotEquals, _settings.swapchain.bufferingCount, uint32_t(-1)), L"Must provide valid bufferingCount parameters without mWindowSurface.");
-			SA_ASSERT((NotEquals, _settings.pass.extents, Vec2ui(-1)), L"Must provide valid pass extents parameters without mWindowSurface.");
+			SA_ASSERT((NotEquals, _settings.pass.extents, Vec2ui(uint32_t(-1))), L"Must provide valid pass extents parameters without mWindowSurface.");
 		}
 
 		// Create frames

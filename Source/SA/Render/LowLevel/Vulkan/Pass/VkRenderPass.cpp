@@ -335,9 +335,9 @@ namespace SA::RND::VK
 						SA_ASSERT((Default, findIt != textureToAttachIndicesMap.end()), SA.Render.Vulkan, L"Input Attachment not found in previous subpass render targets!");
 					
 						const TextureDescriptor& inputDesc = _info.textureToDescriptorMap.at(inputTexture);
-						const uint32_t attachIndex = textureToAttachIndicesMap[inputTexture].back(); // Find last output attachment.
+						const uint32_t inputAttachIndex = textureToAttachIndicesMap[inputTexture].back(); // Find last output attachment.
 
-						auto& inputAttachmentRef = inputAttachmentRefs.emplace_back(VkAttachmentReference{ attachIndex, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL });
+						auto& inputAttachmentRef = inputAttachmentRefs.emplace_back(VkAttachmentReference{ inputAttachIndex, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL });
 
 						if (inputDesc.usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
 						{
