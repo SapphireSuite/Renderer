@@ -1,6 +1,7 @@
 // Copyright (c) 2023 Sapphire's Suite. All Rights Reserved.
 
-#include <Exception_DXC.hpp>
+#include <DXCAPI.hpp>
+//#include <Exception_DXC.hpp>
 
 namespace SA::RND
 {

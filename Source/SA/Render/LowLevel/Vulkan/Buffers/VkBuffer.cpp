@@ -2,6 +2,8 @@
 
 #include <Buffers/VkBuffer.hpp>
 
+#include <cstring> // std::memcopy
+
 #include <Device/VkDevice.hpp>
 
 namespace SA::RND::VK

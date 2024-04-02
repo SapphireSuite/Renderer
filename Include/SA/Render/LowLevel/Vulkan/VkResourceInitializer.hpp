@@ -8,12 +8,12 @@
 #include <list>
 
 #include <SA/Render/LowLevel/Vulkan/Device/Command/VkCommandPool.hpp>
+#include <SA/Render/LowLevel/Vulkan/Buffers/VkBuffer.hpp>
 
 namespace SA::RND::VK
 {
 	class Device;
 	class Queue;
-	class Buffer;
 
 	class ResourceInitializer
 	{

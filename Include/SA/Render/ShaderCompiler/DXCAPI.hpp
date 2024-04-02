@@ -17,14 +17,15 @@
 #include <SA/Support/Compilers.hpp>
 #include <SA/Support/API/Windows.hpp>
 
-#include "Exception_DXC.hpp"
-
 #if SA_UNIX && SA_CLANG
 // Force UUID emulation on unix clang.
 #define __EMULATE_UUID 1
 #endif
 
 #include <dxc/dxcapi.h>
+
+// Must be include after __EMULATE_UUID and dxcapi.h.
+#include "Exception_DXC.hpp"
 
 #if SA_RENDER_API_TRACKING || defined(SA_DOXIGEN)
 

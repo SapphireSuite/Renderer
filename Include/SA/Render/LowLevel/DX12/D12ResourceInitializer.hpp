@@ -8,11 +8,11 @@
 #include <list>
 
 #include <SA/Render/LowLevel/DX12/Device/Command/D12CommandPool.hpp>
+#include <SA/Render/LowLevel/DX12/Buffers/D12Buffer.hpp>
 
 namespace SA::RND::DX12
 {
 	class Device;
-	class Buffer;
 
 	class ResourceInitializer
 	{
