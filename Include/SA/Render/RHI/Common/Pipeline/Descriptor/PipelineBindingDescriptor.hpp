@@ -14,6 +14,10 @@ namespace SA::RND::RHI
 	{
 		/// Shader stage flags.
 		uint8_t stageFlags = 0;
+
+		PipelineBindingDescriptor(const ShaderBindingDescriptor& _other) :
+			ShaderBindingDescriptor(_other)
+		{}
 	};
 }
 

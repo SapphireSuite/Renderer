@@ -12,8 +12,8 @@ namespace SA::RND
 	template <typename SubpassT>
 	struct RenderPassInfo
 	{
-		using TextureT = SubpassT::TextureT;
-		using TextureDescT = SubpassT::TextureT::TextureDescT;
+		using TextureT = typename SubpassT::TextureT;
+		using TextureDescT = typename SubpassT::TextureT::TextureDescT;
 
 		/**
 		* WARN: Internal use only.

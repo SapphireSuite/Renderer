@@ -25,6 +25,7 @@ namespace SA::RND
 		template <typename CompT, typename... Args>
 		uint32_t SumVertexComponentsElementSize(VertexComponent<CompT>& _comp, Args&&... _args)
 		{
+			(void)_comp;
 			uint32_t compElemSize = sizeof(CompT);
 
 			if constexpr(sizeof...(Args) > 0)

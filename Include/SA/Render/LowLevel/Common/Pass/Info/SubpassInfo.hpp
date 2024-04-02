@@ -16,7 +16,7 @@ namespace SA::RND
 	template <typename AttachT>
 	struct SubpassInfo
 	{
-		using TextureT = AttachT::TextureT;
+		using TextureT = typename AttachT::TextureT;
 
 		std::string name;
 
