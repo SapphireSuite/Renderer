@@ -22,17 +22,6 @@ namespace SA
 		float intensity;
 
 		float cutOff;
-
-
-	//{ Components
-
-		float ambient;
-
-		float diffuse;
-
-		float specular;
-
-	//}
 	};
 
 	cbuffer SpotLightBuffer : SA_REG_SPACE(b, SA_SPOT_LIGHT_BUFFER_ID, 2)

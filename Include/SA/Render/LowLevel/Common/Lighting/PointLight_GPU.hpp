@@ -20,21 +20,8 @@ namespace SA::RND
 
 		float radius = 10.0f;
 
+		/// Intensity in Candelas.
 		float intensity = 1.0f;
-
-
-	//{ Components
-
-		/// Ambient lighting component.
-		float ambient = 0.01f;
-
-		/// Diffuse lighting component.
-		float diffuse = 0.64f;
-
-		/// Specular lighting component.
-		float specular = 0.35f;
-
-	//}
 	};
 }
 

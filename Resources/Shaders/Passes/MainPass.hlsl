@@ -121,16 +121,9 @@ struct PixelOutput
 };
 
 PixelOutput mainPS(
-	PixelInput _input,
-	uint _sampleIndex : SV_SampleIndex)
+	PixelInput _input)
 {
 	PixelOutput output;
-
-#if SA_HAS_DEPTH_ONLY_PREPASS
-
-	SA::ApplyDepthTesting(_input.svPosition, _sampleIndex);
-
-#endif
 
 #if SA_VERTEX_COLOR
 
