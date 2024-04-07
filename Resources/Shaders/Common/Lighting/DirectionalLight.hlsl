@@ -3,7 +3,7 @@
 #ifndef SAPPHIRE_RENDER_SHADER_DIRECTIONAL_LIGHT_GUARD
 #define SAPPHIRE_RENDER_SHADER_DIRECTIONAL_LIGHT_GUARD
 
-#include "Preprocessors.hlsl"
+#include "../Preprocessors.hlsl"
 #include "Illumination.hlsl"
 
 #ifdef SA_DIRECTIONAL_LIGHT_BUFFER_ID

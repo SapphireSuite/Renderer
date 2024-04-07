@@ -3,7 +3,7 @@
 #ifndef SAPPHIRE_RENDER_SHADER_POINT_LIGHT_GUARD
 #define SAPPHIRE_RENDER_SHADER_POINT_LIGHT_GUARD
 
-#include "Preprocessors.hlsl"
+#include "../Preprocessors.hlsl"
 #include "Illumination.hlsl"
 
 #ifdef SA_POINT_LIGHT_BUFFER_ID
@@ -31,9 +31,9 @@ namespace SA
 
 	//---------- Helper Functions ----------
 
-	float3 ComputePointLightIllumination(float3 _worldPosition, IlluminationData _data, PointLight _pLight)
+	float3 ComputePointLightIllumination(IlluminationData _data, PointLight _pLight)
 	{
-		_data.vLight = _pLight.position - _worldPosition;
+		_data.vLight = _pLight.position - _data.vPosition;
 		_data.vnLight = normalize(_data.vLight);
 
 		LightData lData;
@@ -45,13 +45,13 @@ namespace SA
 		return ComputeBRDF(_data, lData);
 	}
 
-	float3 ComputePointLightsIllumination(float3 _worldPosition, IlluminationData _data)
+	float3 ComputePointLightsIllumination(IlluminationData _data)
 	{
 		float3 sum = float3(0.0f);
 
 		for(int i = 0; i < 10; ++i)
 		{
-			sum += ComputePointLightIllumination(_worldPosition, _data, pointLights[i]);
+			sum += ComputePointLightIllumination(_data, pointLights[i]);
 		}
 
 		return sum;
