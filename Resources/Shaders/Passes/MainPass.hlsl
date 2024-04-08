@@ -1,5 +1,6 @@
 // Copyright (c) 2023 Sapphire's Suite. All Rights Reserved.
 
+#include <Common/Config.hlsl>
 #include <Common/VertexFactory.hlsl>
 #include <Common/Preprocessors.hlsl>
 #include <Common/Object.hlsl>
@@ -28,28 +29,29 @@ struct VertexOutput
 //}
 
 
+//{ Normal
+
 #if SA_VERTEX_NORMAL
 
-	/// Vertex world normal
-	float3 normal : NORMAL;
+	#if SA_VERTEX_TANGENT && SA_MATERIAL_NORMAL_MAP
+
+		#if !SA_COMPUTE_LIGHTING_TANGENT_SPACE
+
+			/// TBN (tangent, bitangent, normal) transformation matrix.
+			float3x3 TBN : TBN;
+
+		#endif // !SA_COMPUTE_LIGHTING_TANGENT_SPACE
+
+	#else
+	
+		/// Vertex world normal
+		float3 normal : NORMAL;
+
+	#endif
 
 #endif
-
 	
-#if SA_VERTEX_TANGENT
-
-	/// Vertex world tangent
-	float3 tangent : TANGENT;
-
-#endif
-	
-	
-#if SA_VERTEX_BITANGENT
-
-	/// Vertex world bitangent
-	float3 bitangent : BITANGENT;
-
-#endif
+//}
 	
 
 #if SA_VERTEX_UV
@@ -75,7 +77,9 @@ VertexOutput mainVS(SA::VertexInputAssembly _input,
 	VertexOutput output;
 
 
-	//---------- Position ----------
+//{ Positions
+
+	//---------- World Position ----------
 
 #if SA_OBJECT_BUFFER
 
@@ -87,6 +91,9 @@ VertexOutput mainVS(SA::VertexInputAssembly _input,
 
 #endif
 
+	
+	//---------- SV Position ----------
+	
 #if SA_CAMERA_BUFFER
 
 	output.svPosition = SA::ComputeObjectViewPosition(output.worldPosition);
@@ -111,58 +118,81 @@ VertexOutput mainVS(SA::VertexInputAssembly _input,
 
 #endif // SA_DEPTH_INVERTED
 
+//}
 	
-	//---------- Normal ----------
+	
+//{ Normal Mapping
 
 #if SA_VERTEX_NORMAL
 
-	#if SA_OBJECT_BUFFER
+	#if SA_VERTEX_TANGENT && SA_MATERIAL_NORMAL_MAP
+	
+		//---------- TBN ----------
+	
+		#if SA_OBJECT_BUFFER
+	
+			const float3 normal = SA::ComputeObjectWorldNormal(_input.normal, _instanceId);
+			const float3 tangent = SA::ComputeObjectWorldNormal(_input.tangent, _instanceId);
+	
+			#if SA_VERTEX_BITANGENT
+	
+				const float3 bitangent = SA::ComputeObjectWorldNormal(_input.bitangent, _instanceId);
+	
+			#else // SA_VERTEX_BITANGENT
+	
+				const float3 bitangent = cross(normal, tangent);
+	
+			#endif // SA_VERTEX_BITANGENT
+	
+		#else // SA_OBJECT_BUFFER
+	
+			const float3 normal = normalize(_input.normal);
+			const float3 tangent = normalize(_input.tangent);
+	
+			#if SA_VERTEX_BITANGENT
+	
+				const float3 bitangent = normalize(_input.bitangent);
+	
+			#else // SA_VERTEX_BITANGENT
+	
+				const float3 bitangent = cross(normal, tangent);
+	
+			#endif // SA_VERTEX_BITANGENT
+	
+		#endif // SA_OBJECT_BUFFER
+	
+	
+		#if SA_COMPUTE_LIGHTING_TANGENT_SPACE
 
-		output.normal = SA::ComputeObjectWorldNormal(_input.normal, _instanceId);
+			const float3x3 invTBN = transpose(float3x3(tangent, bitangent, normal));
+	
+		#else // SA_COMPUTE_LIGHTING_TANGENT_SPACE
 
-	#else
+			output.TBN = float3x3(tangent, bitangent, normal);
+	
+		#endif // SA_COMPUTE_LIGHTING_TANGENT_SPACE
+	
+	#else // SA_VERTEX_TANGENT && SA_MATERIAL_NORMAL_MAP
+	
+		//---------- Normal ----------
+	
+		#if SA_OBJECT_BUFFER
 
-		output.normal = _input.normal;
+			output.normal = SA::ComputeObjectWorldNormal(_input.normal, _instanceId);
 
-	#endif
+		#else // SA_OBJECT_BUFFER
 
-#endif
+			output.normal = normalize(_input.normal);
+
+		#endif // SA_OBJECT_BUFFER
+	
+	#endif // SA_VERTEX_TANGENT && SA_MATERIAL_NORMAL_MAP
+	
+#endif // SA_VERTEX_NORMAL
+	
+//}
 
 	
-	//---------- Tangent ----------
-
-#if SA_VERTEX_TANGENT
-
-	#if SA_OBJECT_BUFFER
-
-		output.tangent = SA::ComputeObjectWorldNormal(_input.tangent, _instanceId);
-
-	#else
-
-		output.tangent = _input.tangent;
-
-	#endif
-
-#endif
-	
-	
-	//---------- Bitangent ----------
-
-#if SA_VERTEX_BITANGENT
-
-	#if SA_OBJECT_BUFFER
-
-		output.bitangent = SA::ComputeObjectWorldNormal(_input.bitangent, _instanceId);
-
-	#else
-
-		output.bitangent = _input.bitangent;
-
-	#endif
-
-#endif
-	
-
 	//---------- UV ----------
 
 #if SA_VERTEX_UV
