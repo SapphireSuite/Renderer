@@ -3,6 +3,8 @@
 #ifndef SAPPHIRE_RENDER_SHADER_AO_GUARD
 #define SAPPHIRE_RENDER_SHADER_AO_GUARD
 
+#include "../Preprocessors.hlsl"
+
 namespace SA
 {
 #if SA_MATERIAL_AO_ID

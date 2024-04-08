@@ -5,6 +5,7 @@
 #include <Common/Object.hlsl>
 #include <Common/Camera.hlsl>
 
+
 //-------------------- Vertex Shader --------------------
 
 struct VertexOutput
@@ -66,6 +67,7 @@ struct VertexOutput
 	
 #endif
 };
+
 
 VertexOutput mainVS(SA::VertexInputAssembly _input,
 	uint _instanceId : SV_InstanceID)

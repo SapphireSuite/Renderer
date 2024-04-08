@@ -3,6 +3,8 @@
 #ifndef SAPPHIRE_RENDER_SHADER_ROUGHNESS_GUARD
 #define SAPPHIRE_RENDER_SHADER_ROUGHNESS_GUARD
 
+#include "../Preprocessors.hlsl"
+
 namespace SA
 {
 #if SA_MATERIAL_ROUGHNESS_ID

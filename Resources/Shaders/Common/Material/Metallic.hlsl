@@ -3,6 +3,8 @@
 #ifndef SAPPHIRE_RENDER_SHADER_METALLIC_GUARD
 #define SAPPHIRE_RENDER_SHADER_METALLIC_GUARD
 
+#include "../Preprocessors.hlsl"
+
 namespace SA
 {
 #if SA_MATERIAL_METALLIC_ID
