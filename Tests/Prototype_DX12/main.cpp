@@ -318,6 +318,8 @@ void Init()
 					.target = "ps_6_5",
 				};
 
+				psInfo.defines.push_back("SA_CAMERA_BUFFER_ID=0");
+
 				quadRaw.vertices.AppendDefines(psInfo.defines);
 
 				ShaderCompileResult psShaderRes = compiler.CompileDX(psInfo);
