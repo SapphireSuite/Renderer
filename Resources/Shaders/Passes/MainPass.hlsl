@@ -9,12 +9,24 @@
 
 struct VertexOutput
 {
+//{ Position
+
 	/// Vertex world position
 	float3 worldPosition : POSITION;
 	
 	/// Shader view position
 	precise float4 svPosition : SV_POSITION;
 	
+#if SA_CAMERA_BUFFER
+
+	/// Camera view position.
+	float3 viewPosition : VIEW_POSITION;
+
+#endif
+	
+//}
+
+
 #if SA_VERTEX_NORMAL
 
 	/// Vertex world normal
@@ -22,20 +34,37 @@ struct VertexOutput
 
 #endif
 
+	
+#if SA_VERTEX_TANGENT
+
+	/// Vertex world tangent
+	float3 tangent : TANGENT;
+
+#endif
+	
+	
+#if SA_VERTEX_BITANGENT
+
+	/// Vertex world bitangent
+	float3 bitangent : BITANGENT;
+
+#endif
+	
+
+#if SA_VERTEX_UV
+
+	/// Vertex UV
+	float2 uv : TEXCOORD;
+
+#endif
+	
+	
 #if SA_VERTEX_COLOR
 	
 	/// Vertex color
 	float4 color : COLOR;
 	
 #endif
-
-#if SA_CAMERA_BUFFER
-
-	/// Camera view position.
-	float3 viewPosition : VIEW_POSITION;
-
-#endif
-
 };
 
 VertexOutput mainVS(SA::VertexInputAssembly _input,
@@ -80,6 +109,7 @@ VertexOutput mainVS(SA::VertexInputAssembly _input,
 
 #endif // SA_DEPTH_INVERTED
 
+	
 	//---------- Normal ----------
 
 #if SA_VERTEX_NORMAL
@@ -96,7 +126,50 @@ VertexOutput mainVS(SA::VertexInputAssembly _input,
 
 #endif
 
+	
+	//---------- Tangent ----------
 
+#if SA_VERTEX_TANGENT
+
+	#if SA_OBJECT_BUFFER
+
+		output.tangent = SA::ComputeObjectWorldNormal(_input.tangent, _instanceId);
+
+	#else
+
+		output.tangent = _input.tangent;
+
+	#endif
+
+#endif
+	
+	
+	//---------- Bitangent ----------
+
+#if SA_VERTEX_BITANGENT
+
+	#if SA_OBJECT_BUFFER
+
+		output.bitangent = SA::ComputeObjectWorldNormal(_input.bitangent, _instanceId);
+
+	#else
+
+		output.bitangent = _input.bitangent;
+
+	#endif
+
+#endif
+	
+
+	//---------- UV ----------
+
+#if SA_VERTEX_UV
+
+	output.uv = _input.uv;
+
+#endif
+	
+	
 	//---------- Color ----------
 
 #if SA_VERTEX_COLOR
