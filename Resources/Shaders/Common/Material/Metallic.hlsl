@@ -30,7 +30,7 @@ namespace SA
 #else
 		// Default metallic value.
 		return 0.5f;
-			
+
 #endif
 	}
 }
