@@ -10,6 +10,8 @@ set(ASSIMP_INSTALL OFF CACHE BOOL "Disable assimp install")
 set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "Disable assimp build tests")
 add_subdirectory(assimp)
 
+add_subdirectory(stb)
+
 if(SA_RENDER_SHADER_COMPILER_OPT)
 	add_subdirectory(DirectXShaderCompiler)
 

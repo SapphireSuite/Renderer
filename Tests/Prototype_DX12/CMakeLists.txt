@@ -18,7 +18,7 @@ add_executable(SA_RenderProto_DX12 "main.cpp")
 # Dependencies
 
 ## Add library dependencies.
-target_link_libraries(SA_RenderProto_DX12 PRIVATE SA_Render glfw assimp)
+target_link_libraries(SA_RenderProto_DX12 PRIVATE SA_Render glfw assimp SA_stb)
 
 
 ## Copy Resources command
