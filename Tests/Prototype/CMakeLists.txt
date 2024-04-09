@@ -17,13 +17,22 @@ add_executable(SA_RenderProto "main.cpp")
 
 # Dependencies
 
-### Add library dependencies.
+## Add library dependencies.
 target_link_libraries(SA_RenderProto PRIVATE SA_Render glfw assimp)
 
-### Copy Resources command
+
+## Copy Resources command
+### Render Global resources.
 add_custom_command(TARGET SA_RenderProto POST_BUILD
 	COMMAND ${CMAKE_COMMAND} -E copy_directory
 	${CMAKE_SOURCE_DIR}/Resources
+	$<TARGET_FILE_DIR:SA_RenderProto>/Resources
+)
+
+### Tests resources.
+add_custom_command(TARGET SA_RenderProto POST_BUILD
+	COMMAND ${CMAKE_COMMAND} -E copy_directory
+	${CMAKE_SOURCE_DIR}/Tests/Resources
 	$<TARGET_FILE_DIR:SA_RenderProto>/Resources
 )
 
