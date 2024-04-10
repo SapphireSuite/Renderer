@@ -61,9 +61,17 @@ VK::DescriptorPool objectDescPool;
 VK::DescriptorSetLayout objectDescSetLayout;
 VK::DescriptorSet objectSet;
 VK::Texture albedo;
+VkImageView albedoSRV = VK_NULL_HANDLE;
 VK::Texture normalMap;
+VkImageView normalMapSRV = VK_NULL_HANDLE;
 VK::Texture metallic;
+VkImageView metallicSRV = VK_NULL_HANDLE;
 VK::Texture roughness;
+VkImageView roughnessSRV = VK_NULL_HANDLE;
+VK::DescriptorPool materialDescPool;
+VK::DescriptorSetLayout materialDescSetLayout;
+VK::DescriptorSet materialSet;
+VkSampler sampler;
 
 struct SceneTexture
 {
@@ -381,7 +389,7 @@ void Init()
 
 				SA_ASSERT((Nullptr, stbiData), SA.Proto.VK, L"Failed to load 'RustedIron2/rustediron2_basecolor.png'");
 
-				raw.format = Format::R8G8B8A8_UNORM;
+				raw.format = Format::R8G8B8A8_SRGB;
 				
 				const uint32_t dataSize = raw.extents.x * raw.extents.y * 4;
 				raw.data.resize(dataSize);
@@ -390,6 +398,35 @@ void Init()
 				stbi_image_free(stbiData);
 
 				albedo.Create(device, init, raw);
+
+
+				// Image View
+				{
+					const VkImageViewCreateInfo createInfo
+					{
+						.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+						.pNext = nullptr,
+						.flags = 0,
+						.image = albedo,
+						.viewType = VK_IMAGE_VIEW_TYPE_2D,
+						.format = VK::API_GetFormat(raw.format),
+						.components = VkComponentMapping{
+							.r = VK_COMPONENT_SWIZZLE_IDENTITY,
+							.g = VK_COMPONENT_SWIZZLE_IDENTITY,
+							.b = VK_COMPONENT_SWIZZLE_IDENTITY,
+							.a = VK_COMPONENT_SWIZZLE_IDENTITY,
+						},
+						.subresourceRange = VkImageSubresourceRange{
+							.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+							.baseMipLevel = 0,
+							.levelCount = 1,
+							.baseArrayLayer = 0,
+							.layerCount = 1,
+						},
+					};
+
+					SA_VK_API(vkCreateImageView(device, &createInfo, nullptr, &albedoSRV));
+				}
 			}
 
 			// Normal Map
@@ -412,6 +449,35 @@ void Init()
 				stbi_image_free(stbiData);
 
 				normalMap.Create(device, init, raw);
+
+
+				// Image View
+				{
+					const VkImageViewCreateInfo createInfo
+					{
+						.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+						.pNext = nullptr,
+						.flags = 0,
+						.image = normalMap,
+						.viewType = VK_IMAGE_VIEW_TYPE_2D,
+						.format = VK::API_GetFormat(raw.format),
+						.components = VkComponentMapping{
+							.r = VK_COMPONENT_SWIZZLE_IDENTITY,
+							.g = VK_COMPONENT_SWIZZLE_IDENTITY,
+							.b = VK_COMPONENT_SWIZZLE_IDENTITY,
+							.a = VK_COMPONENT_SWIZZLE_IDENTITY,
+						},
+						.subresourceRange = VkImageSubresourceRange{
+							.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+							.baseMipLevel = 0,
+							.levelCount = 1,
+							.baseArrayLayer = 0,
+							.layerCount = 1,
+						},
+					};
+
+					SA_VK_API(vkCreateImageView(device, &createInfo, nullptr, &normalMapSRV));
+				}
 			}
 
 			// Metallic
@@ -434,6 +500,35 @@ void Init()
 				stbi_image_free(stbiData);
 
 				metallic.Create(device, init, raw);
+
+
+				// Image View
+				{
+					const VkImageViewCreateInfo createInfo
+					{
+						.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+						.pNext = nullptr,
+						.flags = 0,
+						.image = metallic,
+						.viewType = VK_IMAGE_VIEW_TYPE_2D,
+						.format = VK::API_GetFormat(raw.format),
+						.components = VkComponentMapping{
+							.r = VK_COMPONENT_SWIZZLE_IDENTITY,
+							.g = VK_COMPONENT_SWIZZLE_IDENTITY,
+							.b = VK_COMPONENT_SWIZZLE_IDENTITY,
+							.a = VK_COMPONENT_SWIZZLE_IDENTITY,
+						},
+						.subresourceRange = VkImageSubresourceRange{
+							.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+							.baseMipLevel = 0,
+							.levelCount = 1,
+							.baseArrayLayer = 0,
+							.layerCount = 1,
+						},
+					};
+
+					SA_VK_API(vkCreateImageView(device, &createInfo, nullptr, &metallicSRV));
+				}
 			}
 
 			// Roughness
@@ -456,6 +551,196 @@ void Init()
 				stbi_image_free(stbiData);
 
 				roughness.Create(device, init, raw);
+
+
+				// Image View
+				{
+					const VkImageViewCreateInfo createInfo
+					{
+						.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+						.pNext = nullptr,
+						.flags = 0,
+						.image = roughness,
+						.viewType = VK_IMAGE_VIEW_TYPE_2D,
+						.format = VK::API_GetFormat(raw.format),
+						.components = VkComponentMapping{
+							.r = VK_COMPONENT_SWIZZLE_IDENTITY,
+							.g = VK_COMPONENT_SWIZZLE_IDENTITY,
+							.b = VK_COMPONENT_SWIZZLE_IDENTITY,
+							.a = VK_COMPONENT_SWIZZLE_IDENTITY,
+						},
+						.subresourceRange = VkImageSubresourceRange{
+							.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+							.baseMipLevel = 0,
+							.levelCount = 1,
+							.baseArrayLayer = 0,
+							.layerCount = 1,
+						},
+					};
+
+					SA_VK_API(vkCreateImageView(device, &createInfo, nullptr, &roughnessSRV));
+				}
+			}
+
+			// Sampler
+			{
+				const VkSamplerCreateInfo createInfo{
+					.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
+					.pNext = nullptr,
+					.flags = 0,
+					.magFilter = VK_FILTER_LINEAR,
+					.minFilter = VK_FILTER_LINEAR,
+					.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR,
+					.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+					.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+					.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+					.mipLodBias = 0.0f,
+					.anisotropyEnable = VK_TRUE,
+					.maxAnisotropy = 16.0f,
+					.compareEnable = VK_FALSE,
+					.compareOp = VK_COMPARE_OP_ALWAYS,
+					.minLod = 0.0f,
+					.maxLod = 1.0f,
+					.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK,
+					.unnormalizedCoordinates = VK_FALSE,
+				};
+
+				SA_VK_API(vkCreateSampler(device, &createInfo, nullptr, &sampler));
+			}
+
+			// Descriptor Set
+			{
+				// Pool
+				{
+					VK::DescriptorPoolInfos info;
+					info.poolSizes.emplace_back(VkDescriptorPoolSize{
+						.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+						.descriptorCount = 4
+					});
+					info.setNum = 1;
+
+					materialDescPool.Create(device, info);
+				}
+
+				// Layout
+				{
+					materialDescSetLayout.Create(device,{
+						{
+							.binding = 0,
+							.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+							.descriptorCount = 1,
+							.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+							.pImmutableSamplers = nullptr
+						},
+						{
+							.binding = 1,
+							.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+							.descriptorCount = 1,
+							.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+							.pImmutableSamplers = nullptr
+						},
+						{
+							.binding = 2,
+							.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+							.descriptorCount = 1,
+							.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+							.pImmutableSamplers = nullptr
+						},
+						{
+							.binding = 3,
+							.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+							.descriptorCount = 1,
+							.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+							.pImmutableSamplers = nullptr
+						}
+					});
+				}
+
+				// Set
+				{
+					materialSet = materialDescPool.Allocate(device, materialDescSetLayout);
+
+					std::vector<VkDescriptorImageInfo> imageInfos;
+					imageInfos.reserve(4);
+
+					std::vector<VkWriteDescriptorSet> writes;
+					writes.reserve(4);
+
+					// Albedo
+					{
+						VkDescriptorImageInfo& imageInfo = imageInfos.emplace_back();
+						imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+						imageInfo.imageView = albedoSRV;
+						imageInfo.sampler = sampler;
+
+						VkWriteDescriptorSet& write = writes.emplace_back();
+						write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+						write.pNext = nullptr;
+						write.dstSet = materialSet;
+						write.dstBinding = 0;
+						write.dstArrayElement = 0;
+						write.descriptorCount = 1;
+						write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+						write.pImageInfo = &imageInfo;
+					}
+
+
+					// Normal Map
+					{
+						VkDescriptorImageInfo& imageInfo = imageInfos.emplace_back();
+						imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+						imageInfo.imageView = normalMapSRV;
+						imageInfo.sampler = sampler;
+
+						VkWriteDescriptorSet& write = writes.emplace_back();
+						write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+						write.pNext = nullptr;
+						write.dstSet = materialSet;
+						write.dstBinding = 1;
+						write.dstArrayElement = 0;
+						write.descriptorCount = 1;
+						write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+						write.pImageInfo = &imageInfo;
+					}
+
+					// Metallic
+					{
+						VkDescriptorImageInfo& imageInfo = imageInfos.emplace_back();
+						imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+						imageInfo.imageView = metallicSRV;
+						imageInfo.sampler = sampler;
+
+						VkWriteDescriptorSet& write = writes.emplace_back();
+						write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+						write.pNext = nullptr;
+						write.dstSet = materialSet;
+						write.dstBinding = 2;
+						write.dstArrayElement = 0;
+						write.descriptorCount = 1;
+						write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+						write.pImageInfo = &imageInfo;
+					}
+
+					// Roughness
+					{
+						VkDescriptorImageInfo& imageInfo = imageInfos.emplace_back();
+						imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+						imageInfo.imageView = roughnessSRV;
+						imageInfo.sampler = sampler;
+
+						VkWriteDescriptorSet& write = writes.emplace_back();
+						write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+						write.pNext = nullptr;
+						write.dstSet = materialSet;
+						write.dstBinding = 3;
+						write.dstArrayElement = 0;
+						write.descriptorCount = 1;
+						write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+						write.pImageInfo = &imageInfo;
+					}
+
+					vkUpdateDescriptorSets(device, (uint32_t)writes.size(), writes.data(), 0, nullptr);
+				}
 			}
 		}
 
@@ -812,9 +1097,16 @@ void Uninit()
 		objectDescPool.Destroy(device);
 
 		albedo.Destroy(device);
+		vkDestroyImageView(device, albedoSRV, nullptr);
 		normalMap.Destroy(device);
+		vkDestroyImageView(device, normalMapSRV, nullptr);
 		metallic.Destroy(device);
+		vkDestroyImageView(device, metallicSRV, nullptr);
 		roughness.Destroy(device);
+		vkDestroyImageView(device, roughnessSRV, nullptr);
+		vkDestroySampler(device, sampler, nullptr);
+		materialDescSetLayout.Destroy(device);
+		materialDescPool.Destroy(device);
 
 		for(auto& frameBuffer : frameBuffers)
 			frameBuffer.Destroy(device);
