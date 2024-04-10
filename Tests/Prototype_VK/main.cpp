@@ -26,6 +26,12 @@ using namespace SA::RND;
 // Must be included after vulkan.
 #include <GLFW/glfw3.h>
 
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
+
+#define STB_IMAGE_RESIZE_IMPLEMENTATION
+#include <stb_image_resize2.h>
+
 GLFWwindow* window = nullptr;
 
 VK::Instance instance;
@@ -54,6 +60,10 @@ VK::Buffer objectBuffer;
 VK::DescriptorPool objectDescPool;
 VK::DescriptorSetLayout objectDescSetLayout;
 VK::DescriptorSet objectSet;
+VK::Texture albedo;
+VK::Texture normalMap;
+VK::Texture metallic;
+VK::Texture roughness;
 
 struct SceneTexture
 {
@@ -353,6 +363,99 @@ void Init()
 
 					vkUpdateDescriptorSets(device, 1, &write, 0, nullptr);
 				}
+			}
+		}
+
+		// Textures
+		{
+			stbi_set_flip_vertically_on_load(true);
+
+			// Albedo
+			{
+				RawTexture raw;
+				int32_t channelNum = 0;
+				unsigned char* stbiData = stbi_load("Resources/Textures/RustedIron2/rustediron2_basecolor.png",
+					reinterpret_cast<int32_t*>(&raw.extents.x),
+					reinterpret_cast<int32_t*>(&raw.extents.y),
+					&channelNum, 4);
+
+				SA_ASSERT((Nullptr, stbiData), SA.Proto.VK, L"Failed to load 'RustedIron2/rustediron2_basecolor.png'");
+
+				raw.format = Format::R8G8B8A8_UNORM;
+				
+				const uint32_t dataSize = raw.extents.x * raw.extents.y * 4;
+				raw.data.resize(dataSize);
+				std::memcpy(raw.data.data(), stbiData, dataSize);
+
+				stbi_image_free(stbiData);
+
+				albedo.Create(device, init, raw);
+			}
+
+			// Normal Map
+			{
+				RawTexture raw;
+				int32_t channelNum = 0;
+				unsigned char* stbiData = stbi_load("Resources/Textures/RustedIron2/rustediron2_normal.png",
+					reinterpret_cast<int32_t*>(&raw.extents.x),
+					reinterpret_cast<int32_t*>(&raw.extents.y),
+					&channelNum, 4);
+
+				SA_ASSERT((Nullptr, stbiData), SA.Proto.VK, L"Failed to load 'RustedIron2/rustediron2_normal.png'");
+
+				raw.format = Format::R8G8B8A8_UNORM;
+
+				const uint32_t dataSize = raw.extents.x * raw.extents.y * 4;
+				raw.data.resize(dataSize);
+				std::memcpy(raw.data.data(), stbiData, dataSize);
+
+				stbi_image_free(stbiData);
+
+				normalMap.Create(device, init, raw);
+			}
+
+			// Metallic
+			{
+				RawTexture raw;
+				int32_t channelNum = 0;
+				unsigned char* stbiData = stbi_load("Resources/Textures/RustedIron2/rustediron2_metallic.png",
+					reinterpret_cast<int32_t*>(&raw.extents.x),
+					reinterpret_cast<int32_t*>(&raw.extents.y),
+					&channelNum, 1);
+
+				SA_ASSERT((Nullptr, stbiData), SA.Proto.VK, L"Failed to load 'RustedIron2/rustediron2_metallic.png'");
+
+				raw.format = Format::R8_UNORM;
+
+				const uint32_t dataSize = raw.extents.x * raw.extents.y;
+				raw.data.resize(dataSize);
+				std::memcpy(raw.data.data(), stbiData, dataSize);
+
+				stbi_image_free(stbiData);
+
+				metallic.Create(device, init, raw);
+			}
+
+			// Roughness
+			{
+				RawTexture raw;
+				int32_t channelNum = 0;
+				unsigned char* stbiData = stbi_load("Resources/Textures/RustedIron2/rustediron2_roughness.png",
+					reinterpret_cast<int32_t*>(&raw.extents.x),
+					reinterpret_cast<int32_t*>(&raw.extents.y),
+					&channelNum, 1);
+
+				SA_ASSERT((Nullptr, stbiData), SA.Proto.VK, L"Failed to load 'RustedIron2/rustediron2_roughness.png'");
+
+				raw.format = Format::R8_UNORM;
+
+				const uint32_t dataSize = raw.extents.x * raw.extents.y;
+				raw.data.resize(dataSize);
+				std::memcpy(raw.data.data(), stbiData, dataSize);
+
+				stbi_image_free(stbiData);
+
+				roughness.Create(device, init, raw);
 			}
 		}
 
@@ -707,6 +810,11 @@ void Uninit()
 		objectBuffer.Destroy(device);
 		objectDescSetLayout.Destroy(device);
 		objectDescPool.Destroy(device);
+
+		albedo.Destroy(device);
+		normalMap.Destroy(device);
+		metallic.Destroy(device);
+		roughness.Destroy(device);
 
 		for(auto& frameBuffer : frameBuffers)
 			frameBuffer.Destroy(device);
