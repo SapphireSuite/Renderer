@@ -6,6 +6,8 @@
 #include <SA/Maths/Space/Vector4.hpp>
 
 #include <SA/Render/LowLevel/Common/Camera/Camera_GPU.hpp>
+#include <SA/Render/LowLevel/Common/Lighting/DirectionalLight_GPU.hpp>
+#include <SA/Render/LowLevel/Common/Lighting/PointLight_GPU.hpp>
 #include <SA/Render/LowLevel/Common/Mesh/RawStaticMesh.hpp>
 #include <SA/Render/LowLevel/Vulkan/VkInstance.hpp>
 #include <SA/Render/LowLevel/Vulkan/Device/VkDevice.hpp>
@@ -60,6 +62,11 @@ VK::Buffer objectBuffer;
 VK::DescriptorPool objectDescPool;
 VK::DescriptorSetLayout objectDescSetLayout;
 VK::DescriptorSet objectSet;
+VK::Buffer pointLightBuffer;
+VK::Buffer directionalLightBuffer;
+VK::DescriptorPool lightDescPool;
+VK::DescriptorSetLayout lightDescSetLayout;
+VK::DescriptorSet lightSet;
 VK::Texture albedo;
 VkImageView albedoSRV = VK_NULL_HANDLE;
 VK::Texture normalMap;
@@ -869,12 +876,130 @@ void Init()
 			}
 		}
 
+		// Light
+		{
+			// Directional Light buffer
+			{
+				DirectionalLight_GPU light;
+				light.direction = SA::Vec3f{ RandFloat(0.0f, 1.0f), RandFloat(0.0f, 1.0f), RandFloat(0.0f, 1.0f) };
+				light.color = SA::Vec3f{ RandFloat(0.0f, 1.0f), RandFloat(0.0f, 1.0f), RandFloat(0.0f, 1.0f) };
+				light.intensity = RandFloat(0.0f, 10.0f);
+
+				directionalLightBuffer.Create(device, sizeof(DirectionalLight_GPU), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+										VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &light);
+			}
+
+			// Point lights Buffer
+			{
+				std::vector<PointLight_GPU> pointLights;
+				pointLights.reserve(10);
+
+				for (uint32_t i = 0; i < 10; ++i)
+				{
+					PointLight_GPU light;
+					light.position = RandVec3Position();
+					light.color = SA::Vec3f{ RandFloat(0.0f, 1.0f), RandFloat(0.0f, 1.0f), RandFloat(0.0f, 1.0f) };
+					light.intensity = RandFloat(0.0f, 10.0f);
+					light.radius = RandFloat(0.0f, 10.0f);
+
+					pointLights.push_back(light);
+				}
+
+				pointLightBuffer.Create(device, sizeof(PointLight_GPU) * 10, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+										VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, pointLights.data());
+			}
+
+
+			// DescPool.
+			{
+				VK::DescriptorPoolInfos info;
+				info.poolSizes.emplace_back(VkDescriptorPoolSize{
+					.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+					.descriptorCount = 2
+					});
+				info.setNum = 1;
+
+				lightDescPool.Create(device, info);
+			}
+
+			// Layout
+			{
+				lightDescSetLayout.Create(device,
+				{
+					{
+						.binding = 0,
+						.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+						.descriptorCount = 1,
+						.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+						.pImmutableSamplers = nullptr
+					},
+					{
+						.binding = 1,
+						.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+						.descriptorCount = 1,
+						.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+						.pImmutableSamplers = nullptr
+					}
+				});
+			}
+
+			// Set
+			{
+				lightSet = lightDescPool.Allocate(device, lightDescSetLayout);
+
+				std::vector<VkDescriptorBufferInfo> bufferInfos;
+				bufferInfos.reserve(2);
+
+				std::vector<VkWriteDescriptorSet> writes;
+				writes.reserve(2);
+
+				// Directional Light
+				{
+					VkDescriptorBufferInfo& buffInfo = bufferInfos.emplace_back();
+					buffInfo.buffer = directionalLightBuffer;
+					buffInfo.offset = 0;
+					buffInfo.range = VK_WHOLE_SIZE;
+
+					VkWriteDescriptorSet& descWrite = writes.emplace_back();
+					descWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+					descWrite.pNext = nullptr;
+					descWrite.dstSet = lightSet;
+					descWrite.dstBinding = 0;
+					descWrite.dstArrayElement = 0;
+					descWrite.descriptorCount = 1;
+					descWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+					descWrite.pBufferInfo = &buffInfo;
+				}
+
+				// Point Lights
+				{
+					VkDescriptorBufferInfo& buffInfo = bufferInfos.emplace_back();
+					buffInfo.buffer = pointLightBuffer;
+					buffInfo.offset = 0;
+					buffInfo.range = VK_WHOLE_SIZE;
+
+					VkWriteDescriptorSet& descWrite = writes.emplace_back();
+					descWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+					descWrite.pNext = nullptr;
+					descWrite.dstSet = lightSet;
+					descWrite.dstBinding = 1;
+					descWrite.dstArrayElement = 0;
+					descWrite.descriptorCount = 1;
+					descWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+					descWrite.pBufferInfo = &buffInfo;
+				}
+
+				vkUpdateDescriptorSets(device, (uint32_t)writes.size(), writes.data(), 0, nullptr);
+			}
+		}
 
 		// Pipeline layout
 		{
 			std::vector<VkDescriptorSetLayout> setLayouts{
 				static_cast<VkDescriptorSetLayout>(cameraDescSetLayout),
 				static_cast<VkDescriptorSetLayout>(objectDescSetLayout),
+				static_cast<VkDescriptorSetLayout>(lightDescSetLayout),
+				static_cast<VkDescriptorSetLayout>(materialDescSetLayout),
 			};
 
 			VkPipelineLayoutCreateInfo info{};
@@ -1108,6 +1233,12 @@ void Uninit()
 		materialDescSetLayout.Destroy(device);
 		materialDescPool.Destroy(device);
 
+		pointLightBuffer.Destroy(device);
+		directionalLightBuffer.Destroy(device);
+		lightDescSetLayout.Destroy(device);
+		lightDescPool.Destroy(device);
+
+
 		for(auto& frameBuffer : frameBuffers)
 			frameBuffer.Destroy(device);
 
@@ -1189,6 +1320,8 @@ void Loop()
 	std::vector<VkDescriptorSet> boundSets{
 		static_cast<VkDescriptorSet>(cameraSets[frameIndex]),
 		static_cast<VkDescriptorSet>(objectSet),
+		static_cast<VkDescriptorSet>(lightSet),
+		static_cast<VkDescriptorSet>(materialSet),
 	};
 
 	vkCmdBindDescriptorSets(cmd,
