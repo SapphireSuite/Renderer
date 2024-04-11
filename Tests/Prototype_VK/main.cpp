@@ -300,13 +300,13 @@ void Init()
 					}
 				},
 
-				VertexComponent<Color>{
-					"COLOR",
+				VertexComponent<SA::Vec2f>{
+					"UV",
 					{
-						Color::red,
-						Color::green,
-						Color::blue,
-						Color::white
+						{0.0f, 0.0f},
+						{1.0f, 0.0f},
+						{0.0f, 1.0f},
+						{1.0f, 1.0f}
 					}
 				}
 			);
@@ -775,6 +775,14 @@ void Init()
 				vsInfo.defines.push_back("SA_CAMERA_BUFFER_ID=0");
 				vsInfo.defines.push_back("SA_OBJECT_BUFFER_ID=0");
 
+				vsInfo.defines.push_back("SA_DIRECTIONAL_LIGHT_BUFFER_ID=0");
+				vsInfo.defines.push_back("SA_POINT_LIGHT_BUFFER_ID=1");
+
+				vsInfo.defines.push_back("SA_MATERIAL_ALBEDO_ID=0");
+				vsInfo.defines.push_back("SA_MATERIAL_NORMAL_MAP_ID=1");
+				vsInfo.defines.push_back("SA_MATERIAL_METALLIC_ID=2");
+				vsInfo.defines.push_back("SA_MATERIAL_ROUGHNESS_ID=3");
+
 				quadRaw.vertices.AppendDefines(vsInfo.defines);
 
 				ShaderCompileResult vsShaderRes = compiler.CompileSPIRV(vsInfo);
@@ -794,6 +802,15 @@ void Init()
 				};
 
 				psInfo.defines.push_back("SA_CAMERA_BUFFER_ID=0");
+				psInfo.defines.push_back("SA_OBJECT_BUFFER_ID=0");
+
+				psInfo.defines.push_back("SA_DIRECTIONAL_LIGHT_BUFFER_ID=0");
+				psInfo.defines.push_back("SA_POINT_LIGHT_BUFFER_ID=1");
+
+				psInfo.defines.push_back("SA_MATERIAL_ALBEDO_ID=0");
+				psInfo.defines.push_back("SA_MATERIAL_NORMAL_MAP_ID=1");
+				psInfo.defines.push_back("SA_MATERIAL_METALLIC_ID=2");
+				psInfo.defines.push_back("SA_MATERIAL_ROUGHNESS_ID=3");
 
 				quadRaw.vertices.AppendDefines(psInfo.defines);
 

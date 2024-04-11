@@ -2,9 +2,10 @@
 
 #include <Common/Config.hlsl>
 #include <Common/VertexFactory.hlsl>
-#include <Common/Preprocessors.hlsl>
 #include <Common/Object.hlsl>
 #include <Common/Camera.hlsl>
+#include <Common/Lighting/Lighting.hlsl>
+#include <Common/Material/PBRMaterial.hlsl>
 
 
 //-------------------- Vertex Shader --------------------
@@ -230,16 +231,26 @@ PixelOutput mainPS(
 {
 	PixelOutput output;
 
-#if SA_VERTEX_COLOR
-
-	output.color = _input.color;
-
+//{ Base Color
+	
+#if SA_VERTEX_UV
+	
+	output.color = SA::SampleAlbedo(_input.uv);
+	
 #else
-
+	
 	output.color = float4(1, 1, 1, 1);
+	
+#endif // SA_VERTEX_UV
+	
+#if SA_VERTEX_COLOR
+	
+	output.color *= _input.color;
 
-#endif
-
+#endif // SA_VERTEX_UV
+	
+//}
+	
 	if (output.color.a < 0.001)
 		discard;
 
