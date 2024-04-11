@@ -366,7 +366,7 @@ namespace SA::RND
 		static const RHI::ShaderBindingType sBindingTypeMap[] = {
 			RHI::ShaderBindingType::Sampler,
 			RHI::ShaderBindingType::Texture,
-			(RHI::ShaderBindingType)0,
+			RHI::ShaderBindingType::Texture,
 			(RHI::ShaderBindingType)0,
 			(RHI::ShaderBindingType)0,
 			(RHI::ShaderBindingType)0,
