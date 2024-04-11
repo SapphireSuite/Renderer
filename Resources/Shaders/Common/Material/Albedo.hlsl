@@ -7,7 +7,7 @@
 
 namespace SA
 {
-#if SA_MATERIAL_ALBEDO_ID
+#ifdef SA_MATERIAL_ALBEDO_ID
 	
 	#define SA_MATERIAL_ALBEDO 1
 	

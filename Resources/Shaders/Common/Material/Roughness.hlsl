@@ -7,7 +7,7 @@
 
 namespace SA
 {
-#if SA_MATERIAL_ROUGHNESS_ID
+#ifdef SA_MATERIAL_ROUGHNESS_ID
 	
 	#define SA_MATERIAL_ROUGHNESS 1
 	

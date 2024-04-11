@@ -8,7 +8,7 @@
 
 namespace SA
 {
-#if SA_MATERIAL_NORMAL_MAP_ID
+#ifdef SA_MATERIAL_NORMAL_MAP_ID
 	
 	#define SA_MATERIAL_NORMAL_MAP 1
 	

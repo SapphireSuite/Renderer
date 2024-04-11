@@ -7,7 +7,7 @@
 
 namespace SA
 {
-#if SA_MATERIAL_METALLIC_ID
+#ifdef SA_MATERIAL_METALLIC_ID
 	
 	#define SA_MATERIAL_METALLIC 1
 	
