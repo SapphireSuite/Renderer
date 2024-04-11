@@ -47,7 +47,7 @@ namespace SA
 
 	float3 ComputePointLightsIllumination(IlluminationData _data)
 	{
-		float3 sum = float3(0.0f);
+		float3 sum = float3(0.0f, 0.0f, 0.0f);
 
 		for(int i = 0; i < 10; ++i)
 		{

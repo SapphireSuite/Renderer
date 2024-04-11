@@ -6,7 +6,7 @@
 namespace SA
 {
 	// Constants.
-	const float PI = 3.14159265359;
+	static const float PI = 3.14159265359;
 
 	struct IlluminationData
 	{
@@ -101,7 +101,7 @@ namespace SA
 	{
 		const float cosTheta = dot(_data.vnNormal, _data.vnLight);
 
-		const float attenuation = _lData.bAttenuation ? ComputeAttenuation(_data._vLight, _lData.range) : 1.0f;
+		const float attenuation = _lData.bAttenuation ? ComputeAttenuation(_data.vLight, _lData.range) : 1.0f;
 
 		if (cosTheta > 0.0 && attenuation > 0.0)
 		{
@@ -116,12 +116,12 @@ namespace SA
 
 			const float3 F = FresnelSchlick(_data.f0, cosTheta);
 
-			float3 specularBRDF = float3(0);
+			float3 specularBRDF = float3(0.0f, 0.0f, 0.0f);
 
 			if(cosAlpha > 0.0 && cosRho > 0.0)
 			{
-				const float NDF = DistributionGGX(_cosAlpha, _data.roughness);
-				const float G = GeometrySmith(_cosTheta, _cosRho, _data.roughness);
+				const float NDF = DistributionGGX(cosAlpha, _data.roughness);
+				const float G = GeometrySmith(cosTheta, cosRho, _data.roughness);
 
 				// Cook-Torrance specular BRDF.
 				specularBRDF = (NDF * G * F) / (4.0 * cosTheta * cosRho);
@@ -132,7 +132,7 @@ namespace SA
 
 		//{ Diffuse Component
 
-			const float3 kD = (float3(1.0) - F) * (1.0 - _data.metallic);
+			const float3 kD = (float3(1.0f, 1.0f, 1.0f) - F) * (1.0 - _data.metallic);
 
 			// Lambert Diffuse.
 			const float3 diffuseBRDF = kD * _data.albedo / PI;
@@ -142,7 +142,7 @@ namespace SA
 			return (diffuseBRDF + specularBRDF) * cosTheta * attenuation * _lData.color * _lData.intensity;
 		}
 
-		return float3(0.0f);
+		return float3(0.0f, 0.0f, 0.0f);
 	}
 }
 
