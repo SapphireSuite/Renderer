@@ -283,6 +283,7 @@ PixelOutput mainPS(
 	illuData.vPosition = _input.worldPosition;
 	illuData.vnNormal = normal;
 	illuData.vnCamera = normalize(_input.viewPosition - _input.worldPosition);
+	illuData.f0 = lerp(float3(0.04, 0.04, 0.04), illuData.albedo, illuData.metallic);
 	
 	output.color = float4(0, 0, 0, 1);
 	
