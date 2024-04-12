@@ -16,11 +16,11 @@ namespace SA
 	{
 		float3 position;
 
+		float intensity;
+
 		float3 color;
 
 		float radius;
-
-		float intensity;
 	};
 
 	cbuffer PointLightBuffer : SA_REG_SPACE(b, SA_POINT_LIGHT_BUFFER_ID, 2)

@@ -30,6 +30,8 @@ namespace SA::RND
 		/// Camera raw position.
 		Vec3f position;
 
+		float padding = 0.0f;
+
 		void Update(const Mat4f& _view, const Mat4f& _proj);
 	};
 }

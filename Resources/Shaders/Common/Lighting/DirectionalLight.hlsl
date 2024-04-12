@@ -16,9 +16,11 @@ namespace SA
 	{
 		float3 direction;
 
+		float intensity;
+
 		float3 color;
 
-		float intensity;
+		float padding;
 	};
 
 	cbuffer DirectionalLightBuffer : SA_REG_SPACE(b, SA_DIRECTIONAL_LIGHT_BUFFER_ID, 2)

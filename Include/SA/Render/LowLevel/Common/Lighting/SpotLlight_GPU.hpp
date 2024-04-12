@@ -16,14 +16,14 @@ namespace SA::RND
 	{
 		Vec3f position;
 
-		Vec3f direction;
+		/// Intensity in Candelas.
+		float intensity = 1.0f;
 
-		Vec3f color;
+		Vec3f direction;
 
 		float range = 10.0f;
 
-		/// Intensity in Candelas.
-		float intensity = 1.0f;
+		Vec3f color;
 
 		float cutOff = 60.0f;
 	};

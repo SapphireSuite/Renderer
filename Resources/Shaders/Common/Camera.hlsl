@@ -30,6 +30,8 @@ namespace SA
 
 		/// Camera raw position.
 		float3 position;
+
+		float padding;
 	};
 
 	cbuffer CameraBuffer : SA_REG_SPACE(b, SA_CAMERA_BUFFER_ID, 0)

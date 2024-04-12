@@ -16,10 +16,12 @@ namespace SA::RND
 	{
 		Vec3f direction = Vec3f::Forward;
 
-		Vec3f color = Vec3f::One;
-
 		/// Intensity in Candelas.
 		float intensity = 1.0f;
+
+		Vec3f color = Vec3f::One;
+
+		float padding = 0.0f;
 	};
 }
 

@@ -16,12 +16,12 @@ namespace SA::RND
 	{
 		Vec3f position;
 
+		/// Intensity in Candelas.
+		float intensity = 1.0f;
+
 		Vec3f color;
 
 		float radius = 10.0f;
-
-		/// Intensity in Candelas.
-		float intensity = 1.0f;
 	};
 }
 
