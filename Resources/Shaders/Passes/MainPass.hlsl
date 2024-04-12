@@ -235,24 +235,80 @@ PixelOutput mainPS(
 	
 #if SA_VERTEX_UV
 	
-	output.color = SA::SampleAlbedo(_input.uv);
+	float4 baseColor = SA::SampleAlbedo(_input.uv);
 	
 #else
 	
-	output.color = float4(1, 1, 1, 1);
+	float4 baseColor = float4(1, 1, 1, 1);
 	
 #endif // SA_VERTEX_UV
 	
 #if SA_VERTEX_COLOR
 	
-	output.color *= _input.color;
+	baseColor *= _input.color;
 
 #endif // SA_VERTEX_UV
 	
+	if (baseColor.a < 0.001)
+		discard;
+	
 //}
 	
-	if (output.color.a < 0.001)
-		discard;
+	
+//{ Normal Mapping
+	
+#if SA_VERTEX_TANGENT && SA_MATERIAL_NORMAL_MAP
+
+	#if !SA_COMPUTE_LIGHTING_TANGENT_SPACE
+
+		const float3 normal = normalize(_input.TBN * SA::SampleNormalMap(_input.uv));
+
+	#endif
+	
+#else // SA_VERTEX_TANGENT && SA_MATERIAL_NORMAL_MAP
+	
+	const float3 normal = normalize(_input.normal);
+	
+#endif // SA_VERTEX_TANGENT && SA_MATERIAL_NORMAL_MAP
+	
+//}
+
+	
+#if SA_LIT_IMPLEMENTATION
+
+	SA::IlluminationData illuData;
+	illuData.albedo = baseColor.rgb;
+	illuData.metallic = SA::SampleMetallic(_input.uv);
+	illuData.roughness = SA::SampleRoughness(_input.uv);
+	illuData.vPosition = _input.worldPosition;
+	illuData.vnNormal = normal;
+	illuData.vnCamera = normalize(_input.viewPosition - _input.worldPosition);
+	
+	output.color = float4(0, 0, 0, 1);
+	
+	#if SA_DIRECTIONAL_LIGHTS
+	
+		output.color.rgb += SA::ComputeDirectionalLightsIllumination(illuData);
+	
+	#endif // SA_DIRECTIONAL_LIGHTS
+	
+	#if SA_POINT_LIGHTS
+	
+		output.color.rgb += SA::ComputePointLightsIllumination(illuData);
+
+	#endif // SA_POINT_LIGHTS
+	
+	#if SA_SPOT_LIGHTS
+	
+		output.color.rgb += SA::ComputeSpotLightsIllumination(illuData);
+
+	#endif // SA_SPOT_LIGHTS
+	
+#else
+	
+	output.color = baseColor;
+	
+#endif // SA_LIT_IMPLEMENTATION
 
 	return output;
 }

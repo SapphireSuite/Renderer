@@ -7,4 +7,6 @@
 #include "PointLight.hlsl"
 #include "SpotLight.hlsl"
 
+#define SA_LIT_IMPLEMENTATION (SA_DIRECTIONAL_LIGHTS || SA_POINT_LIGHTS || SA_SPOT_LIGHTS)
+
 #endif // SAPPHIRE_RENDER_SHADER_LIGHTING_GUARD
