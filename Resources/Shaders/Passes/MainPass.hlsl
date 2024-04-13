@@ -165,11 +165,13 @@ VertexOutput mainVS(SA::VertexInputAssembly _input,
 	
 		#if SA_COMPUTE_LIGHTING_TANGENT_SPACE
 
-			const float3x3 invTBN = transpose(float3x3(tangent, bitangent, normal));
+			/// HLSL uses row-major constructor: *no* transpose to get inv TBN matrix.
+			const float3x3 invTBN = float3x3(tangent, bitangent, normal);
 	
 		#else // SA_COMPUTE_LIGHTING_TANGENT_SPACE
 
-			output.TBN = float3x3(tangent, bitangent, normal);
+			/// HLSL uses row-major constructor: transpose to get TBN matrix.
+			output.TBN = transpose(float3x3(tangent, bitangent, normal));
 	
 		#endif // SA_COMPUTE_LIGHTING_TANGENT_SPACE
 	

@@ -124,7 +124,7 @@ SA::Vec3f RandVec3Scale()
 
 SA::Vec3f RandVec3UniScale()
 {
-	return SA::Vec3f(RandFloat(0.5, 1.5));
+	return SA::Vec3f(RandFloat(0.1, 1.5));
 }
 
 
@@ -1130,8 +1130,7 @@ void Init()
 				.depthClampEnable = VK_FALSE,
 				.rasterizerDiscardEnable = VK_FALSE,
 				.polygonMode = VK_POLYGON_MODE_FILL,
-				.cullMode = VK_CULL_MODE_NONE,
-				//.cullMode = VK_CULL_MODE_BACK_BIT,
+				.cullMode = VK_CULL_MODE_BACK_BIT,
 				.frontFace = VK_FRONT_FACE_CLOCKWISE,
 				.depthBiasEnable = VK_FALSE,
 				.depthBiasConstantFactor = 0.0f,
@@ -1409,7 +1408,7 @@ int main()
 	float accumulateTime = 0.0f;
 	auto start = std::chrono::steady_clock::now();
 
-	cameraTr.position.z = 1.0f;
+	cameraTr.position.z = -2.0f;
 
 	while(!glfwWindowShouldClose(window))
 	{
