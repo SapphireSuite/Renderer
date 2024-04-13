@@ -34,6 +34,10 @@ using namespace SA::RND;
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
 #include <stb_image_resize2.h>
 
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+
 GLFWwindow* window = nullptr;
 
 VK::Instance instance;
@@ -49,8 +53,8 @@ VK::Shader fragmentShader;
 VK::PipelineLayout pipLayout;
 VK::Pipeline depthPrepassPipeline;
 VK::Pipeline pipeline;
-RawStaticMesh quadRaw;
-VK::StaticMesh quadMesh;
+RawStaticMesh sphereRaw;
+VK::StaticMesh sphereMesh;
 RHI::ShaderDescriptor vsDesc;
 RHI::ShaderDescriptor fsDesc;
 std::vector<VK::Buffer> cameraBuffers;
@@ -117,6 +121,12 @@ SA::Vec3f RandVec3Scale()
 {
 	return SA::Vec3f(RandFloat(0.5, 2.5), RandFloat(0.5, 2.5), RandFloat(0.5, 2.5));
 }
+
+SA::Vec3f RandVec3UniScale()
+{
+	return SA::Vec3f(RandFloat(0.5, 1.5));
+}
+
 
 void Init()
 {
@@ -279,41 +289,65 @@ void Init()
 
 		// Mesh
 		{
-			quadRaw.vertices.BuildVertexBuffer(
+			Assimp::Importer importer;
+			
+			const aiScene* scene = importer.ReadFile("Resources/Models/Shapes/sphere.obj", aiProcess_CalcTangentSpace);
+			const aiMesh* inMesh = scene->mMeshes[0];
+
+			std::vector<SA::Vec3f> vertices;
+			vertices.resize(inMesh->mNumVertices);
+			std::memcpy(vertices.data(), inMesh->mVertices, inMesh->mNumVertices * sizeof(SA::Vec3f));
+
+			std::vector<SA::Vec3f> normals;
+			normals.resize(inMesh->mNumVertices);
+			std::memcpy(normals.data(), inMesh->mNormals, inMesh->mNumVertices * sizeof(SA::Vec3f));
+
+			std::vector<SA::Vec3f> tangents;
+			tangents.resize(inMesh->mNumVertices);
+			std::memcpy(tangents.data(), inMesh->mTangents, inMesh->mNumVertices * sizeof(SA::Vec3f));
+
+			std::vector<SA::Vec2f> uvs;
+			uvs.resize(scene->mMeshes[0]->mNumVertices);
+
+			for (auto i = 0; i < inMesh->mNumVertices; ++i)
+				uvs[i] = SA::Vec2f(inMesh->mTextureCoords[0][i].x, inMesh->mTextureCoords[0][i].y);
+
+			sphereRaw.vertices.BuildVertexBuffer(
 				VertexComponent<SA::Vec3f>{
 					"POSITION",
-					{
-						{-0.5f, 0.5f, 0.0f},
-						{0.5f, 0.5f, 0.0f},
-						{-0.5f, -0.5f, 0.0f},
-						{0.5f, -0.5f, 0.0f}
-					}
+					std::move(vertices)
 				},
 
 				VertexComponent<SA::Vec3f>{
 					"NORMAL",
-					{
-						{0.0f, 0.0f, 1.0f},
-						{0.0f, 0.0f, 1.0f},
-						{0.0f, 0.0f, 1.0f},
-						{0.0f, 0.0f, 1.0f}
-					}
+					std::move(normals)
+				},
+
+				VertexComponent<SA::Vec3f>{
+					"TANGENT",
+					std::move(tangents)
 				},
 
 				VertexComponent<SA::Vec2f>{
 					"UV",
-					{
-						{0.0f, 0.0f},
-						{1.0f, 0.0f},
-						{0.0f, 1.0f},
-						{1.0f, 1.0f}
-					}
+					std::move(uvs)
 				}
 			);
 
-			quadRaw.indices.U16({ 0, 1, 2, 1, 3, 2 });
 
-			quadMesh.Create(device, init, quadRaw);
+			std::vector<uint16_t> indices;
+			indices.resize(inMesh->mNumFaces * 3);
+
+			for (int i = 0; i < inMesh->mNumFaces; ++i)
+			{
+				indices[i * 3] = inMesh->mFaces[i].mIndices[0];
+				indices[i * 3 + 1] = inMesh->mFaces[i].mIndices[1];
+				indices[i * 3 + 2] = inMesh->mFaces[i].mIndices[2];
+			}
+
+			sphereRaw.indices.U16(std::move(indices));
+
+			sphereMesh.Create(device, init, sphereRaw);
 
 
 			// Object
@@ -324,7 +358,7 @@ void Init()
 				objectsMats.resize(100);
 
 				for (auto& mat : objectsMats)
-					mat = SA::TransformPRSf(RandVec3Position(), RandQuat(), RandVec3Scale()).Matrix();
+					mat = SA::TransformPRSf(RandVec3Position(), RandQuat(), RandVec3UniScale()).Matrix();
 
 				objectBuffer.Create(device, sizeof(SA::Mat4f) * 100, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
 					VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, objectsMats.data());
@@ -783,7 +817,7 @@ void Init()
 				vsInfo.defines.push_back("SA_MATERIAL_METALLIC_ID=2");
 				vsInfo.defines.push_back("SA_MATERIAL_ROUGHNESS_ID=3");
 
-				quadRaw.vertices.AppendDefines(vsInfo.defines);
+				sphereRaw.vertices.AppendDefines(vsInfo.defines);
 
 				ShaderCompileResult vsShaderRes = compiler.CompileSPIRV(vsInfo);
 				vsDesc = vsShaderRes.desc;
@@ -812,7 +846,7 @@ void Init()
 				psInfo.defines.push_back("SA_MATERIAL_METALLIC_ID=2");
 				psInfo.defines.push_back("SA_MATERIAL_ROUGHNESS_ID=3");
 
-				quadRaw.vertices.AppendDefines(psInfo.defines);
+				sphereRaw.vertices.AppendDefines(psInfo.defines);
 
 				ShaderCompileResult psShaderRes = compiler.CompileSPIRV(psInfo);
 				fsDesc = psShaderRes.desc;
@@ -1226,7 +1260,7 @@ void Uninit()
 		fragmentShader.Destroy(device);
 		vertexShader.Destroy(device);
 
-		quadMesh.Destroy(device);
+		sphereMesh.Destroy(device);
 
 		for (auto& cameraBuffer : cameraBuffers)
 			cameraBuffer.Destroy(device);
@@ -1327,7 +1361,7 @@ void Loop()
 			0, nullptr
 		);
 
-		quadMesh.Draw(cmd, 100u);
+		sphereMesh.Draw(cmd, 100u);
 
 		renderPass.NextSubpass(cmd);
 	}
@@ -1348,7 +1382,7 @@ void Loop()
 		boundSets.data(),
 		0, nullptr);
 
-	quadMesh.Draw(cmd, 100u);
+	sphereMesh.Draw(cmd, 100u);
 
 	renderPass.End(cmd);
 

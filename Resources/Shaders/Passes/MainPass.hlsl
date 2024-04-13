@@ -261,7 +261,7 @@ PixelOutput mainPS(
 
 	#if !SA_COMPUTE_LIGHTING_TANGENT_SPACE
 
-		const float3 normal = normalize(_input.TBN * SA::SampleNormalMap(_input.uv));
+		const float3 normal = normalize(mul(_input.TBN, SA::SampleNormalMap(_input.uv)));
 
 	#endif
 	
