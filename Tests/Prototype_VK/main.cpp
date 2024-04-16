@@ -102,6 +102,8 @@ VK::DescriptorSetLayout materialDescSetLayout;
 VK::DescriptorSet materialSet;
 VkSampler sampler;
 
+SA::Vec3ui lightClusterGridSize = { 32, 32, 32 };
+
 struct SceneTexture
 {
 	VK::Texture color;
@@ -1310,9 +1312,9 @@ void Init()
 				};
 
 				LightClusterInfo lightClusterInfo{
-					.gridSize = SA::Vec3ui{ 32, 32, 32 },
-					.clusterSize = 32 / std::logf(1000.0f/0.1f),
-					.clusterBias = 32 * std::logf(0.1f) / std::logf(1000.0f/0.1f),
+					.gridSize = lightClusterGridSize,
+					.clusterSize = lightClusterGridSize.z / std::logf(1000.0f / 0.1f),
+					.clusterBias = lightClusterGridSize.z * std::logf(0.1f) / std::logf(1000.0f/0.1f),
 				};
 
 				lightClusterInfoBuffer.Create(device, 2 * sizeof(float) + 3 * sizeof(uint32_t), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
@@ -1321,7 +1323,7 @@ void Init()
 
 			// LightClusterGrid
 			{
-				lightClusterGridBuffer.Create(device, 2 * sizeof(SA::Vec4f) * 32 * 32 * 32, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+				lightClusterGridBuffer.Create(device, 2 * sizeof(SA::Vec4f) * lightClusterGridSize.x * lightClusterGridSize.y * lightClusterGridSize.z, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
 					VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
 				// DescPool.
@@ -1482,7 +1484,7 @@ void Init()
 
 			// ActiveLightCluster
 			{
-				activeLightClustersBuffer.Create(device, 32 * 32 * 32 * sizeof(bool), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+				activeLightClustersBuffer.Create(device, lightClusterGridSize.x * lightClusterGridSize.y * lightClusterGridSize.z * sizeof(bool), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
 					VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
 				// Depth texture ImageView
@@ -1853,7 +1855,7 @@ void Loop()
 				0, nullptr
 			);
 
-			vkCmdDispatch(cmd, 1, 1, 32);
+			vkCmdDispatch(cmd, (lightClusterGridSize.x / 32) + lightClusterGridSize.x % 32 == 0 ? 0 : 1, (lightClusterGridSize.y / 32) + lightClusterGridSize.y % 32 == 0 ? 0 : 1, 32);
 		}
 
 		// Compute ActiveLightClusters
