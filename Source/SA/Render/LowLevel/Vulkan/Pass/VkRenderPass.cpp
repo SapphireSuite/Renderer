@@ -372,7 +372,7 @@ namespace SA::RND::VK
 		VkRenderPassCreateInfo vkCreateInfo{};
 		vkCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
 		vkCreateInfo.pNext = nullptr;
-		vkCreateInfo.flags = VK_RENDER_PASS_CREATE_TRANSFORM_BIT_QCOM;
+		vkCreateInfo.flags = 0u;
 		vkCreateInfo.attachmentCount = static_cast<uint32_t>(attachmentDescs.size());
 		vkCreateInfo.pAttachments = attachmentDescs.data();
 		vkCreateInfo.subpassCount = static_cast<uint32_t>(subpassDescriptions.size());
