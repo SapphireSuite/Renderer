@@ -95,6 +95,16 @@ namespace SA::RND::VK
 
 		SA_LOG(L"Pipeline created.", Info, SA.Render.Vulkan, (L"Handle [%1]", mHandle));
 	}
+
+	void Pipeline::Create(const Device& _device, const VkComputePipelineCreateInfo& _vkInfo)
+	{
+		SA_VK_API(vkCreateComputePipelines(_device, VK_NULL_HANDLE, 1, &_vkInfo, nullptr, &mHandle),
+			L"Failed to create compute pipeline");
+
+		mBindPoint = VK_PIPELINE_BIND_POINT_COMPUTE;
+
+		SA_LOG(L"Pipeline created.", Info, SA.Render.Vulkan, (L"Handle [%1]", mHandle));
+	}
 	
 	void Pipeline::Destroy(const Device& _device)
 	{

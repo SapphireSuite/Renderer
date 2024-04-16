@@ -21,6 +21,7 @@ namespace SA::RND::VK
 	public:
 		void Create(const Device& _device, const GraphicsPipelineInfo& _info);
 		void Create(const Device& _device, const VkGraphicsPipelineCreateInfo& _vkInfo);
+		void Create(const Device& _device, const VkComputePipelineCreateInfo& _vkInfo);
 		void Destroy(const Device& _device);
 
 		void Bind(const CommandBuffer& _cmd);

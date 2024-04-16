@@ -68,6 +68,12 @@ VK::Buffer objectBuffer;
 VK::DescriptorPool objectDescPool;
 VK::DescriptorSetLayout objectDescSetLayout;
 VK::DescriptorSet objectSet;
+VK::Buffer lightClusterGridBuffer;
+VK::DescriptorPool lightClusterGridDescPool;
+VK::DescriptorSetLayout lightClusterGridDescSetLayout;
+VK::DescriptorSet lightClusterGridSet;
+VK::PipelineLayout lightClusterGridPipelineLayout;
+VK::Pipeline lightClusterGridPipeline;
 VK::Buffer pointLightBuffer;
 VK::Buffer directionalLightBuffer;
 VK::DescriptorPool lightDescPool;
@@ -807,7 +813,7 @@ void Init()
 						.target = "cs_6_5",
 					};
 
-					csInfo.defines.push_back("SA_CAMERA_BUFFER_ID=0");
+					csInfo.defines.push_back("SA_CAMERA_BUFFER_ID=1");
 
 					ShaderCompileResult csShaderRes = compiler.CompileSPIRV(csInfo);
 					csComputeLightClusterGridDesc = csShaderRes.desc;
@@ -1264,6 +1270,146 @@ void Init()
 				depthPrepassPipeline.Create(device, depthPrepassPipelineCreateInfo);
 			}
 		}
+
+		// Light Culling
+		{
+			// LightClusterGrid
+			{
+				lightClusterGridBuffer.Create(device, 2 * sizeof(SA::Vec4f) * 32 * 32 * 32, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+					VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+				// DescPool.
+				{
+					VK::DescriptorPoolInfos info;
+					info.poolSizes.emplace_back(VkDescriptorPoolSize{
+						.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+						.descriptorCount = 1
+						});
+					info.poolSizes.emplace_back(VkDescriptorPoolSize{
+						.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+						.descriptorCount = 1
+						});
+					info.setNum = 1;
+
+					lightClusterGridDescPool.Create(device, info);
+				}
+
+				// Layout
+				{
+					lightClusterGridDescSetLayout.Create(device,
+						{
+							{
+								.binding = 0,
+								.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+								.descriptorCount = 1,
+								.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
+								.pImmutableSamplers = nullptr
+							},
+							{
+								.binding = 1,
+								.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+								.descriptorCount = 1,
+								.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
+								.pImmutableSamplers = nullptr
+							}
+						});
+				}
+
+				// Set
+				{
+					lightClusterGridSet = lightClusterGridDescPool.Allocate(device, lightClusterGridDescSetLayout);
+
+					std::vector<VkDescriptorBufferInfo> bufferInfos;
+					bufferInfos.reserve(2);
+
+					std::vector<VkWriteDescriptorSet> writes;
+					writes.reserve(2);
+
+					// Output ClusterGrid
+					{
+						VkDescriptorBufferInfo& buffInfo = bufferInfos.emplace_back();
+						buffInfo.buffer = lightClusterGridBuffer;
+						buffInfo.offset = 0;
+						buffInfo.range = VK_WHOLE_SIZE;
+
+						VkWriteDescriptorSet& descWrite = writes.emplace_back();
+						descWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+						descWrite.pNext = nullptr;
+						descWrite.dstSet = lightClusterGridSet;
+						descWrite.dstBinding = 0;
+						descWrite.dstArrayElement = 0;
+						descWrite.descriptorCount = 1;
+						descWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+						descWrite.pBufferInfo = &buffInfo;
+					}
+
+					// Camera buffer
+					{
+						VkDescriptorBufferInfo& buffInfo = bufferInfos.emplace_back();
+						buffInfo.buffer = cameraBuffers[0];
+						buffInfo.offset = 0;
+						buffInfo.range = VK_WHOLE_SIZE;
+
+						VkWriteDescriptorSet& descWrite = writes.emplace_back();
+						descWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+						descWrite.pNext = nullptr;
+						descWrite.dstSet = lightClusterGridSet;
+						descWrite.dstBinding = 1;
+						descWrite.dstArrayElement = 0;
+						descWrite.descriptorCount = 1;
+						descWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+						descWrite.pBufferInfo = &buffInfo;
+					}
+
+					vkUpdateDescriptorSets(device, (uint32_t)writes.size(), writes.data(), 0, nullptr);
+				}
+
+				// Pipeline Layout
+				{
+					std::vector<VkDescriptorSetLayout> setLayouts{
+						static_cast<VkDescriptorSetLayout>(lightClusterGridDescSetLayout),
+					};
+
+					VkPipelineLayoutCreateInfo info{
+						.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+						.pNext = nullptr,
+						.flags = 0u,
+						.setLayoutCount = static_cast<uint32_t>(setLayouts.size()),
+						.pSetLayouts = setLayouts.data(),
+						.pushConstantRangeCount = 0,
+						.pPushConstantRanges = nullptr,
+					};
+
+					lightClusterGridPipelineLayout.Create(device, info);
+				}
+
+				// Pipeline
+				{
+
+					VkPipelineShaderStageCreateInfo shaderStage{
+						.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+						.pNext = nullptr,
+						.flags = 0u,
+						.stage = VK_SHADER_STAGE_COMPUTE_BIT,
+						.module = computeLightClusterGridShader,
+						.pName = csComputeLightClusterGridDesc.entrypoint.c_str(),
+						.pSpecializationInfo = nullptr
+					};
+
+					VkComputePipelineCreateInfo pipelineInfo{
+						.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
+						.pNext = nullptr,
+						.flags = 0u,
+						.stage = shaderStage,
+						.layout = lightClusterGridPipelineLayout,
+						.basePipelineHandle = VK_NULL_HANDLE,
+						.basePipelineIndex = -1,
+					};
+
+					lightClusterGridPipeline.Create(device, pipelineInfo);
+				}
+			}
+		}
 	}
 }
 
@@ -1310,6 +1456,11 @@ void Uninit()
 		lightDescSetLayout.Destroy(device);
 		lightDescPool.Destroy(device);
 
+		lightClusterGridBuffer.Destroy(device);
+		lightClusterGridDescSetLayout.Destroy(device);
+		lightClusterGridDescPool.Destroy(device);
+		lightClusterGridPipelineLayout.Destroy(device);
+		lightClusterGridPipeline.Destroy(device);
 
 		for(auto& frameBuffer : frameBuffers)
 			frameBuffer.Destroy(device);
