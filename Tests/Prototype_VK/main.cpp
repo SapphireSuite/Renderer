@@ -49,6 +49,7 @@ VK::RenderPass renderPass;
 std::vector<VK::FrameBuffer> frameBuffers;
 std::vector<VK::CommandBuffer> cmdBuffers;
 VK::Shader buildLightClusterGridShader;
+VK::Shader computeActiveLightClustersShader;
 VK::Shader vertexShader;
 VK::Shader fragmentShader;
 VK::PipelineLayout pipLayout;
@@ -57,6 +58,7 @@ VK::Pipeline pipeline;
 RawStaticMesh sphereRaw;
 VK::StaticMesh sphereMesh;
 RHI::ShaderDescriptor csBuildLightClusterGridDesc;
+RHI::ShaderDescriptor csComputeActiveLightClustersDesc;
 RHI::ShaderDescriptor vsDesc;
 RHI::ShaderDescriptor fsDesc;
 std::vector<VK::Buffer> cameraBuffers;
@@ -70,11 +72,18 @@ VK::DescriptorSetLayout objectDescSetLayout;
 VK::DescriptorSet objectSet;
 VK::Buffer lightClusterInfoBuffer;
 VK::Buffer lightClusterGridBuffer;
+VK::Buffer activeLightClustersBuffer;
 VK::DescriptorPool lightClusterGridDescPool;
 VK::DescriptorSetLayout lightClusterGridDescSetLayout;
 VK::DescriptorSet lightClusterGridSet;
 VK::PipelineLayout lightClusterGridPipelineLayout;
 VK::Pipeline lightClusterGridPipeline;
+VK::DescriptorPool activeLightClustersDescPool;
+VK::DescriptorSetLayout activeLightClustersDescSetLayout;
+VK::DescriptorSet activeLightClustersSet;
+VK::PipelineLayout activeLightClustersPipelineLayout;
+VK::Pipeline activeLightClustersPipeline;
+VkImageView depthUAV = VK_NULL_HANDLE;
 VK::Buffer pointLightBuffer;
 VK::Buffer directionalLightBuffer;
 VK::DescriptorPool lightDescPool;
@@ -246,7 +255,7 @@ void Init()
 					if (bDepth)
 					{
 						desc.format = VK_FORMAT_D16_UNORM;
-						desc.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+						desc.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
 						desc.clearColor = bDepthInverted ? Color{ .r = 0.0f, .g = 0.0f } : Color{ .r = 1.0f, .g = 0.0f };
 						sceneTexture.depth.Create(device, desc);
 						passInfo.RegisterRenderTarget(&sceneTexture.depth, desc);
@@ -805,7 +814,7 @@ void Init()
 
 			// Compute
 			{
-				// ComputeLightClusterGrid
+				// BuildLightClusterGrid
 				{
 					ShaderCompileInfo csInfo
 					{
@@ -819,6 +828,22 @@ void Init()
 					ShaderCompileResult csShaderRes = compiler.CompileSPIRV(csInfo);
 					csBuildLightClusterGridDesc = csShaderRes.desc;
 					buildLightClusterGridShader.Create(device, csShaderRes.rawSPIRV);
+				}
+
+				// ComputeActiveLightClusters
+				{
+					ShaderCompileInfo csInfo
+					{
+						.path = L"Resources/Shaders/Passes/LightCulling/ComputeActiveLightClusters.hlsl",
+						.entrypoint = "main",
+						.target = "cs_6_5",
+					};
+
+					csInfo.defines.push_back("SA_CAMERA_BUFFER_ID=1");
+
+					ShaderCompileResult csShaderRes = compiler.CompileSPIRV(csInfo);
+					csComputeActiveLightClustersDesc = csShaderRes.desc;
+					computeActiveLightClustersShader.Create(device, csShaderRes.rawSPIRV);
 				}
 			}
 
@@ -1431,7 +1456,6 @@ void Init()
 
 				// Pipeline
 				{
-
 					VkPipelineShaderStageCreateInfo shaderStage{
 						.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
 						.pNext = nullptr,
@@ -1453,6 +1477,226 @@ void Init()
 					};
 
 					lightClusterGridPipeline.Create(device, pipelineInfo);
+				}
+			}
+
+			// ActiveLightCluster
+			{
+				activeLightClustersBuffer.Create(device, 32 * 32 * 32 * sizeof(bool), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+					VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+				// Depth texture ImageView
+				{
+					const VkImageViewCreateInfo createInfo
+					{
+						.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+						.pNext = nullptr,
+						.flags = 0,
+						.image = sceneTextures[0].depth, // TODO: use triple buffering.
+						.viewType = VK_IMAGE_VIEW_TYPE_2D,
+						.format = VK_FORMAT_D16_UNORM,
+						.components = VkComponentMapping{
+							.r = VK_COMPONENT_SWIZZLE_IDENTITY,
+							.g = VK_COMPONENT_SWIZZLE_IDENTITY,
+							.b = VK_COMPONENT_SWIZZLE_IDENTITY,
+							.a = VK_COMPONENT_SWIZZLE_IDENTITY,
+						},
+						.subresourceRange = VkImageSubresourceRange{
+							.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT,
+							.baseMipLevel = 0,
+							.levelCount = 1,
+							.baseArrayLayer = 0,
+							.layerCount = 1,
+						},
+					};
+
+					SA_VK_API(vkCreateImageView(device, &createInfo, nullptr, &depthUAV));
+				}
+
+				// DescPool.
+				{
+					VK::DescriptorPoolInfos info;
+					info.poolSizes.emplace_back(VkDescriptorPoolSize{
+						.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+						.descriptorCount = 2
+						});
+					info.poolSizes.emplace_back(VkDescriptorPoolSize{
+						.type = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,
+						.descriptorCount = 1
+						});
+					info.poolSizes.emplace_back(VkDescriptorPoolSize{
+						.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+						.descriptorCount = 1
+						});
+					info.setNum = 1;
+
+					activeLightClustersDescPool.Create(device, info);
+				}
+
+				// Layout
+				{
+					activeLightClustersDescSetLayout.Create(device,
+						{
+							{
+								.binding = 0,
+								.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+								.descriptorCount = 1,
+								.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
+								.pImmutableSamplers = nullptr
+							},
+							{
+								.binding = 1,
+								.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+								.descriptorCount = 1,
+								.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
+								.pImmutableSamplers = nullptr
+							},
+							{
+								.binding = 2,
+								.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,
+								.descriptorCount = 1,
+								.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
+								.pImmutableSamplers = nullptr
+							},
+							{
+								.binding = 3,
+								.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+								.descriptorCount = 1,
+								.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
+								.pImmutableSamplers = nullptr
+							}
+						});
+				}
+
+				// Set
+				{
+					activeLightClustersSet = activeLightClustersDescPool.Allocate(device, activeLightClustersDescSetLayout);
+
+					std::vector<VkDescriptorImageInfo> imageInfos;
+					imageInfos.reserve(1);
+
+					std::vector<VkDescriptorBufferInfo> bufferInfos;
+					bufferInfos.reserve(3);
+
+					std::vector<VkWriteDescriptorSet> writes;
+					writes.reserve(4);
+
+					// LightCluserInfo
+					{
+						VkDescriptorBufferInfo& buffInfo = bufferInfos.emplace_back();
+						buffInfo.buffer = lightClusterInfoBuffer;
+						buffInfo.offset = 0;
+						buffInfo.range = VK_WHOLE_SIZE;
+
+						VkWriteDescriptorSet& descWrite = writes.emplace_back();
+						descWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+						descWrite.pNext = nullptr;
+						descWrite.dstSet = activeLightClustersSet;
+						descWrite.dstBinding = 0;
+						descWrite.dstArrayElement = 0;
+						descWrite.descriptorCount = 1;
+						descWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+						descWrite.pBufferInfo = &buffInfo;
+					}
+
+					// Camera buffer
+					{
+						VkDescriptorBufferInfo& buffInfo = bufferInfos.emplace_back();
+						buffInfo.buffer = cameraBuffers[0];
+						buffInfo.offset = 0;
+						buffInfo.range = VK_WHOLE_SIZE;
+
+						VkWriteDescriptorSet& descWrite = writes.emplace_back();
+						descWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+						descWrite.pNext = nullptr;
+						descWrite.dstSet = activeLightClustersSet;
+						descWrite.dstBinding = 1;
+						descWrite.dstArrayElement = 0;
+						descWrite.descriptorCount = 1;
+						descWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+						descWrite.pBufferInfo = &buffInfo;
+					}
+
+					// Depth texture
+					{
+						VkDescriptorImageInfo& imageInfo = imageInfos.emplace_back();
+						imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+						imageInfo.imageView = depthUAV;
+
+						VkWriteDescriptorSet& write = writes.emplace_back();
+						write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+						write.pNext = nullptr;
+						write.dstSet = activeLightClustersSet;
+						write.dstBinding = 2;
+						write.dstArrayElement = 0;
+						write.descriptorCount = 1;
+						write.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+						write.pImageInfo = &imageInfo;
+					}
+
+					// Output Active Clusters
+					{
+						VkDescriptorBufferInfo& buffInfo = bufferInfos.emplace_back();
+						buffInfo.buffer = activeLightClustersBuffer;
+						buffInfo.offset = 0;
+						buffInfo.range = VK_WHOLE_SIZE;
+
+						VkWriteDescriptorSet& descWrite = writes.emplace_back();
+						descWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+						descWrite.pNext = nullptr;
+						descWrite.dstSet = activeLightClustersSet;
+						descWrite.dstBinding = 3;
+						descWrite.dstArrayElement = 0;
+						descWrite.descriptorCount = 1;
+						descWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+						descWrite.pBufferInfo = &buffInfo;
+					}
+
+					vkUpdateDescriptorSets(device, (uint32_t)writes.size(), writes.data(), 0, nullptr);
+				}
+
+				// PipelineLayout
+				{
+					std::vector<VkDescriptorSetLayout> setLayouts{
+						static_cast<VkDescriptorSetLayout>(activeLightClustersDescSetLayout),
+					};
+
+					VkPipelineLayoutCreateInfo info{
+						.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+						.pNext = nullptr,
+						.flags = 0u,
+						.setLayoutCount = static_cast<uint32_t>(setLayouts.size()),
+						.pSetLayouts = setLayouts.data(),
+						.pushConstantRangeCount = 0,
+						.pPushConstantRanges = nullptr,
+					};
+
+					activeLightClustersPipelineLayout.Create(device, info);
+				}
+
+				// Pipeline
+				{
+					VkPipelineShaderStageCreateInfo shaderStage{
+						.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+						.pNext = nullptr,
+						.flags = 0u,
+						.stage = VK_SHADER_STAGE_COMPUTE_BIT,
+						.module = computeActiveLightClustersShader,
+						.pName = csComputeActiveLightClustersDesc.entrypoint.c_str(),
+						.pSpecializationInfo = nullptr
+					};
+
+					VkComputePipelineCreateInfo pipelineInfo{
+						.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
+						.pNext = nullptr,
+						.flags = 0u,
+						.stage = shaderStage,
+						.layout = activeLightClustersPipelineLayout,
+						.basePipelineHandle = VK_NULL_HANDLE,
+						.basePipelineIndex = -1,
+					};
+
+					activeLightClustersPipeline.Create(device, pipelineInfo);
 				}
 			}
 		}
@@ -1508,6 +1752,12 @@ void Uninit()
 		lightClusterGridDescPool.Destroy(device);
 		lightClusterGridPipelineLayout.Destroy(device);
 		lightClusterGridPipeline.Destroy(device);
+
+		activeLightClustersBuffer.Destroy(device);
+		activeLightClustersDescSetLayout.Destroy(device);
+		activeLightClustersDescPool.Destroy(device);
+		activeLightClustersPipelineLayout.Destroy(device);
+		activeLightClustersPipeline.Destroy(device);
 
 		for(auto& frameBuffer : frameBuffers)
 			frameBuffer.Destroy(device);
@@ -1604,6 +1854,25 @@ void Loop()
 			);
 
 			vkCmdDispatch(cmd, 1, 1, 32);
+		}
+
+		// Compute ActiveLightClusters
+		{
+			vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, activeLightClustersPipeline);
+
+			std::vector<VkDescriptorSet> boundSets{
+				static_cast<VkDescriptorSet>(activeLightClustersSet)
+			};
+
+			vkCmdBindDescriptorSets(cmd,
+				VK_PIPELINE_BIND_POINT_COMPUTE,
+				activeLightClustersPipelineLayout,
+				0, (uint32_t)boundSets.size(),
+				boundSets.data(),
+				0, nullptr
+			);
+
+			vkCmdDispatch(cmd, (1200 / 32) + 1, (900 / 32) + 1, 1);
 		}
 	}
 
