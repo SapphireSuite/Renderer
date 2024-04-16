@@ -807,6 +807,8 @@ void Init()
 						.target = "cs_6_5",
 					};
 
+					csInfo.defines.push_back("SA_CAMERA_BUFFER_ID=0");
+
 					ShaderCompileResult csShaderRes = compiler.CompileSPIRV(csInfo);
 					csComputeLightClusterGridDesc = csShaderRes.desc;
 					computeLightClusterGridShader.Create(device, csShaderRes.rawSPIRV);
@@ -1351,7 +1353,7 @@ void Loop()
 	{
 		Camera_GPU cameraGPU;
 
-		cameraGPU.Update(cameraTr.Matrix(), SA::Mat4f::MakePerspective(90, 1200.0f / 900.0f, 0.1f, 1000.0f));
+		cameraGPU.UpdatePerspective(cameraTr.Matrix(), 90, 0.1f, 1000.0f, SA::Vec2ui(1200u, 900u));
 
 		cameraBuffers[frameIndex].UploadData(device, &cameraGPU, sizeof(Camera_GPU));
 	}

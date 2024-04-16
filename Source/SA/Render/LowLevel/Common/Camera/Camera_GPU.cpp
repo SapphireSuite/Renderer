@@ -4,15 +4,26 @@
 
 namespace SA::RND
 {
-	void Camera_GPU::Update(const Mat4f& _view, const Mat4f& _proj)
+	void Camera_GPU::UpdatePerspective(const Mat4f& _view, float _FOV, float _zNear, float _zFar, const Vec2ui& _screenDims)
 	{
-		//inverseView = _view.GetInversed();
-		Mat4f inverseView = _view.GetInversed();
+		// View
+		{
+			//view = _view;
+			//inverseView = _view.GetInversed();
+			position = Vec3f(_view.e03, _view.e13, _view.e23);
+		}
 
-		//projection = _proj;
+		// Projection
+		{
+			Mat4f projection = Mat4f::MakePerspective(_FOV, _screenDims.x / _screenDims.y, _zNear, _zFar);
+			inverseProjection = projection.GetInversed();
 
-		invViewProj = _proj * inverseView;
+			Mat4f inverseView = _view.GetInversed();
+			invViewProj = projection * inverseView;
 
-		position = Vec3f(_view.e03, _view.e13, _view.e23);
+			zNear = _zNear;
+			zFar = _zFar;
+			screen = _screenDims;
+		}
 	}
 }

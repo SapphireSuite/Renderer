@@ -3,6 +3,9 @@
 #ifndef SAPPHIRE_RENDER_SHADER_COMPUTE_LIGHT_CLUSTER_GRID_GUARD
 #define SAPPHIRE_RENDER_SHADER_COMPUTE_LIGHT_CLUSTER_GRID_GUARD
 
+#include <Common/Camera.hlsl>
+
+
 //---------- Inputs ----------
 
 #define NUM_THREAD_X 32
@@ -42,7 +45,7 @@ void main(uint3 DispatchThreadID : SV_DispatchThreadID)
 		return;
 	
 	// Tiling
-	float2 tilingSize = screenDimensions.xy / float2(clusterGridSize.x, clusterGridSize.y);
+	float2 tilingSize = camera.screen / float2(clusterGridSize.x, clusterGridSize.y);
 	
 	// Compute Screen-Space min, max.
 	const float2 ssMin = float2(DispatchThreadID.x, DispatchThreadID.y) * tilingSize;
@@ -53,8 +56,8 @@ void main(uint3 DispatchThreadID : SV_DispatchThreadID)
 	const float3 wsMax = ComputeScreenSpaceToWorldSpace(ssMax);
 
 	// Compute World-Space cluster near, far.
-	const float clusterNear = zNear * pow(zFar / zNear, DispatchThreadID.z / clusterGridSize.z);
-	const float clusterFar = zNear * pow(zFar / zNear, (DispatchThreadID.z + 1) / clusterGridSize.z);
+	const float clusterNear = camera.zNear * pow(camera.zFar / camera.zNear, DispatchThreadID.z / clusterGridSize.z);
+	const float clusterFar = camera.zNear * pow(camera.zFar / camera.zNear, (DispatchThreadID.z + 1) / clusterGridSize.z);
 	
 	// Compute final AABB.
 	const float3 clusterMinAABB = LineIntersectionWithZPlane(wsMin, clusterNear);
@@ -69,13 +72,13 @@ void main(uint3 DispatchThreadID : SV_DispatchThreadID)
 float3 ComputeScreenSpaceToWorldSpace(float2 _ssPos)
 {
 	// Convert to NDC
-	const float2 texCoord = _ssPos / screenDimensions.xy;
+	const float2 texCoord = _ssPos / camera.screen.xy;
 	
 	// Convert to clip space
 	const float4 clipPos = float4(texCoord * 2.0 - 1.0, 0.0, 1.0);
 	
 	// Convert to world space
-	const float4 worldPos = mul(clipPos, invProj);
+	const float4 worldPos = mul(clipPos, camera.inverseProjection);
 	
 	// Fix perspective
 	return worldPos.xyz / worldPos.w;

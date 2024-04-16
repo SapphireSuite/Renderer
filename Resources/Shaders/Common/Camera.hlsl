@@ -16,11 +16,29 @@ namespace SA
 	*/
 	struct Camera
 	{
+	//{ View
+
+		/// Camera transformation matrix.
+		//float4x4 view;
+
 		/// Camera inverse transformation matrix.
 		//float4x4 inverseView;
 
+		/// Camera raw position.
+		float3 position;
+
+		float padding;
+
+	//}
+
+	
+	//{ Projection
+	
 		/// Camera projection matrix.
 		//float4x4 projection;
+
+		/// Camera inverse projection matrix.
+		float4x4 inverseProjection;
 
 		/**
 		*	Camera inverse view projection matrix.
@@ -28,10 +46,17 @@ namespace SA
 		*/
 		float4x4 invViewProj;
 
-		/// Camera raw position.
-		float3 position;
 
-		float padding;
+		/// Z-Near plane.
+		float zNear;
+
+		/// Z-Far plane.
+		float zFar;
+		
+		/// Screen dimensions.
+		uint2 screen;
+
+	//}
 	};
 
 	cbuffer CameraBuffer : SA_REG_SPACE(b, SA_CAMERA_BUFFER_ID, 0)
