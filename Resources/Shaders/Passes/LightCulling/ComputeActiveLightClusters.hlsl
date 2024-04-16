@@ -33,7 +33,11 @@ void main(uint3 _dispatchThreadID : SV_DispatchThreadID)
 		_dispatchThreadID.y >= depthTextureSize.y)
 		return;
 	
-	const float depthValue = depthTexture[_dispatchThreadID.xy];
+	float depthValue = depthTexture[_dispatchThreadID.xy];
+	
+#if SA_DEPTH_INVERTED
+	depthValue = 1.0f - depthValue;
+#endif
 	
 	const uint clusterIndex = GetClusterIndex(float3(_dispatchThreadID.xy, depthValue));
 	

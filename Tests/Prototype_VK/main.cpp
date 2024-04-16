@@ -841,6 +841,9 @@ void Init()
 						.target = "cs_6_5",
 					};
 
+					if (bDepthInverted)
+						csInfo.defines.push_back("SA_DEPTH_INVERTED=1");
+
 					csInfo.defines.push_back("SA_CAMERA_BUFFER_ID=1");
 
 					ShaderCompileResult csShaderRes = compiler.CompileSPIRV(csInfo);
