@@ -48,7 +48,7 @@ VK::CommandPool cmdPool;
 VK::RenderPass renderPass;
 std::vector<VK::FrameBuffer> frameBuffers;
 std::vector<VK::CommandBuffer> cmdBuffers;
-VK::Shader computeLightClusterGridShader;
+VK::Shader buildLightClusterGridShader;
 VK::Shader vertexShader;
 VK::Shader fragmentShader;
 VK::PipelineLayout pipLayout;
@@ -56,7 +56,7 @@ VK::Pipeline depthPrepassPipeline;
 VK::Pipeline pipeline;
 RawStaticMesh sphereRaw;
 VK::StaticMesh sphereMesh;
-RHI::ShaderDescriptor csComputeLightClusterGridDesc;
+RHI::ShaderDescriptor csBuildLightClusterGridDesc;
 RHI::ShaderDescriptor vsDesc;
 RHI::ShaderDescriptor fsDesc;
 std::vector<VK::Buffer> cameraBuffers;
@@ -808,7 +808,7 @@ void Init()
 				{
 					ShaderCompileInfo csInfo
 					{
-						.path = L"Resources/Shaders/Passes/LightCulling/ComputeLightClusterGrid.hlsl",
+						.path = L"Resources/Shaders/Passes/LightCulling/BuildLightClusterGrid.hlsl",
 						.entrypoint = "main",
 						.target = "cs_6_5",
 					};
@@ -816,8 +816,8 @@ void Init()
 					csInfo.defines.push_back("SA_CAMERA_BUFFER_ID=1");
 
 					ShaderCompileResult csShaderRes = compiler.CompileSPIRV(csInfo);
-					csComputeLightClusterGridDesc = csShaderRes.desc;
-					computeLightClusterGridShader.Create(device, csShaderRes.rawSPIRV);
+					csBuildLightClusterGridDesc = csShaderRes.desc;
+					buildLightClusterGridShader.Create(device, csShaderRes.rawSPIRV);
 				}
 			}
 
@@ -1391,8 +1391,8 @@ void Init()
 						.pNext = nullptr,
 						.flags = 0u,
 						.stage = VK_SHADER_STAGE_COMPUTE_BIT,
-						.module = computeLightClusterGridShader,
-						.pName = csComputeLightClusterGridDesc.entrypoint.c_str(),
+						.module = buildLightClusterGridShader,
+						.pName = csBuildLightClusterGridDesc.entrypoint.c_str(),
 						.pSpecializationInfo = nullptr
 					};
 
@@ -1425,7 +1425,7 @@ void Uninit()
 
 		fragmentShader.Destroy(device);
 		vertexShader.Destroy(device);
-		computeLightClusterGridShader.Destroy(device);
+		buildLightClusterGridShader.Destroy(device);
 
 		sphereMesh.Destroy(device);
 
