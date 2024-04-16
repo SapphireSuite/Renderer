@@ -48,6 +48,7 @@ VK::CommandPool cmdPool;
 VK::RenderPass renderPass;
 std::vector<VK::FrameBuffer> frameBuffers;
 std::vector<VK::CommandBuffer> cmdBuffers;
+VK::Shader computeLightClusterGridShader;
 VK::Shader vertexShader;
 VK::Shader fragmentShader;
 VK::PipelineLayout pipLayout;
@@ -55,6 +56,7 @@ VK::Pipeline depthPrepassPipeline;
 VK::Pipeline pipeline;
 RawStaticMesh sphereRaw;
 VK::StaticMesh sphereMesh;
+RHI::ShaderDescriptor csComputeLightClusterGridDesc;
 RHI::ShaderDescriptor vsDesc;
 RHI::ShaderDescriptor fsDesc;
 std::vector<VK::Buffer> cameraBuffers;
@@ -794,6 +796,23 @@ void Init()
 
 			compiler.Create();	
 
+			// Compute
+			{
+				// ComputeLightClusterGrid
+				{
+					ShaderCompileInfo csInfo
+					{
+						.path = L"Resources/Shaders/Passes/LightCulling/ComputeLightClusterGrid.hlsl",
+						.entrypoint = "main",
+						.target = "cs_6_5",
+					};
+
+					ShaderCompileResult csShaderRes = compiler.CompileSPIRV(csInfo);
+					csComputeLightClusterGridDesc = csShaderRes.desc;
+					computeLightClusterGridShader.Create(device, csShaderRes.rawSPIRV);
+				}
+			}
+
 			// Vertex
 			{
 				ShaderCompileInfo vsInfo
@@ -1258,6 +1277,7 @@ void Uninit()
 
 		fragmentShader.Destroy(device);
 		vertexShader.Destroy(device);
+		computeLightClusterGridShader.Destroy(device);
 
 		sphereMesh.Destroy(device);
 
