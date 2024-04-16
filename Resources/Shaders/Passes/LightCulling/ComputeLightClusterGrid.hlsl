@@ -10,7 +10,7 @@
 
 #define NUM_THREAD_X 32
 #define NUM_THREAD_Y 32
-#define NUM_THREAD_Z 32
+#define NUM_THREAD_Z 1
 
 static const uint3 clusterGridSize = uint3(32, 32, 32);
 
@@ -56,8 +56,8 @@ void main(uint3 DispatchThreadID : SV_DispatchThreadID)
 	const float3 wsMax = ComputeScreenSpaceToViewSpace(ssMax);
 
 	// Compute View-Space cluster near, far.
-	const float clusterNear = camera.zNear * pow(camera.zFar / camera.zNear, DispatchThreadID.z / clusterGridSize.z);
-	const float clusterFar = camera.zNear * pow(camera.zFar / camera.zNear, (DispatchThreadID.z + 1) / clusterGridSize.z);
+	const float clusterNear = camera.zNear * pow(camera.zFar / camera.zNear, DispatchThreadID.z / float(clusterGridSize.z));
+	const float clusterFar = camera.zNear * pow(camera.zFar / camera.zNear, (DispatchThreadID.z + 1) / float(clusterGridSize.z));
 	
 	// Compute final AABB.
 	const float3 clusterMinAABB = LineIntersectionWithZPlane(wsMin, clusterNear);

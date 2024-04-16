@@ -1538,6 +1538,28 @@ void Loop()
 		renderPass.NextSubpass(cmd);
 	}
 
+	// Light Culling
+	{
+		// Build LightClusterGrid: TODO: Can be called only once at init (and refresh only when camera projection fields change).
+		{
+			vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, lightClusterGridPipeline);
+
+			std::vector<VkDescriptorSet> boundSets{
+				static_cast<VkDescriptorSet>(lightClusterGridSet)
+			};
+
+			vkCmdBindDescriptorSets(cmd,
+				VK_PIPELINE_BIND_POINT_COMPUTE,
+				lightClusterGridPipelineLayout,
+				0, (uint32_t)boundSets.size(),
+				boundSets.data(),
+				0, nullptr
+			);
+
+			vkCmdDispatch(cmd, 1, 1, 32);
+		}
+	}
+
 	vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 
 	std::vector<VkDescriptorSet> boundSets{
