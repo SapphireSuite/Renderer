@@ -813,7 +813,7 @@ void Init()
 						.target = "cs_6_5",
 					};
 
-					csInfo.defines.push_back("SA_CAMERA_BUFFER_ID=1");
+					csInfo.defines.push_back("SA_CAMERA_BUFFER_ID=0");
 
 					ShaderCompileResult csShaderRes = compiler.CompileSPIRV(csInfo);
 					csBuildLightClusterGridDesc = csShaderRes.desc;
@@ -1282,11 +1282,11 @@ void Init()
 				{
 					VK::DescriptorPoolInfos info;
 					info.poolSizes.emplace_back(VkDescriptorPoolSize{
-						.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+						.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
 						.descriptorCount = 1
 						});
 					info.poolSizes.emplace_back(VkDescriptorPoolSize{
-						.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+						.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
 						.descriptorCount = 1
 						});
 					info.setNum = 1;
@@ -1300,14 +1300,14 @@ void Init()
 						{
 							{
 								.binding = 0,
-								.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+								.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
 								.descriptorCount = 1,
 								.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
 								.pImmutableSamplers = nullptr
 							},
 							{
 								.binding = 1,
-								.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+								.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
 								.descriptorCount = 1,
 								.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
 								.pImmutableSamplers = nullptr
@@ -1325,24 +1325,6 @@ void Init()
 					std::vector<VkWriteDescriptorSet> writes;
 					writes.reserve(2);
 
-					// Output ClusterGrid
-					{
-						VkDescriptorBufferInfo& buffInfo = bufferInfos.emplace_back();
-						buffInfo.buffer = lightClusterGridBuffer;
-						buffInfo.offset = 0;
-						buffInfo.range = VK_WHOLE_SIZE;
-
-						VkWriteDescriptorSet& descWrite = writes.emplace_back();
-						descWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-						descWrite.pNext = nullptr;
-						descWrite.dstSet = lightClusterGridSet;
-						descWrite.dstBinding = 0;
-						descWrite.dstArrayElement = 0;
-						descWrite.descriptorCount = 1;
-						descWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-						descWrite.pBufferInfo = &buffInfo;
-					}
-
 					// Camera buffer
 					{
 						VkDescriptorBufferInfo& buffInfo = bufferInfos.emplace_back();
@@ -1354,10 +1336,28 @@ void Init()
 						descWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 						descWrite.pNext = nullptr;
 						descWrite.dstSet = lightClusterGridSet;
-						descWrite.dstBinding = 1;
+						descWrite.dstBinding = 0;
 						descWrite.dstArrayElement = 0;
 						descWrite.descriptorCount = 1;
 						descWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+						descWrite.pBufferInfo = &buffInfo;
+					}
+
+					// Output ClusterGrid
+					{
+						VkDescriptorBufferInfo& buffInfo = bufferInfos.emplace_back();
+						buffInfo.buffer = lightClusterGridBuffer;
+						buffInfo.offset = 0;
+						buffInfo.range = VK_WHOLE_SIZE;
+
+						VkWriteDescriptorSet& descWrite = writes.emplace_back();
+						descWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+						descWrite.pNext = nullptr;
+						descWrite.dstSet = lightClusterGridSet;
+						descWrite.dstBinding = 1;
+						descWrite.dstArrayElement = 0;
+						descWrite.descriptorCount = 1;
+						descWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
 						descWrite.pBufferInfo = &buffInfo;
 					}
 
