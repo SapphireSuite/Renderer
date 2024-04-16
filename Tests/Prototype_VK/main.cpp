@@ -68,6 +68,7 @@ VK::Buffer objectBuffer;
 VK::DescriptorPool objectDescPool;
 VK::DescriptorSetLayout objectDescSetLayout;
 VK::DescriptorSet objectSet;
+VK::Buffer lightClusterInfoBuffer;
 VK::Buffer lightClusterGridBuffer;
 VK::DescriptorPool lightClusterGridDescPool;
 VK::DescriptorSetLayout lightClusterGridDescSetLayout;
@@ -813,7 +814,7 @@ void Init()
 						.target = "cs_6_5",
 					};
 
-					csInfo.defines.push_back("SA_CAMERA_BUFFER_ID=0");
+					csInfo.defines.push_back("SA_CAMERA_BUFFER_ID=1");
 
 					ShaderCompileResult csShaderRes = compiler.CompileSPIRV(csInfo);
 					csBuildLightClusterGridDesc = csShaderRes.desc;
@@ -1273,6 +1274,26 @@ void Init()
 
 		// Light Culling
 		{
+			// LightClusterInfo
+			{
+				struct LightClusterInfo
+				{
+					SA::Vec3ui gridSize;
+
+					float clusterSize;
+					float clusterBias;
+				};
+
+				LightClusterInfo lightClusterInfo{
+					.gridSize = SA::Vec3ui{ 32, 32, 32 },
+					.clusterSize = 32 / std::logf(1000.0f/0.1f),
+					.clusterBias = 32 * std::logf(0.1f) / std::logf(1000.0f/0.1f),
+				};
+
+				lightClusterInfoBuffer.Create(device, 2 * sizeof(float) + 3 * sizeof(uint32_t), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+										VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &lightClusterInfo);
+			}
+
 			// LightClusterGrid
 			{
 				lightClusterGridBuffer.Create(device, 2 * sizeof(SA::Vec4f) * 32 * 32 * 32, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
@@ -1283,7 +1304,7 @@ void Init()
 					VK::DescriptorPoolInfos info;
 					info.poolSizes.emplace_back(VkDescriptorPoolSize{
 						.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-						.descriptorCount = 1
+						.descriptorCount = 2
 						});
 					info.poolSizes.emplace_back(VkDescriptorPoolSize{
 						.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
@@ -1307,6 +1328,13 @@ void Init()
 							},
 							{
 								.binding = 1,
+								.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+								.descriptorCount = 1,
+								.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
+								.pImmutableSamplers = nullptr
+							},
+							{
+								.binding = 2,
 								.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
 								.descriptorCount = 1,
 								.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
@@ -1320,10 +1348,28 @@ void Init()
 					lightClusterGridSet = lightClusterGridDescPool.Allocate(device, lightClusterGridDescSetLayout);
 
 					std::vector<VkDescriptorBufferInfo> bufferInfos;
-					bufferInfos.reserve(2);
+					bufferInfos.reserve(3);
 
 					std::vector<VkWriteDescriptorSet> writes;
-					writes.reserve(2);
+					writes.reserve(3);
+
+					// LightCluserInfo
+					{
+						VkDescriptorBufferInfo& buffInfo = bufferInfos.emplace_back();
+						buffInfo.buffer = lightClusterInfoBuffer;
+						buffInfo.offset = 0;
+						buffInfo.range = VK_WHOLE_SIZE;
+
+						VkWriteDescriptorSet& descWrite = writes.emplace_back();
+						descWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+						descWrite.pNext = nullptr;
+						descWrite.dstSet = lightClusterGridSet;
+						descWrite.dstBinding = 0;
+						descWrite.dstArrayElement = 0;
+						descWrite.descriptorCount = 1;
+						descWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+						descWrite.pBufferInfo = &buffInfo;
+					}
 
 					// Camera buffer
 					{
@@ -1336,7 +1382,7 @@ void Init()
 						descWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 						descWrite.pNext = nullptr;
 						descWrite.dstSet = lightClusterGridSet;
-						descWrite.dstBinding = 0;
+						descWrite.dstBinding = 1;
 						descWrite.dstArrayElement = 0;
 						descWrite.descriptorCount = 1;
 						descWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -1354,7 +1400,7 @@ void Init()
 						descWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 						descWrite.pNext = nullptr;
 						descWrite.dstSet = lightClusterGridSet;
-						descWrite.dstBinding = 1;
+						descWrite.dstBinding = 2;
 						descWrite.dstArrayElement = 0;
 						descWrite.descriptorCount = 1;
 						descWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
@@ -1456,6 +1502,7 @@ void Uninit()
 		lightDescSetLayout.Destroy(device);
 		lightDescPool.Destroy(device);
 
+		lightClusterInfoBuffer.Destroy(device);
 		lightClusterGridBuffer.Destroy(device);
 		lightClusterGridDescSetLayout.Destroy(device);
 		lightClusterGridDescPool.Destroy(device);

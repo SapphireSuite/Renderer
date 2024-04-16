@@ -3,16 +3,13 @@
 #ifndef SAPPHIRE_RENDER_SHADER_BUILD_LIGHT_CLUSTER_GRID_GUARD
 #define SAPPHIRE_RENDER_SHADER_BUILD_LIGHT_CLUSTER_GRID_GUARD
 
-#include <Common/Camera.hlsl>
-
+#include <Passes/LightCulling/LightClusterCommon.hlsl>
 
 //---------- Inputs ----------
 
 #define NUM_THREAD_X 32
 #define NUM_THREAD_Y 32
 #define NUM_THREAD_Z 1
-
-static const uint3 clusterGridSize = uint3(32, 32, 32);
 
 
 //---------- Outputs ----------
@@ -28,7 +25,7 @@ struct ClusterAABB
 	float padding2;
 };
 
-RWStructuredBuffer<ClusterAABB> clusterAABBs : register(u1);
+RWStructuredBuffer<ClusterAABB> clusterAABBs : register(u2);
 
 
 //-------------------- Compute Shader --------------------
@@ -39,32 +36,31 @@ float3 LineIntersectionWithZPlane(/*float3 _start, */float3 _end, float _zPlane)
 [numthreads(NUM_THREAD_X, NUM_THREAD_Y, NUM_THREAD_Z)]
 void main(uint3 _dispatchThreadID : SV_DispatchThreadID)
 {
-	if (_dispatchThreadID.x >= clusterGridSize.x ||
-		_dispatchThreadID.y >= clusterGridSize.y ||
-		_dispatchThreadID.z >= clusterGridSize.z)
+	if (_dispatchThreadID.x >= lightClusterInfo.gridSize.x ||
+		_dispatchThreadID.y >= lightClusterInfo.gridSize.y ||
+		_dispatchThreadID.z >= lightClusterInfo.gridSize.z)
 		return;
 	
-	// Tiling
-	float2 tilingSize = camera.screen / float2(clusterGridSize.x, clusterGridSize.y);
+	const float2 tilePixelSize = SA::ComputeTilePixelSize();
 	
 	// Compute Screen-Space min, max.
-	const float2 ssMin = float2(_dispatchThreadID.x, _dispatchThreadID.y) * tilingSize;
-	const float2 ssMax = float2(_dispatchThreadID.x + 1, _dispatchThreadID.y + 1) * tilingSize;
+	const float2 ssMin = float2(_dispatchThreadID.x, _dispatchThreadID.y) * tilePixelSize;
+	const float2 ssMax = float2(_dispatchThreadID.x + 1, _dispatchThreadID.y + 1) * tilePixelSize;
 	
 	// Compute View-Space min, max.
 	const float3 wsMin = ComputeScreenSpaceToViewSpace(ssMin);
 	const float3 wsMax = ComputeScreenSpaceToViewSpace(ssMax);
 
 	// Compute View-Space cluster near, far.
-	const float clusterNear = camera.zNear * pow(camera.zFar / camera.zNear, _dispatchThreadID.z / float(clusterGridSize.z));
-	const float clusterFar = camera.zNear * pow(camera.zFar / camera.zNear, (_dispatchThreadID.z + 1) / float(clusterGridSize.z));
+	const float clusterNear = camera.zNear * pow(camera.zFar / camera.zNear, _dispatchThreadID.z / float(lightClusterInfo.gridSize.z));
+	const float clusterFar = camera.zNear * pow(camera.zFar / camera.zNear, (_dispatchThreadID.z + 1) / float(lightClusterInfo.gridSize.z));
 	
 	// Compute final AABB.
 	const float3 clusterMinAABB = LineIntersectionWithZPlane(wsMin, clusterNear);
 	const float3 clusterMaxAABB = LineIntersectionWithZPlane(wsMax, clusterFar);
 	
 	// Write to buffer.
-	const uint clusterIndex = _dispatchThreadID.x + _dispatchThreadID.y * min(NUM_THREAD_X, clusterGridSize.x) + _dispatchThreadID.z * min(NUM_THREAD_X, clusterGridSize.x) * min(NUM_THREAD_Y, clusterGridSize.y);
+	const uint clusterIndex = _dispatchThreadID.x + _dispatchThreadID.y * min(NUM_THREAD_X, lightClusterInfo.gridSize.x) + _dispatchThreadID.z * min(NUM_THREAD_X, lightClusterInfo.gridSize.x) * min(NUM_THREAD_Y, lightClusterInfo.gridSize.y);
 	clusterAABBs[clusterIndex].min = clusterMinAABB;
 	clusterAABBs[clusterIndex].max = clusterMaxAABB;
 }
