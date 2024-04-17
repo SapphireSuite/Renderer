@@ -19,15 +19,10 @@ namespace SA
 	//{ View
 
 		/// Camera transformation matrix.
-		//float4x4 view;
+		float4x4 view;
 
 		/// Camera inverse transformation matrix.
 		//float4x4 inverseView;
-
-		/// Camera raw position.
-		float3 position;
-
-		float padding;
 
 	//}
 
@@ -69,7 +64,7 @@ namespace SA
 
 	float3 GetCameraViewPosition()
 	{
-		return camera.position;
+		return float3(camera.view._14, camera.view._24, camera.view._34);
 	}
 
 	float4 ComputeObjectViewPosition(float3 _worldPosition)

@@ -19,15 +19,10 @@ namespace SA::RND
 	// { View
 
 		/// Camera transformation matrix.
-		//Mat4f view = Mat4f::Identity;
+		Mat4f view = Mat4f::Identity;
 
 		/// Camera inverse transformation matrix.
 		//Mat4f inverseView = Mat4f::Identity;
-
-		/// Camera raw position.
-		Vec3f position;
-
-		float padding = 0.0f;
 
 	//}
 

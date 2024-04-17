@@ -8,9 +8,8 @@ namespace SA::RND
 	{
 		// View
 		{
-			//view = _view;
+			view = _view;
 			//inverseView = _view.GetInversed();
-			position = Vec3f(_view.e03, _view.e13, _view.e23);
 		}
 
 		// Projection
