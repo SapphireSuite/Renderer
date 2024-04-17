@@ -52,6 +52,7 @@ std::vector<VK::FrameBuffer> frameBuffers;
 std::vector<VK::CommandBuffer> cmdBuffers;
 VK::Shader buildLightClusterGridShader;
 VK::Shader computeActiveLightClustersShader;
+VK::Shader buildActiveLightClusterListShader;
 VK::Shader depthOnlyVertexShader;
 VK::Shader vertexShader;
 VK::Shader fragmentShader;
@@ -62,6 +63,7 @@ RawStaticMesh sphereRaw;
 VK::StaticMesh sphereMesh;
 RHI::ShaderDescriptor csBuildLightClusterGridDesc;
 RHI::ShaderDescriptor csComputeActiveLightClustersDesc;
+RHI::ShaderDescriptor csBuildActiveLightClusterListDesc;
 RHI::ShaderDescriptor depthOnlyVsDesc;
 RHI::ShaderDescriptor vsDesc;
 RHI::ShaderDescriptor fsDesc;
@@ -77,6 +79,8 @@ VK::DescriptorSet objectSet;
 VK::Buffer lightClusterInfoBuffer;
 VK::Buffer lightClusterGridBuffer;
 VK::Buffer activeLightClustersBuffer;
+VK::Buffer activeLightClusterListBuffer;
+VK::Buffer lightClusterIndirectArgsBuffer;
 VK::DescriptorPool lightClusterGridDescPool;
 VK::DescriptorSetLayout lightClusterGridDescSetLayout;
 VK::DescriptorSet lightClusterGridSet;
@@ -85,9 +89,14 @@ VK::Pipeline lightClusterGridPipeline;
 VK::DescriptorPool activeLightClustersDescPool;
 VK::DescriptorSetLayout activeLightClustersDescSetLayout;
 VK::DescriptorSet activeLightClustersSet;
+VK::DescriptorPool activeLightClusterListDescPool;
+VK::DescriptorSetLayout activeLightClusterListDescSetLayout;
+VK::DescriptorSet activeLightClusterListSet;
 VK::PipelineLayout activeLightClustersPipelineLayout;
 VK::Pipeline activeLightClustersPipeline;
 VkImageView depthUAV = VK_NULL_HANDLE;
+VK::PipelineLayout activeLightClusterListPipelineLayout;
+VK::Pipeline activeLightClusterListPipeline;
 VK::Buffer pointLightBuffer;
 VK::Buffer directionalLightBuffer;
 VK::DescriptorPool lightDescPool;
@@ -970,6 +979,20 @@ void Init()
 					ShaderCompileResult csShaderRes = compiler.CompileSPIRV(csInfo);
 					csComputeActiveLightClustersDesc = csShaderRes.desc;
 					computeActiveLightClustersShader.Create(device, csShaderRes.rawSPIRV);
+				}
+
+				// Build Active Light Cluster List
+				{
+					ShaderCompileInfo csInfo
+					{
+						.path = L"Resources/Shaders/Passes/LightCulling/BuildActiveLightClusterList.hlsl",
+						.entrypoint = "main",
+						.target = "cs_6_5",
+					};
+
+					ShaderCompileResult csShaderRes = compiler.CompileSPIRV(csInfo);
+					csBuildActiveLightClusterListDesc = csShaderRes.desc;
+					buildActiveLightClusterListShader.Create(device, csShaderRes.rawSPIRV);
 				}
 			}
 
@@ -1861,6 +1884,195 @@ void Init()
 				}
 			}
 		}
+
+		// Active Light Cluster List
+		{
+			activeLightClusterListBuffer.Create(device, lightClusterGridSize.x * lightClusterGridSize.y * lightClusterGridSize.z * sizeof(uint32_t), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+											VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+			lightClusterIndirectArgsBuffer.Create(device, sizeof(uint32_t) * 3, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT,
+				VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+			// DescPool.
+			{
+				VK::DescriptorPoolInfos info;
+				info.poolSizes.emplace_back(VkDescriptorPoolSize{
+					.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+					.descriptorCount = 3
+					});
+				info.poolSizes.emplace_back(VkDescriptorPoolSize{
+					.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+					.descriptorCount = 1
+					});
+				info.setNum = 1;
+
+				activeLightClusterListDescPool.Create(device, info);
+			}
+
+			// Layout
+			{
+				activeLightClusterListDescSetLayout.Create(device,
+					{
+						{
+							.binding = 0,
+							.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+							.descriptorCount = 1,
+							.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
+							.pImmutableSamplers = nullptr
+						},
+						{
+							.binding = 1,
+							.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+							.descriptorCount = 1,
+							.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
+							.pImmutableSamplers = nullptr
+						},
+						{
+							.binding = 2,
+							.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+							.descriptorCount = 1,
+							.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
+							.pImmutableSamplers = nullptr
+						},
+						{
+							.binding = 3,
+							.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+							.descriptorCount = 1,
+							.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
+							.pImmutableSamplers = nullptr
+						}
+					});
+			}
+
+			// Set
+			{
+				activeLightClusterListSet = activeLightClusterListDescPool.Allocate(device, activeLightClusterListDescSetLayout);
+
+				std::vector<VkDescriptorBufferInfo> bufferInfos;
+				bufferInfos.reserve(4);
+
+				std::vector<VkWriteDescriptorSet> writes;
+				writes.reserve(4);
+
+				// Info Buffer
+				{
+					VkDescriptorBufferInfo& buffInfo = bufferInfos.emplace_back();
+					buffInfo.buffer = lightClusterInfoBuffer;
+					buffInfo.offset = 0;
+					buffInfo.range = VK_WHOLE_SIZE;
+
+					VkWriteDescriptorSet& descWrite = writes.emplace_back();
+					descWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+					descWrite.pNext = nullptr;
+					descWrite.dstSet = activeLightClusterListSet;
+					descWrite.dstBinding = 0;
+					descWrite.dstArrayElement = 0;
+					descWrite.descriptorCount = 1;
+					descWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+					descWrite.pBufferInfo = &buffInfo;
+				}
+
+				// Active Light Clusters
+				{
+					VkDescriptorBufferInfo& buffInfo = bufferInfos.emplace_back();
+					buffInfo.buffer = activeLightClustersBuffer;
+					buffInfo.offset = 0;
+					buffInfo.range = VK_WHOLE_SIZE;
+
+					VkWriteDescriptorSet& descWrite = writes.emplace_back();
+					descWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+					descWrite.pNext = nullptr;
+					descWrite.dstSet = activeLightClusterListSet;
+					descWrite.dstBinding = 1;
+					descWrite.dstArrayElement = 0;
+					descWrite.descriptorCount = 1;
+					descWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+					descWrite.pBufferInfo = &buffInfo;
+				}
+
+				// Indirect Cmd buffer
+				{
+					VkDescriptorBufferInfo& buffInfo = bufferInfos.emplace_back();
+					buffInfo.buffer = lightClusterIndirectArgsBuffer;
+					buffInfo.offset = 0;
+					buffInfo.range = VK_WHOLE_SIZE;
+
+					VkWriteDescriptorSet& descWrite = writes.emplace_back();
+					descWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+					descWrite.pNext = nullptr;
+					descWrite.dstSet = activeLightClusterListSet;
+					descWrite.dstBinding = 2;
+					descWrite.dstArrayElement = 0;
+					descWrite.descriptorCount = 1;
+					descWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+					descWrite.pBufferInfo = &buffInfo;
+				}
+
+				// Active List buffer
+				{
+					VkDescriptorBufferInfo& buffInfo = bufferInfos.emplace_back();
+					buffInfo.buffer = activeLightClusterListBuffer;
+					buffInfo.offset = 0;
+					buffInfo.range = VK_WHOLE_SIZE;
+
+					VkWriteDescriptorSet& descWrite = writes.emplace_back();
+					descWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+					descWrite.pNext = nullptr;
+					descWrite.dstSet = activeLightClusterListSet;
+					descWrite.dstBinding = 3;
+					descWrite.dstArrayElement = 0;
+					descWrite.descriptorCount = 1;
+					descWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+					descWrite.pBufferInfo = &buffInfo;
+				}
+
+				vkUpdateDescriptorSets(device, (uint32_t)writes.size(), writes.data(), 0, nullptr);
+			}
+
+			// PipelineLayout
+			{
+				std::vector<VkDescriptorSetLayout> setLayouts{
+					static_cast<VkDescriptorSetLayout>(activeLightClusterListDescSetLayout),
+				};
+
+				VkPipelineLayoutCreateInfo info{
+					.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+					.pNext = nullptr,
+					.flags = 0u,
+					.setLayoutCount = static_cast<uint32_t>(setLayouts.size()),
+					.pSetLayouts = setLayouts.data(),
+					.pushConstantRangeCount = 0,
+					.pPushConstantRanges = nullptr,
+				};
+
+				activeLightClusterListPipelineLayout.Create(device, info);
+			}
+
+			// Pipeline
+			{
+				VkPipelineShaderStageCreateInfo shaderStage{
+					.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+					.pNext = nullptr,
+					.flags = 0u,
+					.stage = VK_SHADER_STAGE_COMPUTE_BIT,
+					.module = buildActiveLightClusterListShader,
+					.pName = csBuildActiveLightClusterListDesc.entrypoint.c_str(),
+					.pSpecializationInfo = nullptr
+				};
+
+				VkComputePipelineCreateInfo pipelineInfo{
+					.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
+					.pNext = nullptr,
+					.flags = 0u,
+					.stage = shaderStage,
+					.layout = activeLightClusterListPipelineLayout,
+					.basePipelineHandle = VK_NULL_HANDLE,
+					.basePipelineIndex = -1,
+				};
+
+				activeLightClusterListPipeline.Create(device, pipelineInfo);
+			}
+		}
 	}
 }
 
@@ -1879,6 +2091,7 @@ void Uninit()
 		depthOnlyVertexShader.Destroy(device);
 		buildLightClusterGridShader.Destroy(device);
 		computeActiveLightClustersShader.Destroy(device);
+		buildActiveLightClusterListShader.Destroy(device);
 
 		sphereMesh.Destroy(device);
 
@@ -1922,6 +2135,13 @@ void Uninit()
 		activeLightClustersPipelineLayout.Destroy(device);
 		activeLightClustersPipeline.Destroy(device);
 		vkDestroyImageView(device, depthUAV, nullptr);
+
+		activeLightClusterListBuffer.Destroy(device);
+		lightClusterIndirectArgsBuffer.Destroy(device);
+		activeLightClusterListDescSetLayout.Destroy(device);
+		activeLightClusterListDescPool.Destroy(device);
+		activeLightClusterListPipelineLayout.Destroy(device);
+		activeLightClusterListPipeline.Destroy(device);
 
 		for(auto& frameBuffer : frameBuffers)
 			frameBuffer.Destroy(device);
@@ -2048,6 +2268,25 @@ void Loop()
 			);
 
 			vkCmdDispatch(cmd, (1200 / 32) + 1, (900 / 32) + 1, 1);
+		}
+
+		// Build Active Light Cluster List
+		{
+			vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, activeLightClusterListPipeline);
+
+			std::vector<VkDescriptorSet> boundSets{
+				static_cast<VkDescriptorSet>(activeLightClusterListSet)
+			};
+
+			vkCmdBindDescriptorSets(cmd,
+				VK_PIPELINE_BIND_POINT_COMPUTE,
+				activeLightClusterListPipelineLayout,
+				0, (uint32_t)boundSets.size(),
+				boundSets.data(),
+				0, nullptr
+			);
+
+			vkCmdDispatch(cmd, 1, 1, 1);
 		}
 	}
 

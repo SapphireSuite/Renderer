@@ -16,7 +16,7 @@ Texture2D<float> depthTexture : register(t2);
 
 //---------- Outputs ----------
 
-RWStructuredBuffer<bool> activeClusters : register(u3);
+RWStructuredBuffer<bool> activeClusterStates : register(u3);
 
 
 //-------------------- Compute Shader --------------------
@@ -41,7 +41,7 @@ void main(uint3 _dispatchThreadID : SV_DispatchThreadID)
 	
 	const uint clusterIndex = GetClusterIndex(float3(_dispatchThreadID.xy, depthValue));
 	
-	activeClusters[clusterIndex] = true;
+	activeClusterStates[clusterIndex] = true;
 }
 
 uint GetClusterIndex(float3 pixel)

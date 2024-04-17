@@ -26,10 +26,15 @@ namespace SA
 	
 	//---------- Helper Functions ----------
 	
+#if SA_CAMERA_BUFFER
+
 	float2 ComputeTilePixelSize()
 	{
 		return camera.screen / float2(lightClusterInfo.gridSize.x, lightClusterInfo.gridSize.y);
 	}
+	
+#endif
+
 }
 
 #endif // SAPPHIRE_RENDER_SHADER_LIGHT_CLUSTER_COMMON_GUARD
