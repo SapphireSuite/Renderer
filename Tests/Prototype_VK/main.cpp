@@ -45,11 +45,14 @@ VK::WindowSurface winSurface;
 VK::Device device;
 VK::Swapchain swapchain;
 VK::CommandPool cmdPool;
+VK::RenderPass depthPrePass;
 VK::RenderPass renderPass;
+std::vector<VK::FrameBuffer> depthPrepassFrameBuffers;
 std::vector<VK::FrameBuffer> frameBuffers;
 std::vector<VK::CommandBuffer> cmdBuffers;
 VK::Shader buildLightClusterGridShader;
 VK::Shader computeActiveLightClustersShader;
+VK::Shader depthOnlyVertexShader;
 VK::Shader vertexShader;
 VK::Shader fragmentShader;
 VK::PipelineLayout pipLayout;
@@ -59,6 +62,7 @@ RawStaticMesh sphereRaw;
 VK::StaticMesh sphereMesh;
 RHI::ShaderDescriptor csBuildLightClusterGridDesc;
 RHI::ShaderDescriptor csComputeActiveLightClustersDesc;
+RHI::ShaderDescriptor depthOnlyVsDesc;
 RHI::ShaderDescriptor vsDesc;
 RHI::ShaderDescriptor fsDesc;
 std::vector<VK::Buffer> cameraBuffers;
@@ -109,6 +113,7 @@ struct SceneTexture
 	VK::Texture color;
 	VK::Texture resolvedColor;
 	VK::Texture depth;
+	VK::Texture resolvedDepth;
 };
 std::vector<SceneTexture> sceneTextures;
 
@@ -221,9 +226,11 @@ void Init()
 			uint32_t num = swapchain.GetImageNum();
 			sceneTextures.resize(num);
 			frameBuffers.resize(num);
+			depthPrepassFrameBuffers.resize(num);
 
 			for (uint32_t i = 0; i < num; ++i)
 			{
+				VK::RenderPassInfo depthOnlyPassInfo;
 				VK::RenderPassInfo passInfo;
 
 				// Scene Textures
@@ -247,6 +254,7 @@ void Init()
 						desc.sampling = VK_SAMPLE_COUNT_8_BIT;
 						sceneTexture.color.Create(device, desc);
 						passInfo.RegisterRenderTarget(&sceneTexture.color, desc);
+						desc.sampling = VK_SAMPLE_COUNT_1_BIT;
 					}
 					else
 					{
@@ -257,17 +265,34 @@ void Init()
 					if (bDepth)
 					{
 						desc.format = VK_FORMAT_D16_UNORM;
-						desc.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+						desc.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 						desc.clearColor = bDepthInverted ? Color{ .r = 0.0f, .g = 0.0f } : Color{ .r = 1.0f, .g = 0.0f };
-						sceneTexture.depth.Create(device, desc);
-						passInfo.RegisterRenderTarget(&sceneTexture.depth, desc);
+
+						if (bMSAA)
+						{
+							desc.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+							sceneTexture.resolvedDepth.Create(device, desc);
+							depthOnlyPassInfo.RegisterRenderTarget(&sceneTexture.resolvedDepth, desc);
+
+							desc.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+							desc.sampling = VK_SAMPLE_COUNT_8_BIT;
+							sceneTexture.depth.Create(device, desc);
+							passInfo.RegisterRenderTarget(&sceneTexture.depth, desc);
+							depthOnlyPassInfo.RegisterRenderTarget(&sceneTexture.depth, desc);
+						}
+						else
+						{
+							sceneTexture.depth.Create(device, desc);
+							passInfo.RegisterRenderTarget(&sceneTexture.depth, desc);
+							depthOnlyPassInfo.RegisterRenderTarget(&sceneTexture.depth, desc);
+						}
 					}
 				}
 
 				// RenderPass
 				{
 					// Forward
-					if (true)
+					if (false)
 					{
 						if (bDepth && bDepthPrepass)
 						{
@@ -293,11 +318,38 @@ void Init()
 						}
 					}
 
+					// Forward+
+					if (true)
+					{
+						depthOnlyPassInfo.AddSubpass("Depth-Only Prepass").AddAttachment(&sceneTextures[i].depth, bMSAA ? &sceneTextures[i].resolvedDepth : nullptr);
+
+
+						auto& mainSubpass = passInfo.AddSubpass("Main");
+
+						auto& colorRT = mainSubpass.AddAttachment(&sceneTextures[i].color, bMSAA ? &sceneTextures[i].resolvedColor : nullptr);
+						
+						if (bDepth)
+						{
+							// Always add depth, even with depth prepass: set depth as read only.
+							auto& depthRT = mainSubpass.AddAttachment(&sceneTextures[i].depth);
+
+							if (bDepthPrepass)
+							{
+								depthRT.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
+								depthRT.accessMode = AttachmentAccessMode::ReadOnly;
+							}
+						}
+					}
+
+					if (!depthPrePass)
+						depthPrePass.Create(device, depthOnlyPassInfo);
+
 					if (!renderPass)
 						renderPass.Create(device, passInfo);
 
 					// FrameBuffers
 					{
+						depthPrepassFrameBuffers[i].Create(device, depthPrePass, depthOnlyPassInfo);
 						frameBuffers[i].Create(device, renderPass, passInfo);
 					}
 				}
@@ -852,6 +904,29 @@ void Init()
 				}
 			}
 
+			// DepthOnly
+			{
+				ShaderCompileInfo vsInfo
+				{
+					.path = L"Resources/Shaders/Passes/DepthOnly.hlsl",
+					.entrypoint = "mainVS",
+					.target = "vs_6_5",
+				};
+
+				if (bDepthInverted)
+					vsInfo.defines.push_back("SA_DEPTH_INVERTED=1");
+
+				vsInfo.defines.push_back("SA_CAMERA_BUFFER_ID=0");
+				vsInfo.defines.push_back("SA_OBJECT_BUFFER_ID=0");
+
+				sphereRaw.vertices.AppendDefines(vsInfo.defines);
+
+				ShaderCompileResult vsShaderRes = compiler.CompileSPIRV(vsInfo);
+				depthOnlyVsDesc = vsShaderRes.desc;
+
+				depthOnlyVertexShader.Create(device, vsShaderRes.rawSPIRV);
+			}
+
 			// Vertex
 			{
 				ShaderCompileInfo vsInfo
@@ -1265,7 +1340,7 @@ void Init()
 				.pDynamicState = nullptr,
 				.layout = pipLayout,
 				.renderPass = renderPass,
-				.subpass = bDepthPrepass ? 1 : 0,
+				.subpass = /*bDepthPrepass ? 1 : */0,
 				.basePipelineHandle = VK_NULL_HANDLE,
 				.basePipelineIndex = -1,
 			};
@@ -1276,12 +1351,24 @@ void Init()
 			{
 				depthStencilInfo.depthWriteEnable = VK_TRUE;
 
+				std::vector<VkPipelineShaderStageCreateInfo> depthOnlyShaderStages{
+					{
+						.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+						.pNext = nullptr,
+						.flags = 0u,
+						.stage = VK::API_GetShaderStage(depthOnlyVsDesc.stage),
+						.module = depthOnlyVertexShader,
+						.pName = depthOnlyVsDesc.entrypoint.c_str(),
+						.pSpecializationInfo = nullptr
+					}
+				};
+
 				VkGraphicsPipelineCreateInfo depthPrepassPipelineCreateInfo{
 					.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
 					.pNext = nullptr,
 					.flags = 0u,
 					.stageCount = 1, // only vertex shader.
-					.pStages = shaderStages.data(),
+					.pStages = depthOnlyShaderStages.data(),
 					.pVertexInputState = &vkVertInputState,
 					.pInputAssemblyState = &inputAssemblyInfo,
 					.pTessellationState = nullptr,
@@ -1292,7 +1379,7 @@ void Init()
 					.pColorBlendState = &colorBlendingInfo,
 					.pDynamicState = nullptr,
 					.layout = pipLayout,
-					.renderPass = renderPass,
+					.renderPass = depthPrePass,
 					.subpass = 0,
 					.basePipelineHandle = VK_NULL_HANDLE,
 					.basePipelineIndex = -1,
@@ -1625,7 +1712,7 @@ void Init()
 					// Depth texture
 					{
 						VkDescriptorImageInfo& imageInfo = imageInfos.emplace_back();
-						imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+						imageInfo.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
 						imageInfo.imageView = depthUAV;
 
 						VkWriteDescriptorSet& write = writes.emplace_back();
@@ -1720,7 +1807,9 @@ void Uninit()
 
 		fragmentShader.Destroy(device);
 		vertexShader.Destroy(device);
+		depthOnlyVertexShader.Destroy(device);
 		buildLightClusterGridShader.Destroy(device);
+		computeActiveLightClustersShader.Destroy(device);
 
 		sphereMesh.Destroy(device);
 
@@ -1763,16 +1852,24 @@ void Uninit()
 		activeLightClustersDescPool.Destroy(device);
 		activeLightClustersPipelineLayout.Destroy(device);
 		activeLightClustersPipeline.Destroy(device);
+		vkDestroyImageView(device, depthUAV, nullptr);
 
 		for(auto& frameBuffer : frameBuffers)
 			frameBuffer.Destroy(device);
 
+		for (auto& frameBuffer : depthPrepassFrameBuffers)
+			frameBuffer.Destroy(device);
+
+		depthPrePass.Destroy(device);
 		renderPass.Destroy(device);
 
 		for (auto& sceneTexture : sceneTextures)
 		{
 			if (sceneTexture.depth)
 				sceneTexture.depth.Destroy(device);
+
+			if (sceneTexture.resolvedDepth)
+				sceneTexture.resolvedDepth.Destroy(device);
 
 			if (sceneTexture.color)
 				sceneTexture.color.Destroy(device);
@@ -1813,10 +1910,12 @@ void Loop()
 
 	VK::CommandBuffer& cmd = cmdBuffers[frameIndex];
 	VK::FrameBuffer& fbuff = frameBuffers[frameIndex];
+	VK::FrameBuffer& depthPrepassFbuff = depthPrepassFrameBuffers[frameIndex];
 
 	cmd.Begin();
 
-	renderPass.Begin(cmd, fbuff);
+	depthPrePass.Begin(cmd, depthPrepassFbuff);
+	//renderPass.Begin(cmd, fbuff);
 
 	if (depthPrepassPipeline)
 	{
@@ -1837,8 +1936,10 @@ void Loop()
 
 		sphereMesh.Draw(cmd, 100u);
 
-		renderPass.NextSubpass(cmd);
+		//renderPass.NextSubpass(cmd);
 	}
+
+	depthPrePass.End(cmd);
 
 	// Light Culling
 	{
@@ -1880,6 +1981,8 @@ void Loop()
 			vkCmdDispatch(cmd, (1200 / 32) + 1, (900 / 32) + 1, 1);
 		}
 	}
+
+	renderPass.Begin(cmd, fbuff);
 
 	vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 
