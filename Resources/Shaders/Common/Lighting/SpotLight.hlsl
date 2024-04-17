@@ -27,10 +27,7 @@ namespace SA
 		float cutOff;
 	};
 
-	cbuffer SpotLightBuffer : SA_REG_SPACE(b, SA_SPOT_LIGHT_BUFFER_ID, 2)
-	{
-		SpotLight spotLights[10];
-	};
+	StructuredBuffer<PointLight> spotLights : SA_REG_SPACE(t, SA_SPOT_LIGHT_BUFFER_ID, SA_SPOT_LIGHT_SET);
 
 
 	//---------- Helper Functions ----------
@@ -59,11 +56,15 @@ namespace SA
 
 	float3 ComputeSpotLightsIllumination(IlluminationData _data)
 	{
+		uint num;
+		uint stride;
+		spotLights.GetDimensions(num, stride);
+
 		float3 sum = float3(0.0f, 0.0f, 0.0f);
 
-		for(int i = 0; i < 10; ++i)
+		for(int i = 0; i < num; ++i)
 		{
-			sum += ComputeSpotLightIllumination(_data, SpotLights[i]);
+			sum += ComputeSpotLightIllumination(_data, spotLights[i]);
 		}
 
 		return sum;

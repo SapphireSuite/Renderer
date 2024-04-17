@@ -1058,7 +1058,9 @@ void Init()
 				vsInfo.defines.push_back("SA_OBJECT_BUFFER_ID=0");
 
 				vsInfo.defines.push_back("SA_DIRECTIONAL_LIGHT_BUFFER_ID=0");
+				vsInfo.defines.push_back("SA_DIRECTIONAL_LIGHT_SET=2");
 				vsInfo.defines.push_back("SA_POINT_LIGHT_BUFFER_ID=1");
+				vsInfo.defines.push_back("SA_POINT_LIGHT_SET=2");
 
 				vsInfo.defines.push_back("SA_MATERIAL_ALBEDO_ID=0");
 				vsInfo.defines.push_back("SA_MATERIAL_NORMAL_MAP_ID=1");
@@ -1087,7 +1089,9 @@ void Init()
 				psInfo.defines.push_back("SA_OBJECT_BUFFER_ID=0");
 
 				psInfo.defines.push_back("SA_DIRECTIONAL_LIGHT_BUFFER_ID=0");
+				psInfo.defines.push_back("SA_DIRECTIONAL_LIGHT_SET=2");
 				psInfo.defines.push_back("SA_POINT_LIGHT_BUFFER_ID=1");
+				psInfo.defines.push_back("SA_POINT_LIGHT_SET=2");
 
 				psInfo.defines.push_back("SA_MATERIAL_ALBEDO_ID=0");
 				psInfo.defines.push_back("SA_MATERIAL_NORMAL_MAP_ID=1");
@@ -1184,16 +1188,18 @@ void Init()
 				light.color = SA::Vec3f{ RandFloat(0.0f, 1.0f), RandFloat(0.0f, 1.0f), RandFloat(0.0f, 1.0f) };
 				light.intensity = RandFloat(0.0f, 10.0f);
 
-				directionalLightBuffer.Create(device, sizeof(DirectionalLight_GPU), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+				directionalLightBuffer.Create(device, sizeof(DirectionalLight_GPU), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
 										VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &light);
 			}
 
 			// Point lights Buffer
 			{
-				std::vector<PointLight_GPU> pointLights;
-				pointLights.reserve(10);
+				uint32_t pointLightNum = 10;
 
-				for (uint32_t i = 0; i < 10; ++i)
+				std::vector<PointLight_GPU> pointLights;
+				pointLights.reserve(pointLightNum);
+
+				for (uint32_t i = 0; i < pointLightNum; ++i)
 				{
 					PointLight_GPU light;
 					light.position = RandVec3Position();
@@ -1204,7 +1210,7 @@ void Init()
 					pointLights.push_back(light);
 				}
 
-				pointLightBuffer.Create(device, sizeof(PointLight_GPU) * 10, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+				pointLightBuffer.Create(device, sizeof(PointLight_GPU) * pointLightNum, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
 										VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, pointLights.data());
 			}
 
@@ -1213,7 +1219,7 @@ void Init()
 			{
 				VK::DescriptorPoolInfos info;
 				info.poolSizes.emplace_back(VkDescriptorPoolSize{
-					.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+					.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
 					.descriptorCount = 2
 					});
 				info.setNum = 1;
@@ -1227,14 +1233,14 @@ void Init()
 				{
 					{
 						.binding = 0,
-						.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+						.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
 						.descriptorCount = 1,
 						.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
 						.pImmutableSamplers = nullptr
 					},
 					{
 						.binding = 1,
-						.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+						.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
 						.descriptorCount = 1,
 						.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
 						.pImmutableSamplers = nullptr
@@ -1266,7 +1272,7 @@ void Init()
 					descWrite.dstBinding = 0;
 					descWrite.dstArrayElement = 0;
 					descWrite.descriptorCount = 1;
-					descWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+					descWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
 					descWrite.pBufferInfo = &buffInfo;
 				}
 
@@ -1284,7 +1290,7 @@ void Init()
 					descWrite.dstBinding = 1;
 					descWrite.dstArrayElement = 0;
 					descWrite.descriptorCount = 1;
-					descWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+					descWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
 					descWrite.pBufferInfo = &buffInfo;
 				}
 

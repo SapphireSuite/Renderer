@@ -3,6 +3,7 @@
 #ifndef SAPPHIRE_RENDER_SHADER_BUILD_LIGHT_CLUSTER_GRID_GUARD
 #define SAPPHIRE_RENDER_SHADER_BUILD_LIGHT_CLUSTER_GRID_GUARD
 
+#include <Common/Misc/AABB.hlsl>
 #include <Passes/LightCulling/LightClusterCommon.hlsl>
 
 //---------- Inputs ----------
@@ -14,18 +15,7 @@
 
 //---------- Outputs ----------
 
-struct ClusterAABB
-{
-	float3 min;
-	
-	float padding1;
-	
-	float3 max;
-	
-	float padding2;
-};
-
-RWStructuredBuffer<ClusterAABB> clusterAABBs : register(u2);
+RWStructuredBuffer<SA::AABB> lightClusterAABBs : register(u2);
 
 
 //-------------------- Compute Shader --------------------
@@ -61,8 +51,8 @@ void main(uint3 _dispatchThreadID : SV_DispatchThreadID)
 	
 	// Write to buffer.
 	const uint clusterIndex = _dispatchThreadID.x + _dispatchThreadID.y * min(NUM_THREAD_X, lightClusterInfo.gridSize.x) + _dispatchThreadID.z * min(NUM_THREAD_X, lightClusterInfo.gridSize.x) * min(NUM_THREAD_Y, lightClusterInfo.gridSize.y);
-	clusterAABBs[clusterIndex].min = clusterMinAABB;
-	clusterAABBs[clusterIndex].max = clusterMaxAABB;
+	lightClusterAABBs[clusterIndex].min = clusterMinAABB;
+	lightClusterAABBs[clusterIndex].max = clusterMaxAABB;
 }
 
 float3 ComputeScreenSpaceToViewSpace(float2 _ssPos)

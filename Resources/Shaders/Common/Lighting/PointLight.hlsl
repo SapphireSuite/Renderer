@@ -23,10 +23,7 @@ namespace SA
 		float radius;
 	};
 
-	cbuffer PointLightBuffer : SA_REG_SPACE(b, SA_POINT_LIGHT_BUFFER_ID, 2)
-	{
-		PointLight pointLights[10];
-	};
+	StructuredBuffer<PointLight> pointLights : SA_REG_SPACE(t, SA_POINT_LIGHT_BUFFER_ID, SA_POINT_LIGHT_SET);
 
 
 	//---------- Helper Functions ----------
@@ -47,9 +44,13 @@ namespace SA
 
 	float3 ComputePointLightsIllumination(IlluminationData _data)
 	{
+		uint num;
+		uint stride;
+		pointLights.GetDimensions(num, stride);
+
 		float3 sum = float3(0.0f, 0.0f, 0.0f);
 
-		for(int i = 0; i < 10; ++i)
+		for(int i = 0; i < num; ++i)
 		{
 			sum += ComputePointLightIllumination(_data, pointLights[i]);
 		}

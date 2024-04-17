@@ -23,10 +23,7 @@ namespace SA
 		float padding;
 	};
 
-	cbuffer DirectionalLightBuffer : SA_REG_SPACE(b, SA_DIRECTIONAL_LIGHT_BUFFER_ID, 2)
-	{
-		DirectionalLight directionalLight;
-	};
+	StructuredBuffer<DirectionalLight> directionalLights : SA_REG_SPACE(t, SA_DIRECTIONAL_LIGHT_BUFFER_ID, SA_DIRECTIONAL_LIGHT_SET);
 
 
 	//---------- Helper Functions ----------
@@ -45,11 +42,15 @@ namespace SA
 
 	float3 ComputeDirectionalLightsIllumination(IlluminationData _data)
 	{
+		uint num;
+		uint stride;
+		directionalLights.GetDimensions(num, stride);
+
 		float3 sum = float3(0.0f, 0.0f, 0.0f);
 
-		for(int i = 0; i < 1; ++i)
+		for(int i = 0; i < num; ++i)
 		{
-			sum += ComputeDirectionalLightIllumination(_data, directionalLight/*s[i]*/);
+			sum += ComputeDirectionalLightIllumination(_data, directionalLights[i]);
 		}
 
 		return sum;
