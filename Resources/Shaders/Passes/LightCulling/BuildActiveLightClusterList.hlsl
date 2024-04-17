@@ -11,7 +11,7 @@
 #define NUM_THREAD_Y 1
 #define NUM_THREAD_Z 1
 
-StructuredBuffer<bool> activeClusterStates : register(t1);
+StructuredBuffer<uint> activeClusterStates : register(t1);
 
 
 //---------- Outputs ----------

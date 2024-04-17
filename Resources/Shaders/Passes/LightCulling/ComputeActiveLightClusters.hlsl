@@ -16,7 +16,7 @@ Texture2D<float> depthTexture : register(t2);
 
 //---------- Outputs ----------
 
-RWStructuredBuffer<bool> activeClusterStates : register(u3);
+RWStructuredBuffer<uint> activeClusterStates : register(u3);
 
 
 //-------------------- Compute Shader --------------------

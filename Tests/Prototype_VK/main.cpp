@@ -1666,7 +1666,7 @@ void Init()
 
 			// ActiveLightCluster
 			{
-				activeLightClustersBuffer.Create(device, lightClusterGridSize.x * lightClusterGridSize.y * lightClusterGridSize.z * sizeof(bool), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+				activeLightClustersBuffer.Create(device, lightClusterGridSize.x * lightClusterGridSize.y * lightClusterGridSize.z * sizeof(uint32_t), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
 					VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
 				// Depth texture ImageView
