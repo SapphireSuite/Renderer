@@ -51,7 +51,8 @@ std::vector<VK::FrameBuffer> depthPrepassFrameBuffers;
 std::vector<VK::FrameBuffer> frameBuffers;
 std::vector<VK::CommandBuffer> cmdBuffers;
 VK::Shader buildLightClusterGridShader;
-VK::Shader computeActiveLightClustersShader;
+VK::Shader clearActiveLightClusterStatesShader;
+VK::Shader computeActiveLightClusterStatesShader;
 VK::Shader buildActiveLightClusterListShader;
 VK::Shader depthOnlyVertexShader;
 VK::Shader vertexShader;
@@ -62,7 +63,8 @@ VK::Pipeline pipeline;
 RawStaticMesh sphereRaw;
 VK::StaticMesh sphereMesh;
 RHI::ShaderDescriptor csBuildLightClusterGridDesc;
-RHI::ShaderDescriptor csComputeActiveLightClustersDesc;
+RHI::ShaderDescriptor csClearActiveLightClusterStatesDesc;
+RHI::ShaderDescriptor csComputeActiveLightClusterStatesDesc;
 RHI::ShaderDescriptor csBuildActiveLightClusterListDesc;
 RHI::ShaderDescriptor depthOnlyVsDesc;
 RHI::ShaderDescriptor vsDesc;
@@ -86,14 +88,19 @@ VK::DescriptorSetLayout lightClusterGridDescSetLayout;
 VK::DescriptorSet lightClusterGridSet;
 VK::PipelineLayout lightClusterGridPipelineLayout;
 VK::Pipeline lightClusterGridPipeline;
-VK::DescriptorPool activeLightClustersDescPool;
-VK::DescriptorSetLayout activeLightClustersDescSetLayout;
-VK::DescriptorSet activeLightClustersSet;
+VK::DescriptorPool clearActiveLightClusterStatesDescPool;
+VK::DescriptorSetLayout clearActiveLightClusterStatesDescSetLayout;
+VK::DescriptorSet clearActiveLightClusterStatesSet;
+VK::PipelineLayout clearActiveLightClusterStatesPipelineLayout;
+VK::Pipeline clearActiveLightClusterStatesPipeline;
+VK::DescriptorPool activeLightClusterStatesDescPool;
+VK::DescriptorSetLayout activeLightClusterStatesDescSetLayout;
+VK::DescriptorSet activeLightClusterStatesSet;
 VK::DescriptorPool activeLightClusterListDescPool;
 VK::DescriptorSetLayout activeLightClusterListDescSetLayout;
 VK::DescriptorSet activeLightClusterListSet;
-VK::PipelineLayout activeLightClustersPipelineLayout;
-VK::Pipeline activeLightClustersPipeline;
+VK::PipelineLayout activeLightClusterStatesPipelineLayout;
+VK::Pipeline activeLightClusterStatesPipeline;
 VkImageView depthUAV = VK_NULL_HANDLE;
 VK::PipelineLayout activeLightClusterListPipelineLayout;
 VK::Pipeline activeLightClusterListPipeline;
@@ -962,7 +969,23 @@ void Init()
 					buildLightClusterGridShader.Create(device, csShaderRes.rawSPIRV);
 				}
 
-				// ComputeActiveLightClusters
+				// Clear Active Light Cluster States
+				{
+					ShaderCompileInfo csInfo
+					{
+						.path = L"Resources/Shaders/Common/Misc/ClearUAV.hlsl",
+						.entrypoint = "main",
+						.target = "cs_6_5",
+					};
+
+					csInfo.defines.push_back("SA_UAV_MAX_SIZE=" + std::to_string(lightClusterGridSize.x * lightClusterGridSize.y * lightClusterGridSize.z));
+
+					ShaderCompileResult csShaderRes = compiler.CompileSPIRV(csInfo);
+					csClearActiveLightClusterStatesDesc = csShaderRes.desc;
+					clearActiveLightClusterStatesShader.Create(device, csShaderRes.rawSPIRV);
+				}
+
+				// ComputeActiveLightClusterStates
 				{
 					ShaderCompileInfo csInfo
 					{
@@ -977,8 +1000,8 @@ void Init()
 					csInfo.defines.push_back("SA_CAMERA_BUFFER_ID=1");
 
 					ShaderCompileResult csShaderRes = compiler.CompileSPIRV(csInfo);
-					csComputeActiveLightClustersDesc = csShaderRes.desc;
-					computeActiveLightClustersShader.Create(device, csShaderRes.rawSPIRV);
+					csComputeActiveLightClusterStatesDesc = csShaderRes.desc;
+					computeActiveLightClusterStatesShader.Create(device, csShaderRes.rawSPIRV);
 				}
 
 				// Build Active Light Cluster List
@@ -1714,12 +1737,12 @@ void Init()
 						});
 					info.setNum = 1;
 
-					activeLightClustersDescPool.Create(device, info);
+					activeLightClusterStatesDescPool.Create(device, info);
 				}
 
 				// Layout
 				{
-					activeLightClustersDescSetLayout.Create(device,
+					activeLightClusterStatesDescSetLayout.Create(device,
 						{
 							{
 								.binding = 0,
@@ -1754,7 +1777,7 @@ void Init()
 
 				// Set
 				{
-					activeLightClustersSet = activeLightClustersDescPool.Allocate(device, activeLightClustersDescSetLayout);
+					activeLightClusterStatesSet = activeLightClusterStatesDescPool.Allocate(device, activeLightClusterStatesDescSetLayout);
 
 					std::vector<VkDescriptorImageInfo> imageInfos;
 					imageInfos.reserve(1);
@@ -1775,7 +1798,7 @@ void Init()
 						VkWriteDescriptorSet& descWrite = writes.emplace_back();
 						descWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 						descWrite.pNext = nullptr;
-						descWrite.dstSet = activeLightClustersSet;
+						descWrite.dstSet = activeLightClusterStatesSet;
 						descWrite.dstBinding = 0;
 						descWrite.dstArrayElement = 0;
 						descWrite.descriptorCount = 1;
@@ -1793,7 +1816,7 @@ void Init()
 						VkWriteDescriptorSet& descWrite = writes.emplace_back();
 						descWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 						descWrite.pNext = nullptr;
-						descWrite.dstSet = activeLightClustersSet;
+						descWrite.dstSet = activeLightClusterStatesSet;
 						descWrite.dstBinding = 1;
 						descWrite.dstArrayElement = 0;
 						descWrite.descriptorCount = 1;
@@ -1810,7 +1833,7 @@ void Init()
 						VkWriteDescriptorSet& write = writes.emplace_back();
 						write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 						write.pNext = nullptr;
-						write.dstSet = activeLightClustersSet;
+						write.dstSet = activeLightClusterStatesSet;
 						write.dstBinding = 2;
 						write.dstArrayElement = 0;
 						write.descriptorCount = 1;
@@ -1828,7 +1851,7 @@ void Init()
 						VkWriteDescriptorSet& descWrite = writes.emplace_back();
 						descWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 						descWrite.pNext = nullptr;
-						descWrite.dstSet = activeLightClustersSet;
+						descWrite.dstSet = activeLightClusterStatesSet;
 						descWrite.dstBinding = 3;
 						descWrite.dstArrayElement = 0;
 						descWrite.descriptorCount = 1;
@@ -1842,7 +1865,7 @@ void Init()
 				// PipelineLayout
 				{
 					std::vector<VkDescriptorSetLayout> setLayouts{
-						static_cast<VkDescriptorSetLayout>(activeLightClustersDescSetLayout),
+						static_cast<VkDescriptorSetLayout>(activeLightClusterStatesDescSetLayout),
 					};
 
 					VkPipelineLayoutCreateInfo info{
@@ -1855,7 +1878,7 @@ void Init()
 						.pPushConstantRanges = nullptr,
 					};
 
-					activeLightClustersPipelineLayout.Create(device, info);
+					activeLightClusterStatesPipelineLayout.Create(device, info);
 				}
 
 				// Pipeline
@@ -1865,8 +1888,8 @@ void Init()
 						.pNext = nullptr,
 						.flags = 0u,
 						.stage = VK_SHADER_STAGE_COMPUTE_BIT,
-						.module = computeActiveLightClustersShader,
-						.pName = csComputeActiveLightClustersDesc.entrypoint.c_str(),
+						.module = computeActiveLightClusterStatesShader,
+						.pName = csComputeActiveLightClusterStatesDesc.entrypoint.c_str(),
 						.pSpecializationInfo = nullptr
 					};
 
@@ -1875,13 +1898,117 @@ void Init()
 						.pNext = nullptr,
 						.flags = 0u,
 						.stage = shaderStage,
-						.layout = activeLightClustersPipelineLayout,
+						.layout = activeLightClusterStatesPipelineLayout,
 						.basePipelineHandle = VK_NULL_HANDLE,
 						.basePipelineIndex = -1,
 					};
 
-					activeLightClustersPipeline.Create(device, pipelineInfo);
+					activeLightClusterStatesPipeline.Create(device, pipelineInfo);
 				}
+			}
+		}
+
+		// Clear Active Light Cluster States
+		{
+			// DescPool.
+			{
+				VK::DescriptorPoolInfos info;
+				info.poolSizes.emplace_back(VkDescriptorPoolSize{
+					.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+					.descriptorCount = 1
+					});
+				info.setNum = 1;
+
+				clearActiveLightClusterStatesDescPool.Create(device, info);
+			}
+
+			// Layout
+			{
+				clearActiveLightClusterStatesDescSetLayout.Create(device,
+					{
+						{
+							.binding = 0,
+							.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+							.descriptorCount = 1,
+							.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
+							.pImmutableSamplers = nullptr
+						}
+					});
+			}
+
+			// Set
+			{
+				clearActiveLightClusterStatesSet = clearActiveLightClusterStatesDescPool.Allocate(device, clearActiveLightClusterStatesDescSetLayout);
+
+				std::vector<VkDescriptorBufferInfo> bufferInfos;
+				bufferInfos.reserve(1);
+
+				std::vector<VkWriteDescriptorSet> writes;
+				writes.reserve(1);
+
+				// Active Clusters
+				{
+					VkDescriptorBufferInfo& buffInfo = bufferInfos.emplace_back();
+					buffInfo.buffer = activeLightClustersBuffer;
+					buffInfo.offset = 0;
+					buffInfo.range = VK_WHOLE_SIZE;
+
+					VkWriteDescriptorSet& descWrite = writes.emplace_back();
+					descWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+					descWrite.pNext = nullptr;
+					descWrite.dstSet = clearActiveLightClusterStatesSet;
+					descWrite.dstBinding = 0;
+					descWrite.dstArrayElement = 0;
+					descWrite.descriptorCount = 1;
+					descWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+					descWrite.pBufferInfo = &buffInfo;
+				}
+
+				vkUpdateDescriptorSets(device, (uint32_t)writes.size(), writes.data(), 0, nullptr);
+			}
+
+			// Pipeline Layout
+			{
+				std::vector<VkDescriptorSetLayout> setLayouts{
+					static_cast<VkDescriptorSetLayout>(clearActiveLightClusterStatesDescSetLayout),
+				};
+
+				VkPipelineLayoutCreateInfo info{
+					.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+					.pNext = nullptr,
+					.flags = 0u,
+					.setLayoutCount = static_cast<uint32_t>(setLayouts.size()),
+					.pSetLayouts = setLayouts.data(),
+					.pushConstantRangeCount = 0,
+					.pPushConstantRanges = nullptr,
+				};
+
+				clearActiveLightClusterStatesPipelineLayout.Create(device, info);
+			}
+
+			// Pipeline
+			{
+				VkPipelineShaderStageCreateInfo shaderStage{
+					.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+					.pNext = nullptr,
+					.flags = 0u,
+					.stage = VK_SHADER_STAGE_COMPUTE_BIT,
+					.module = clearActiveLightClusterStatesShader,
+					.pName = csClearActiveLightClusterStatesDesc.entrypoint.c_str(),
+					.pSpecializationInfo = nullptr
+				};
+
+				VkComputePipelineCreateInfo pipelineInfo{
+					.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
+					.pNext = nullptr,
+					.flags = 0u,
+					.stage = shaderStage,
+					.layout = clearActiveLightClusterStatesPipelineLayout,
+					.basePipelineHandle = VK_NULL_HANDLE,
+					.basePipelineIndex = -1,
+				};
+
+				clearActiveLightClusterStatesPipeline.Create(device, pipelineInfo);
 			}
 		}
 
@@ -2090,7 +2217,8 @@ void Uninit()
 		vertexShader.Destroy(device);
 		depthOnlyVertexShader.Destroy(device);
 		buildLightClusterGridShader.Destroy(device);
-		computeActiveLightClustersShader.Destroy(device);
+		clearActiveLightClusterStatesShader.Destroy(device);
+		computeActiveLightClusterStatesShader.Destroy(device);
 		buildActiveLightClusterListShader.Destroy(device);
 
 		sphereMesh.Destroy(device);
@@ -2129,11 +2257,16 @@ void Uninit()
 		lightClusterGridPipelineLayout.Destroy(device);
 		lightClusterGridPipeline.Destroy(device);
 
+		clearActiveLightClusterStatesDescSetLayout.Destroy(device);
+		clearActiveLightClusterStatesDescPool.Destroy(device);
+		clearActiveLightClusterStatesPipelineLayout.Destroy(device);
+		clearActiveLightClusterStatesPipeline.Destroy(device);
+
 		activeLightClustersBuffer.Destroy(device);
-		activeLightClustersDescSetLayout.Destroy(device);
-		activeLightClustersDescPool.Destroy(device);
-		activeLightClustersPipelineLayout.Destroy(device);
-		activeLightClustersPipeline.Destroy(device);
+		activeLightClusterStatesDescSetLayout.Destroy(device);
+		activeLightClusterStatesDescPool.Destroy(device);
+		activeLightClusterStatesPipelineLayout.Destroy(device);
+		activeLightClusterStatesPipeline.Destroy(device);
 		vkDestroyImageView(device, depthUAV, nullptr);
 
 		activeLightClusterListBuffer.Destroy(device);
@@ -2248,20 +2381,40 @@ void Loop()
 				0, nullptr
 			);
 
-			vkCmdDispatch(cmd, (lightClusterGridSize.x / 32) + lightClusterGridSize.x % 32 == 0 ? 0 : 1, (lightClusterGridSize.y / 32) + lightClusterGridSize.y % 32 == 0 ? 0 : 1, 32);
+			vkCmdDispatch(cmd, (lightClusterGridSize.x / 32) + (lightClusterGridSize.x % 32 == 0 ? 0 : 1), (lightClusterGridSize.y / 32) + lightClusterGridSize.y % 32 == 0 ? 0 : 1, 32);
 		}
 
-		// Compute ActiveLightClusters
+		// Clear Active Light Cluster State
 		{
-			vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, activeLightClustersPipeline);
+			vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, clearActiveLightClusterStatesPipeline);
 
 			std::vector<VkDescriptorSet> boundSets{
-				static_cast<VkDescriptorSet>(activeLightClustersSet)
+				static_cast<VkDescriptorSet>(clearActiveLightClusterStatesSet)
 			};
 
 			vkCmdBindDescriptorSets(cmd,
 				VK_PIPELINE_BIND_POINT_COMPUTE,
-				activeLightClustersPipelineLayout,
+				clearActiveLightClusterStatesPipelineLayout,
+				0, (uint32_t)boundSets.size(),
+				boundSets.data(),
+				0, nullptr
+			);
+
+			auto fullGirdSize = lightClusterGridSize.x * lightClusterGridSize.y * lightClusterGridSize.z;
+			vkCmdDispatch(cmd, (fullGirdSize / 32) + (fullGirdSize % 32 == 0 ? 0 : 1), 1, 1);
+		}
+
+		// Compute ActiveLightClusters
+		{
+			vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, activeLightClusterStatesPipeline);
+
+			std::vector<VkDescriptorSet> boundSets{
+				static_cast<VkDescriptorSet>(activeLightClusterStatesSet)
+			};
+
+			vkCmdBindDescriptorSets(cmd,
+				VK_PIPELINE_BIND_POINT_COMPUTE,
+				activeLightClusterStatesPipelineLayout,
 				0, (uint32_t)boundSets.size(),
 				boundSets.data(),
 				0, nullptr
