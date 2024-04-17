@@ -20,6 +20,7 @@ namespace SA::RND::VK
 	public:
 		void Create(const Device& _device, const RenderPassInfo& _info);
 		void Create(const Device& _device, const VkRenderPassCreateInfo& _vkInfo);
+		void Create(const Device& _device, const VkRenderPassCreateInfo2& _vkInfo);
 		void Destroy(const Device& _device);
 
 		void Begin(const CommandBuffer& _cmd, const FrameBuffer& _fBuff);

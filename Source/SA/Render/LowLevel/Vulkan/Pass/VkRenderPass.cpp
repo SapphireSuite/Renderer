@@ -390,6 +390,13 @@ namespace SA::RND::VK
 		SA_LOG(L"RenderPass created.", Info, SA.Render.Vulkan, (L"Handle [%1]", mHandle));
 	}
 
+	void RenderPass::Create(const Device& _device, const VkRenderPassCreateInfo2& _vkInfo)
+	{
+		SA_VK_API(vkCreateRenderPass2(_device, &_vkInfo, nullptr, &mHandle), L"Failed to create render pass!");
+
+		SA_LOG(L"RenderPass created.", Info, SA.Render.Vulkan, (L"Handle [%1]", mHandle));
+	}
+
 	void RenderPass::Destroy(const Device& _device)
 	{
 		SA_VK_API(vkDestroyRenderPass(_device, mHandle, nullptr));

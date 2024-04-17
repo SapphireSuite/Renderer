@@ -342,7 +342,76 @@ void Init()
 					}
 
 					if (!depthPrePass)
-						depthPrePass.Create(device, depthOnlyPassInfo);
+					{
+						VkAttachmentDescription2 depthAttachment{};
+						depthAttachment.sType = VK_STRUCTURE_TYPE_ATTACHMENT_DESCRIPTION_2;
+						depthAttachment.pNext = nullptr;
+						depthAttachment.format = VK_FORMAT_D16_UNORM;
+						depthAttachment.samples = VK_SAMPLE_COUNT_8_BIT;
+						depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+						depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+						depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+						depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+						depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+						depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+
+						// Create resolved depth attachment
+						VkAttachmentDescription2 resolvedDepthAttachment{};
+						resolvedDepthAttachment.sType = VK_STRUCTURE_TYPE_ATTACHMENT_DESCRIPTION_2;
+						resolvedDepthAttachment.pNext = nullptr;
+						resolvedDepthAttachment.format = VK_FORMAT_D16_UNORM;
+						resolvedDepthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+						resolvedDepthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+						resolvedDepthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+						resolvedDepthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+						resolvedDepthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+						resolvedDepthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+						resolvedDepthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+
+						VkAttachmentReference2 depthAttachmentRef{};
+						depthAttachmentRef.sType = VK_STRUCTURE_TYPE_ATTACHMENT_REFERENCE_2;
+						depthAttachmentRef.pNext = nullptr;
+						depthAttachmentRef.attachment = 0;
+						depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+						VkAttachmentReference2 resolvedDepthAttachmentRef{};
+						resolvedDepthAttachmentRef.sType = VK_STRUCTURE_TYPE_ATTACHMENT_REFERENCE_2;
+						resolvedDepthAttachmentRef.pNext = nullptr;
+						resolvedDepthAttachmentRef.attachment = 1;
+						resolvedDepthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+						VkSubpassDescriptionDepthStencilResolve depthResolveInfo{
+							.sType = VK_STRUCTURE_TYPE_SUBPASS_DESCRIPTION_DEPTH_STENCIL_RESOLVE,
+							.pNext = nullptr,
+							.depthResolveMode = VK_RESOLVE_MODE_AVERAGE_BIT,
+							.stencilResolveMode = VK_RESOLVE_MODE_AVERAGE_BIT,
+							.pDepthStencilResolveAttachment = &resolvedDepthAttachmentRef
+						};
+
+						VkSubpassDescription2 subpass{};
+						subpass.sType = VK_STRUCTURE_TYPE_SUBPASS_DESCRIPTION_2;
+						subpass.pNext = &depthResolveInfo;
+						subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+						subpass.colorAttachmentCount = 0;
+						subpass.pColorAttachments = nullptr;
+						subpass.pDepthStencilAttachment = &depthAttachmentRef;
+						subpass.pResolveAttachments = nullptr;
+
+						std::vector<VkAttachmentDescription2> attachments = { depthAttachment, resolvedDepthAttachment };
+
+						VkRenderPassCreateInfo2 renderPassInfo{};
+						renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO_2;
+						renderPassInfo.pNext = nullptr;
+						renderPassInfo.flags = 0;
+						renderPassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+						renderPassInfo.pAttachments = attachments.data();
+						renderPassInfo.subpassCount = 1;
+						renderPassInfo.pSubpasses = &subpass;
+						renderPassInfo.dependencyCount = 0;
+						renderPassInfo.pDependencies = nullptr;
+
+						depthPrePass.Create(device, renderPassInfo);
+					}
 
 					if (!renderPass)
 						renderPass.Create(device, passInfo);
@@ -1584,7 +1653,7 @@ void Init()
 						.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
 						.pNext = nullptr,
 						.flags = 0,
-						.image = sceneTextures[0].depth, // TODO: use triple buffering.
+						.image = sceneTextures[0].resolvedDepth, // TODO: use triple buffering.
 						.viewType = VK_IMAGE_VIEW_TYPE_2D,
 						.format = VK_FORMAT_D16_UNORM,
 						.components = VkComponentMapping{

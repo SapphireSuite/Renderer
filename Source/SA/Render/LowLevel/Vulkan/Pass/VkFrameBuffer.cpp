@@ -42,7 +42,7 @@ namespace SA::RND::VK
 		{
 			info.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_DEPTH_BIT;
 
-			if (_attach.loadOp == VK_ATTACHMENT_LOAD_OP_CLEAR)
+			if (_attach.loadOp == VK_ATTACHMENT_LOAD_OP_CLEAR) // TODO: Should be OP_DONT_CARE for resolved attachments.
 			{
 				VkClearValue depthClearValue{
 					.depthStencil = VkClearDepthStencilValue{
