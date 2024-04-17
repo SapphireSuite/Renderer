@@ -18,7 +18,7 @@ struct VertexOutput
 	float3 worldPosition : POSITION;
 	
 	/// Shader view position
-	precise float4 svPosition : SV_POSITION;
+	float4 svPosition : SV_POSITION;
 	
 #if SA_CAMERA_BUFFER
 
