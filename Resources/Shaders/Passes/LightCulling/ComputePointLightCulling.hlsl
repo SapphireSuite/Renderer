@@ -25,12 +25,22 @@ StructuredBuffer<uint> activeClusterList : register(t3);
 
 //---------- Shared ----------
 
+/// Total num of point lights.
 groupshared uint pLightNum;
-groupshared uint activeClusterIndex;
+
+/// Current active cluster index.
+groupshared uint currClusterIndex;
+
+/// Current registered light number.
+groupshared uint currLightNum;
+
+/// Current light cluster AABB.
 groupshared SA::AABB currLightClusterAABB;
 
 
 //---------- Outputs ----------
+
+#define SA_MAX_POINT_LIGHT_PER_CLUSTER 63
 
 struct ClusterPointLightList
 {
@@ -38,7 +48,7 @@ struct ClusterPointLightList
 	uint num;
 	
 	/// Light indices in the cluster.
-	uint lightIndices[63]; // Maximum of 63 lights per cluster.
+	uint lightIndices[SA_MAX_POINT_LIGHT_PER_CLUSTER];
 };
 
 RWStructuredBuffer<ClusterPointLightList> culledPointLightGrid : register(u4);
@@ -58,11 +68,10 @@ void main(uint _groupID : SV_GroupID, uint _groupThreadID : SV_GroupThreadID)
 		uint lightStride;
 		SA::pointLights.GetDimensions(pLightNum, lightStride);
 		
-		activeClusterIndex = activeClusterList[_groupID];
-		currLightClusterAABB = lightClusterAABBs[activeClusterIndex];
+		currClusterIndex = activeClusterList[_groupID];
+		currLightClusterAABB = lightClusterAABBs[currClusterIndex];
 		
-		// Clear previous value.
-		culledPointLightGrid[activeClusterIndex].num = 0;
+		currLightNum = 0;
 	}
 	
 	GroupMemoryBarrierWithGroupSync();
@@ -72,7 +81,7 @@ void main(uint _groupID : SV_GroupID, uint _groupThreadID : SV_GroupThreadID)
 	
 	const uint numBatches = (pLightNum + NUM_THREAD_X - 1) / NUM_THREAD_X;
 	
-	for (uint batchIndex = 0; batchIndex < numBatches; ++batchIndex)
+	for (uint batchIndex = 0; batchIndex < numBatches && currLightNum < SA_MAX_POINT_LIGHT_PER_CLUSTER; ++batchIndex)
 	{
 		const uint lightIndex = batchIndex * NUM_THREAD_X + _groupThreadID;
 
@@ -84,10 +93,21 @@ void main(uint _groupID : SV_GroupID, uint _groupThreadID : SV_GroupThreadID)
 		if (SphereAABBCollision(plight, currLightClusterAABB))
 		{
 			uint offset;
-			InterlockedAdd(culledPointLightGrid[activeClusterIndex].num, 1, offset);
+			InterlockedAdd(currLightNum, 1, offset);
 			
-			culledPointLightGrid[activeClusterIndex].lightIndices[offset] = lightIndex;
+			if (offset >= SA_MAX_POINT_LIGHT_PER_CLUSTER)
+				break;
+
+			culledPointLightGrid[currClusterIndex].lightIndices[offset] = lightIndex;
 		}
+	}
+	
+	
+	//---------- Output ----------
+	
+	if(_groupThreadID == 0)
+	{
+		culledPointLightGrid[currClusterIndex].num = min(currLightNum, SA_MAX_POINT_LIGHT_PER_CLUSTER);
 	}
 }
 
