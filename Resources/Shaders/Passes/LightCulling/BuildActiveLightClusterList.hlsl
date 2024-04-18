@@ -12,6 +12,12 @@
 StructuredBuffer<uint> activeClusterStates : register(t1);
 
 
+//---------- Shared ----------
+
+/// Current registered light number.
+groupshared uint activeClusterNum;
+
+
 //---------- Outputs ----------
 
 struct DispatchIndirectCommand
@@ -34,10 +40,7 @@ void main(uint _groupThreadID : SV_GroupThreadID)
 	
 	if (_groupThreadID == 0)
 	{
-		// Clear previous value.
-		indirectArgs[0].numThreadGroupsX = 0;
-		indirectArgs[0].numThreadGroupsY = 1;
-		indirectArgs[0].numThreadGroupsZ = 1;
+		activeClusterNum = 0;
 	}
 	
 	GroupMemoryBarrierWithGroupSync();
@@ -52,9 +55,19 @@ void main(uint _groupThreadID : SV_GroupThreadID)
 		if(activeClusterStates[i])
 		{
 			uint activeClusterIndex;
-			InterlockedAdd(indirectArgs[0].numThreadGroupsX, 1, activeClusterIndex);
+			InterlockedAdd(activeClusterNum, 1, activeClusterIndex);
 			activeClusterList[activeClusterIndex] = i;
 		}
+	}
+	
+	
+	//---------- Output ----------
+	
+	if (_groupThreadID == 0)
+	{
+		indirectArgs[0].numThreadGroupsX = activeClusterNum;
+		indirectArgs[0].numThreadGroupsY = 1;
+		indirectArgs[0].numThreadGroupsZ = 1;
 	}
 }
 
