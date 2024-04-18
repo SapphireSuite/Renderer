@@ -5,6 +5,7 @@
 
 #include "../Preprocessors.hlsl"
 #include "Illumination.hlsl"
+#include <Passes/LightCulling/LightClusterCommon.hlsl>
 
 #ifdef SA_POINT_LIGHT_BUFFER_ID
 
@@ -26,6 +27,34 @@ namespace SA
 	StructuredBuffer<PointLight> pointLights : SA_REG_SPACE(t, SA_POINT_LIGHT_BUFFER_ID, SA_POINT_LIGHT_SET);
 
 
+//{ Culling
+
+	#define SA_MAX_POINT_LIGHT_PER_CLUSTER 63
+
+	struct ClusterPointLightList
+	{
+		/// Number of lights in the cluster.
+		uint num;
+	
+		/// Light indices in the cluster.
+		uint lightIndices[SA_MAX_POINT_LIGHT_PER_CLUSTER];
+	};
+
+	#ifdef SA_CULLED_POINT_LIGHT_GRID_BUFFER_ID
+
+		#define SA_POINT_LIGHT_CULLING 1
+
+		StructuredBuffer<ClusterPointLightList> culledPointLightGrid : SA_REG_SPACE(t, SA_CULLED_POINT_LIGHT_GRID_BUFFER_ID, SA_POINT_LIGHT_SET);
+
+	#else
+
+		#define SA_POINT_LIGHT_CULLING 0
+
+	#endif
+
+//}
+
+
 	//---------- Helper Functions ----------
 
 	float3 ComputePointLightIllumination(IlluminationData _data, PointLight _pLight)
@@ -42,18 +71,33 @@ namespace SA
 		return ComputeBRDF(_data, lData);
 	}
 
-	float3 ComputePointLightsIllumination(IlluminationData _data)
+	float3 ComputePointLightsIllumination(float4 _svPosition, IlluminationData _data)
 	{
+		float3 sum = float3(0.0f, 0.0f, 0.0f);
+
+	#if SA_POINT_LIGHT_CULLING
+
+		const uint clusterIndex = GetClusterIndex(_svPosition.xyz);
+
+		const ClusterPointLightList cluster = culledPointLightGrid[clusterIndex];
+
+		for(int i = 0; i < cluster.num; ++i)
+		{
+			sum += ComputePointLightIllumination(_data, pointLights[cluster.lightIndices[i]]);
+		}
+
+	#else // SA_POINT_LIGHT_CULLING
+
 		uint num;
 		uint stride;
 		pointLights.GetDimensions(num, stride);
-
-		float3 sum = float3(0.0f, 0.0f, 0.0f);
 
 		for(int i = 0; i < num; ++i)
 		{
 			sum += ComputePointLightIllumination(_data, pointLights[i]);
 		}
+
+	#endif
 
 		return sum;
 	}

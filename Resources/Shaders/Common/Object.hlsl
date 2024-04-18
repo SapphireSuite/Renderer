@@ -22,7 +22,7 @@ namespace SA
 
 	cbuffer ObjectBuffer : SA_REG_SPACE(b, SA_OBJECT_BUFFER_ID, 1)
 	{
-		Object object[100];
+		Object object[1000];
 	};
 
 

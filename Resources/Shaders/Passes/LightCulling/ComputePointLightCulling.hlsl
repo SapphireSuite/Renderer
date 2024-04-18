@@ -40,18 +40,7 @@ groupshared SA::AABB currLightClusterAABB;
 
 //---------- Outputs ----------
 
-#define SA_MAX_POINT_LIGHT_PER_CLUSTER 63
-
-struct ClusterPointLightList
-{
-	/// Number of lights in the cluster.
-	uint num;
-	
-	/// Light indices in the cluster.
-	uint lightIndices[SA_MAX_POINT_LIGHT_PER_CLUSTER];
-};
-
-RWStructuredBuffer<ClusterPointLightList> culledPointLightGrid : register(u4);
+RWStructuredBuffer<SA::ClusterPointLightList> culledPointLightGrid : register(u4);
 
 
 //-------------------- Compute Shader --------------------

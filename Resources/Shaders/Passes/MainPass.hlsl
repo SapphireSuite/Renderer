@@ -297,7 +297,7 @@ PixelOutput mainPS(
 	
 	#if SA_POINT_LIGHTS
 	
-		output.color.rgb += SA::ComputePointLightsIllumination(illuData);
+		output.color.rgb += SA::ComputePointLightsIllumination(_input.svPosition, illuData);
 
 	#endif // SA_POINT_LIGHTS
 	
