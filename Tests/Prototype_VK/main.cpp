@@ -583,6 +583,7 @@ void Init()
 		}
 
 		// Textures
+		if(true)
 		{
 			stbi_set_flip_vertically_on_load(true);
 
@@ -2692,7 +2693,7 @@ void Loop()
 				0, nullptr
 			);
 
-			vkCmdDispatch(cmd, (lightClusterGridSize.x / 32) + (lightClusterGridSize.x % 32 == 0 ? 0 : 1), (lightClusterGridSize.y / 32) + lightClusterGridSize.y % 32 == 0 ? 0 : 1, 32);
+			vkCmdDispatch(cmd, (lightClusterGridSize.x / 32) + (lightClusterGridSize.x % 32 == 0 ? 0 : 1), (lightClusterGridSize.y / 32) + lightClusterGridSize.y % 32 == 0 ? 0 : 1, lightClusterGridSize.z);
 		}
 
 		// Clear Active Light Cluster State
