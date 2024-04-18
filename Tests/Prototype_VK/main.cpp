@@ -54,6 +54,7 @@ VK::Shader buildLightClusterGridShader;
 VK::Shader clearActiveLightClusterStatesShader;
 VK::Shader computeActiveLightClusterStatesShader;
 VK::Shader buildActiveLightClusterListShader;
+VK::Shader pointLightCullingShader;
 VK::Shader depthOnlyVertexShader;
 VK::Shader vertexShader;
 VK::Shader fragmentShader;
@@ -66,6 +67,7 @@ RHI::ShaderDescriptor csBuildLightClusterGridDesc;
 RHI::ShaderDescriptor csClearActiveLightClusterStatesDesc;
 RHI::ShaderDescriptor csComputeActiveLightClusterStatesDesc;
 RHI::ShaderDescriptor csBuildActiveLightClusterListDesc;
+RHI::ShaderDescriptor csPointLightCullingDesc;
 RHI::ShaderDescriptor depthOnlyVsDesc;
 RHI::ShaderDescriptor vsDesc;
 RHI::ShaderDescriptor fsDesc;
@@ -80,9 +82,10 @@ VK::DescriptorSetLayout objectDescSetLayout;
 VK::DescriptorSet objectSet;
 VK::Buffer lightClusterInfoBuffer;
 VK::Buffer lightClusterGridBuffer;
-VK::Buffer activeLightClustersBuffer;
+VK::Buffer activeLightClusterStatesBuffer;
 VK::Buffer activeLightClusterListBuffer;
 VK::Buffer lightClusterIndirectArgsBuffer;
+VK::Buffer culledPointLightGrid;
 VK::DescriptorPool lightClusterGridDescPool;
 VK::DescriptorSetLayout lightClusterGridDescSetLayout;
 VK::DescriptorSet lightClusterGridSet;
@@ -104,6 +107,11 @@ VK::Pipeline activeLightClusterStatesPipeline;
 VkImageView depthUAV = VK_NULL_HANDLE;
 VK::PipelineLayout activeLightClusterListPipelineLayout;
 VK::Pipeline activeLightClusterListPipeline;
+VK::DescriptorPool pointLightCullingDescPool;
+VK::DescriptorSetLayout pointLightCullingDescSetLayout;
+VK::DescriptorSet pointLightCullingSet;
+VK::PipelineLayout pointLightCullingPipelineLayout;
+VK::Pipeline pointLightCullingPipeline;
 VK::Buffer pointLightBuffer;
 VK::Buffer directionalLightBuffer;
 VK::DescriptorPool lightDescPool;
@@ -122,6 +130,7 @@ VK::DescriptorSetLayout materialDescSetLayout;
 VK::DescriptorSet materialSet;
 VkSampler sampler;
 
+uint32_t pointLightNum = 100;
 SA::Vec3ui lightClusterGridSize = { 32, 32, 32 };
 
 struct SceneTexture
@@ -365,7 +374,7 @@ void Init()
 						depthAttachment.format = VK_FORMAT_D16_UNORM;
 						depthAttachment.samples = VK_SAMPLE_COUNT_8_BIT;
 						depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-						depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+						depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 						depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 						depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 						depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
@@ -1017,6 +1026,24 @@ void Init()
 					csBuildActiveLightClusterListDesc = csShaderRes.desc;
 					buildActiveLightClusterListShader.Create(device, csShaderRes.rawSPIRV);
 				}
+
+				// Point Light culling
+				{
+					ShaderCompileInfo csInfo
+					{
+						.path = L"Resources/Shaders/Passes/LightCulling/ComputePointLightCulling.hlsl",
+						.entrypoint = "main",
+						.target = "cs_6_5",
+					};
+
+					csInfo.defines.push_back("SA_CAMERA_BUFFER_ID=0");
+					csInfo.defines.push_back("SA_POINT_LIGHT_BUFFER_ID=1");
+					csInfo.defines.push_back("SA_POINT_LIGHT_SET=0");
+
+					ShaderCompileResult csShaderRes = compiler.CompileSPIRV(csInfo);
+					csPointLightCullingDesc = csShaderRes.desc;
+					pointLightCullingShader.Create(device, csShaderRes.rawSPIRV);
+				}
 			}
 
 			// DepthOnly
@@ -1194,8 +1221,6 @@ void Init()
 
 			// Point lights Buffer
 			{
-				uint32_t pointLightNum = 10;
-
 				std::vector<PointLight_GPU> pointLights;
 				pointLights.reserve(pointLightNum);
 
@@ -1693,9 +1718,9 @@ void Init()
 				}
 			}
 
-			// ActiveLightCluster
+			// ActiveLightClusterStates
 			{
-				activeLightClustersBuffer.Create(device, lightClusterGridSize.x * lightClusterGridSize.y * lightClusterGridSize.z * sizeof(uint32_t), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+				activeLightClusterStatesBuffer.Create(device, lightClusterGridSize.x * lightClusterGridSize.y * lightClusterGridSize.z * sizeof(uint32_t), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
 					VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
 				// Depth texture ImageView
@@ -1847,10 +1872,10 @@ void Init()
 						write.pImageInfo = &imageInfo;
 					}
 
-					// Output Active Clusters
+					// Output Active Clusters States
 					{
 						VkDescriptorBufferInfo& buffInfo = bufferInfos.emplace_back();
-						buffInfo.buffer = activeLightClustersBuffer;
+						buffInfo.buffer = activeLightClusterStatesBuffer;
 						buffInfo.offset = 0;
 						buffInfo.range = VK_WHOLE_SIZE;
 
@@ -1955,7 +1980,7 @@ void Init()
 				// Active Clusters
 				{
 					VkDescriptorBufferInfo& buffInfo = bufferInfos.emplace_back();
-					buffInfo.buffer = activeLightClustersBuffer;
+					buffInfo.buffer = activeLightClusterStatesBuffer;
 					buffInfo.offset = 0;
 					buffInfo.range = VK_WHOLE_SIZE;
 
@@ -2108,7 +2133,7 @@ void Init()
 				// Active Light Clusters
 				{
 					VkDescriptorBufferInfo& buffInfo = bufferInfos.emplace_back();
-					buffInfo.buffer = activeLightClustersBuffer;
+					buffInfo.buffer = activeLightClusterStatesBuffer;
 					buffInfo.offset = 0;
 					buffInfo.range = VK_WHOLE_SIZE;
 
@@ -2206,6 +2231,216 @@ void Init()
 				activeLightClusterListPipeline.Create(device, pipelineInfo);
 			}
 		}
+
+		// Point Light culling
+		{
+			culledPointLightGrid.Create(device, lightClusterGridSize.x* lightClusterGridSize.y* lightClusterGridSize.z * 64 * sizeof(uint32_t), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+			// DescPool
+			{
+				VK::DescriptorPoolInfos info;
+				info.poolSizes.emplace_back(VkDescriptorPoolSize{
+					.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+					.descriptorCount = 4
+					});
+				info.poolSizes.emplace_back(VkDescriptorPoolSize{
+					.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+					.descriptorCount = 1
+					});
+				info.setNum = 1;
+
+				pointLightCullingDescPool.Create(device, info);
+			}
+
+			// Layout
+			{
+				pointLightCullingDescSetLayout.Create(device,
+				{
+					{
+						.binding = 0,
+						.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+						.descriptorCount = 1,
+						.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
+						.pImmutableSamplers = nullptr
+					},
+					{
+						.binding = 1,
+						.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+						.descriptorCount = 1,
+						.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
+						.pImmutableSamplers = nullptr
+					},
+					{
+						.binding = 2,
+						.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+						.descriptorCount = 1,
+						.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
+						.pImmutableSamplers = nullptr
+					},
+					{
+						.binding = 3,
+						.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+						.descriptorCount = 1,
+						.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
+						.pImmutableSamplers = nullptr
+					},
+					{
+						.binding = 4,
+						.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+						.descriptorCount = 1,
+						.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
+						.pImmutableSamplers = nullptr
+					}
+				});
+			}
+
+			// Set
+			{
+				pointLightCullingSet = pointLightCullingDescPool.Allocate(device, pointLightCullingDescSetLayout);
+
+				std::vector<VkDescriptorBufferInfo> bufferInfos;
+				bufferInfos.reserve(5);
+
+				std::vector<VkWriteDescriptorSet> writes;
+				writes.reserve(5);
+
+				// Camera buffer
+				{
+					VkDescriptorBufferInfo& buffInfo = bufferInfos.emplace_back();
+					buffInfo.buffer = cameraBuffers[0];
+					buffInfo.offset = 0;
+					buffInfo.range = VK_WHOLE_SIZE;
+
+					VkWriteDescriptorSet& descWrite = writes.emplace_back();
+					descWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+					descWrite.pNext = nullptr;
+					descWrite.dstSet = pointLightCullingSet;
+					descWrite.dstBinding = 0;
+					descWrite.dstArrayElement = 0;
+					descWrite.descriptorCount = 1;
+					descWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+					descWrite.pBufferInfo = &buffInfo;
+				}
+
+				// Point Light Buffer
+				{
+					VkDescriptorBufferInfo& buffInfo = bufferInfos.emplace_back();
+					buffInfo.buffer = pointLightBuffer;
+					buffInfo.offset = 0;
+					buffInfo.range = VK_WHOLE_SIZE;
+
+					VkWriteDescriptorSet& descWrite = writes.emplace_back();
+					descWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+					descWrite.pNext = nullptr;
+					descWrite.dstSet = pointLightCullingSet;
+					descWrite.dstBinding = 1;
+					descWrite.dstArrayElement = 0;
+					descWrite.descriptorCount = 1;
+					descWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+					descWrite.pBufferInfo = &buffInfo;
+				}
+
+				// Light Cluster AABBs
+				{
+					VkDescriptorBufferInfo& buffInfo = bufferInfos.emplace_back();
+					buffInfo.buffer = lightClusterGridBuffer;
+					buffInfo.offset = 0;
+					buffInfo.range = VK_WHOLE_SIZE;
+
+					VkWriteDescriptorSet& descWrite = writes.emplace_back();
+					descWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+					descWrite.pNext = nullptr;
+					descWrite.dstSet = pointLightCullingSet;
+					descWrite.dstBinding = 2;
+					descWrite.dstArrayElement = 0;
+					descWrite.descriptorCount = 1;
+					descWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+					descWrite.pBufferInfo = &buffInfo;
+				}
+
+				// Active Light Clusters
+				{
+					VkDescriptorBufferInfo& buffInfo = bufferInfos.emplace_back();
+					buffInfo.buffer = activeLightClusterListBuffer;
+					buffInfo.offset = 0;
+					buffInfo.range = VK_WHOLE_SIZE;
+
+					VkWriteDescriptorSet& descWrite = writes.emplace_back();
+					descWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+					descWrite.pNext = nullptr;
+					descWrite.dstSet = pointLightCullingSet;
+					descWrite.dstBinding = 3;
+					descWrite.dstArrayElement = 0;
+					descWrite.descriptorCount = 1;
+					descWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+					descWrite.pBufferInfo = &buffInfo;
+				}
+
+				// CulledPointLightGrid
+				{
+					VkDescriptorBufferInfo& buffInfo = bufferInfos.emplace_back();
+					buffInfo.buffer = culledPointLightGrid;
+					buffInfo.offset = 0;
+					buffInfo.range = VK_WHOLE_SIZE;
+
+					VkWriteDescriptorSet& descWrite = writes.emplace_back();
+					descWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+					descWrite.pNext = nullptr;
+					descWrite.dstSet = pointLightCullingSet;
+					descWrite.dstBinding = 4;
+					descWrite.dstArrayElement = 0;
+					descWrite.descriptorCount = 1;
+					descWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+					descWrite.pBufferInfo = &buffInfo;
+				}
+
+				vkUpdateDescriptorSets(device, (uint32_t)writes.size(), writes.data(), 0, nullptr);
+			}
+
+			// Pipeline Layout
+			{
+				std::vector<VkDescriptorSetLayout> setLayouts{
+					static_cast<VkDescriptorSetLayout>(pointLightCullingDescSetLayout),
+				};
+
+				VkPipelineLayoutCreateInfo info{
+					.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+					.pNext = nullptr,
+					.flags = 0u,
+					.setLayoutCount = static_cast<uint32_t>(setLayouts.size()),
+					.pSetLayouts = setLayouts.data(),
+					.pushConstantRangeCount = 0,
+					.pPushConstantRanges = nullptr,
+				};
+
+				pointLightCullingPipelineLayout.Create(device, info);
+			}
+
+			// Pipeline
+			{
+				VkPipelineShaderStageCreateInfo shaderStage{
+					.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+					.pNext = nullptr,
+					.flags = 0u,
+					.stage = VK_SHADER_STAGE_COMPUTE_BIT,
+					.module = pointLightCullingShader,
+					.pName = csPointLightCullingDesc.entrypoint.c_str(),
+					.pSpecializationInfo = nullptr
+				};
+
+				VkComputePipelineCreateInfo pipelineInfo{
+					.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
+					.pNext = nullptr,
+					.flags = 0u,
+					.stage = shaderStage,
+					.layout = pointLightCullingPipelineLayout,
+					.basePipelineHandle = VK_NULL_HANDLE,
+					.basePipelineIndex = -1,
+				};
+
+				pointLightCullingPipeline.Create(device, pipelineInfo);
+			}
+		}
 	}
 }
 
@@ -2226,6 +2461,7 @@ void Uninit()
 		clearActiveLightClusterStatesShader.Destroy(device);
 		computeActiveLightClusterStatesShader.Destroy(device);
 		buildActiveLightClusterListShader.Destroy(device);
+		pointLightCullingShader.Destroy(device);
 
 		sphereMesh.Destroy(device);
 
@@ -2268,7 +2504,7 @@ void Uninit()
 		clearActiveLightClusterStatesPipelineLayout.Destroy(device);
 		clearActiveLightClusterStatesPipeline.Destroy(device);
 
-		activeLightClustersBuffer.Destroy(device);
+		activeLightClusterStatesBuffer.Destroy(device);
 		activeLightClusterStatesDescSetLayout.Destroy(device);
 		activeLightClusterStatesDescPool.Destroy(device);
 		activeLightClusterStatesPipelineLayout.Destroy(device);
@@ -2281,6 +2517,12 @@ void Uninit()
 		activeLightClusterListDescPool.Destroy(device);
 		activeLightClusterListPipelineLayout.Destroy(device);
 		activeLightClusterListPipeline.Destroy(device);
+
+		pointLightCullingDescSetLayout.Destroy(device);
+		pointLightCullingDescPool.Destroy(device);
+		pointLightCullingPipelineLayout.Destroy(device);
+		pointLightCullingPipeline.Destroy(device);
+		culledPointLightGrid.Destroy(device);
 
 		for(auto& frameBuffer : frameBuffers)
 			frameBuffer.Destroy(device);
@@ -2446,6 +2688,25 @@ void Loop()
 			);
 
 			vkCmdDispatch(cmd, 1, 1, 1);
+		}
+
+		// Point Light culling
+		{
+			vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, pointLightCullingPipeline);
+
+			std::vector<VkDescriptorSet> boundSets{
+				static_cast<VkDescriptorSet>(pointLightCullingSet)
+			};
+
+			vkCmdBindDescriptorSets(cmd,
+				VK_PIPELINE_BIND_POINT_COMPUTE,
+				pointLightCullingPipelineLayout,
+				0, (uint32_t)boundSets.size(),
+				boundSets.data(),
+				0, nullptr
+			);
+
+			vkCmdDispatchIndirect(cmd, lightClusterIndirectArgsBuffer, 0);
 		}
 	}
 

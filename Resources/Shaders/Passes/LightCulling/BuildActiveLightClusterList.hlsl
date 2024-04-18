@@ -8,8 +8,6 @@
 //---------- Inputs ----------
 
 #define NUM_THREAD_X 1024
-#define NUM_THREAD_Y 1
-#define NUM_THREAD_Z 1
 
 StructuredBuffer<uint> activeClusterStates : register(t1);
 
@@ -29,19 +27,27 @@ RWStructuredBuffer<uint> activeClusterList : register(u3);
 
 //-------------------- Compute Shader --------------------
 
-[numthreads(NUM_THREAD_X, NUM_THREAD_Y, NUM_THREAD_Z)]
-void main(uint3 _groupThreadID : SV_GroupThreadID)
+[numthreads(NUM_THREAD_X, 1, 1)]
+void main(uint _groupThreadID : SV_GroupThreadID)
 {
-	if (_groupThreadID.x == 0)
+	//---------- Init ----------
+	
+	if (_groupThreadID == 0)
 	{
+		// Clear previous value.
 		indirectArgs[0].numThreadGroupsX = 0;
+		indirectArgs[0].numThreadGroupsY = 1;
+		indirectArgs[0].numThreadGroupsZ = 1;
 	}
 	
 	GroupMemoryBarrierWithGroupSync();
 	
+	
+	//---------- Build Active list ----------
+	
 	const uint totalClusterNum = lightClusterInfo.gridSize.x * lightClusterInfo.gridSize.y * lightClusterInfo.gridSize.z;
 
-	for (uint i = _groupThreadID.x; i < totalClusterNum; i += NUM_THREAD_X)
+	for (uint i = _groupThreadID; i < totalClusterNum; i += NUM_THREAD_X)
 	{
 		if(activeClusterStates[i])
 		{
