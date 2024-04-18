@@ -46,8 +46,12 @@ void main(uint3 _dispatchThreadID : SV_DispatchThreadID)
 	const float clusterFar = camera.zNear * pow(camera.zFar / camera.zNear, (_dispatchThreadID.z + 1) / float(lightClusterInfo.gridSize.z));
 	
 	// Compute final AABB.
-	const float3 clusterMinAABB = LineIntersectionWithZPlane(vsMin, clusterNear);
-	const float3 clusterMaxAABB = LineIntersectionWithZPlane(vsMax, clusterFar);
+	const float3 minPointNear = LineIntersectionWithZPlane(vsMin, clusterNear);
+	const float3 minPointFar = LineIntersectionWithZPlane(vsMin, clusterFar);
+	const float3 maxPointNear = LineIntersectionWithZPlane(vsMax, clusterNear);
+	const float3 maxPointFar = LineIntersectionWithZPlane(vsMax, clusterFar);
+	const float3 clusterMinAABB = min(min(minPointNear, minPointFar), min(maxPointNear, maxPointFar));
+	const float3 clusterMaxAABB = max(max(minPointNear, minPointFar), max(maxPointNear, maxPointFar));
 	
 	// Write to buffer.
 	const uint clusterIndex = _dispatchThreadID.x + _dispatchThreadID.y * min(NUM_THREAD_X, lightClusterInfo.gridSize.x) + _dispatchThreadID.z * min(NUM_THREAD_X, lightClusterInfo.gridSize.x) * min(NUM_THREAD_Y, lightClusterInfo.gridSize.y);
