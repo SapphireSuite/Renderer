@@ -1114,6 +1114,9 @@ void Init()
 					.target = "ps_6_5",
 				};
 
+				if (bDepthInverted)
+					psInfo.defines.push_back("SA_DEPTH_INVERTED=1");
+
 				psInfo.defines.push_back("SA_CAMERA_BUFFER_ID=0");
 				psInfo.defines.push_back("SA_OBJECT_BUFFER_ID=0");
 
