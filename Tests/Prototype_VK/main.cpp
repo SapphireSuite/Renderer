@@ -527,7 +527,7 @@ void Init()
 				for (auto& mat : objectsMats)
 					mat = SA::TransformPRSf(RandVec3Position(), RandQuat(), RandVec3UniScale()).Matrix();
 
-				objectBuffer.Create(device, sizeof(SA::Mat4f) * objNum, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+				objectBuffer.Create(device, sizeof(SA::Mat4f) * objNum, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
 					VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, objectsMats.data());
 				
 
@@ -535,7 +535,7 @@ void Init()
 				{
 					VK::DescriptorPoolInfos info;
 					info.poolSizes.emplace_back(VkDescriptorPoolSize{
-						.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+						.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
 						.descriptorCount = 1
 						});
 					info.setNum = 1;
@@ -549,7 +549,7 @@ void Init()
 					{
 						{
 							.binding = 0,
-							.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+							.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
 							.descriptorCount = 1,
 							.stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
 							.pImmutableSamplers = nullptr
@@ -574,7 +574,7 @@ void Init()
 					write.dstBinding = 0;
 					write.dstArrayElement = 0;
 					write.descriptorCount = 1;
-					write.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+					write.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
 					write.pBufferInfo = &buffInfo;
 
 					vkUpdateDescriptorSets(device, 1, &write, 0, nullptr);
