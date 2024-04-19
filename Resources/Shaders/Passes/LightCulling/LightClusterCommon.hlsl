@@ -32,6 +32,18 @@ namespace SA
 	};
 	
 	
+	#define SA_MAX_LIGHT_PER_CLUSTER 63
+
+	struct ClusterLightList
+	{
+		/// Number of lights in the cluster.
+		uint num;
+	
+		/// Light indices in the cluster.
+		uint lightIndices[SA_MAX_LIGHT_PER_CLUSTER];
+	};
+	
+	
 	//---------- Helper Functions ----------
 	
 #if SA_CAMERA_BUFFER

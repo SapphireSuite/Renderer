@@ -54,6 +54,7 @@ VK::Shader buildLightClusterGridShader;
 VK::Shader clearActiveLightClusterStatesShader;
 VK::Shader computeActiveLightClusterStatesShader;
 VK::Shader buildActiveLightClusterListShader;
+VK::Shader clearPointLightCullingShader;
 VK::Shader pointLightCullingShader;
 VK::Shader depthOnlyVertexShader;
 VK::Shader vertexShader;
@@ -74,6 +75,7 @@ RHI::ShaderDescriptor csClearActiveLightClusterStatesDesc;
 RHI::ShaderDescriptor csComputeActiveLightClusterStatesDesc;
 RHI::ShaderDescriptor csBuildActiveLightClusterListDesc;
 RHI::ShaderDescriptor csPointLightCullingDesc;
+RHI::ShaderDescriptor csClearPointLightCullingDesc;
 RHI::ShaderDescriptor depthOnlyVsDesc;
 RHI::ShaderDescriptor vsDesc;
 RHI::ShaderDescriptor fsDesc;
@@ -121,6 +123,11 @@ VK::Pipeline activeLightClusterStatesPipeline;
 VkImageView depthUAVs[3] = { VK_NULL_HANDLE };
 VK::PipelineLayout activeLightClusterListPipelineLayout;
 VK::Pipeline activeLightClusterListPipeline;
+VK::DescriptorPool clearPointLightCullingDescPool;
+VK::DescriptorSetLayout clearPointLightCullingDescSetLayout;
+VK::DescriptorSet clearPointLightCullingSet;
+VK::PipelineLayout clearPointLightCullingPipelineLayout;
+VK::Pipeline clearPointLightCullingPipeline;
 VK::DescriptorPool pointLightCullingDescPool;
 VK::DescriptorSetLayout pointLightCullingDescSetLayout;
 VK::DescriptorSet pointLightCullingSet;
@@ -1113,6 +1120,20 @@ void Init()
 					ShaderCompileResult csShaderRes = compiler.CompileSPIRV(csInfo);
 					csBuildActiveLightClusterListDesc = csShaderRes.desc;
 					buildActiveLightClusterListShader.Create(device, csShaderRes.rawSPIRV);
+				}
+
+				// Clear point Light culling
+				{
+					ShaderCompileInfo csInfo
+					{
+						.path = L"Resources/Shaders/Passes/LightCulling/ClearCulledLightGrid.hlsl",
+						.entrypoint = "main",
+						.target = "cs_6_5",
+					};
+
+					ShaderCompileResult csShaderRes = compiler.CompileSPIRV(csInfo);
+					csClearPointLightCullingDesc = csShaderRes.desc;
+					clearPointLightCullingShader.Create(device, csShaderRes.rawSPIRV);
 				}
 
 				// Point Light culling
@@ -2369,7 +2390,113 @@ void Init()
 				}
 			}
 
+			// Clear Point Light Culling
+			if(true)
+			{
+				// DescPool
+				{
+					VK::DescriptorPoolInfos info;
+					info.poolSizes.emplace_back(VkDescriptorPoolSize{
+						.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+						.descriptorCount = 1
+						});
+					info.setNum = 1;
+
+					clearPointLightCullingDescPool.Create(device, info);
+				}
+
+				// Layout
+				{
+					clearPointLightCullingDescSetLayout.Create(device,
+					{
+						{
+							.binding = 0,
+							.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+							.descriptorCount = 1,
+							.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
+							.pImmutableSamplers = nullptr
+						}
+					});
+				}
+
+				// Set
+				{
+					clearPointLightCullingSet = clearPointLightCullingDescPool.Allocate(device, clearPointLightCullingDescSetLayout);
+
+					std::vector<VkDescriptorBufferInfo> bufferInfos;
+					bufferInfos.reserve(1);
+
+					std::vector<VkWriteDescriptorSet> writes;
+					writes.reserve(1);
+
+					// Point Light Buffer
+					{
+						VkDescriptorBufferInfo& buffInfo = bufferInfos.emplace_back();
+						buffInfo.buffer = culledPointLightGrid;
+						buffInfo.offset = 0;
+						buffInfo.range = VK_WHOLE_SIZE;
+
+						VkWriteDescriptorSet& descWrite = writes.emplace_back();
+						descWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+						descWrite.pNext = nullptr;
+						descWrite.dstSet = clearPointLightCullingSet;
+						descWrite.dstBinding = 0;
+						descWrite.dstArrayElement = 0;
+						descWrite.descriptorCount = 1;
+						descWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+						descWrite.pBufferInfo = &buffInfo;
+					}
+
+					vkUpdateDescriptorSets(device, (uint32_t)writes.size(), writes.data(), 0, nullptr);
+				}
+
+				// Pipeline Layout
+				{
+					std::vector<VkDescriptorSetLayout> setLayouts{
+						static_cast<VkDescriptorSetLayout>(clearPointLightCullingDescSetLayout),
+					};
+
+					VkPipelineLayoutCreateInfo info{
+						.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+						.pNext = nullptr,
+						.flags = 0u,
+						.setLayoutCount = static_cast<uint32_t>(setLayouts.size()),
+						.pSetLayouts = setLayouts.data(),
+						.pushConstantRangeCount = 0,
+						.pPushConstantRanges = nullptr,
+					};
+
+					clearPointLightCullingPipelineLayout.Create(device, info);
+				}
+
+				// Pipeline
+				{
+					VkPipelineShaderStageCreateInfo shaderStage{
+						.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+						.pNext = nullptr,
+						.flags = 0u,
+						.stage = VK_SHADER_STAGE_COMPUTE_BIT,
+						.module = clearPointLightCullingShader,
+						.pName = csClearPointLightCullingDesc.entrypoint.c_str(),
+						.pSpecializationInfo = nullptr
+					};
+
+					VkComputePipelineCreateInfo pipelineInfo{
+						.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
+						.pNext = nullptr,
+						.flags = 0u,
+						.stage = shaderStage,
+						.layout = clearPointLightCullingPipelineLayout,
+						.basePipelineHandle = VK_NULL_HANDLE,
+						.basePipelineIndex = -1,
+					};
+
+					clearPointLightCullingPipeline.Create(device, pipelineInfo);
+				}
+			}
+
 			// Point Light culling
+			if(true)
 			{
 				// DescPool
 				{
@@ -2844,6 +2971,7 @@ void Uninit()
 		clearActiveLightClusterStatesShader.Destroy(device);
 		computeActiveLightClusterStatesShader.Destroy(device);
 		buildActiveLightClusterListShader.Destroy(device);
+		clearPointLightCullingShader.Destroy(device);
 		pointLightCullingShader.Destroy(device);
 
 		sphereMesh.Destroy(device);
@@ -2910,6 +3038,11 @@ void Uninit()
 		activeLightClusterListDescPool.Destroy(device);
 		activeLightClusterListPipelineLayout.Destroy(device);
 		activeLightClusterListPipeline.Destroy(device);
+
+		clearPointLightCullingDescPool.Destroy(device);
+		clearPointLightCullingDescSetLayout.Destroy(device);
+		clearPointLightCullingPipelineLayout.Destroy(device);
+		clearPointLightCullingPipeline.Destroy(device);
 
 		pointLightCullingDescSetLayout.Destroy(device);
 		pointLightCullingDescPool.Destroy(device);
@@ -3080,6 +3213,28 @@ void Loop()
 			);
 
 			vkCmdDispatch(cmd, 1, 1, 1);
+		}
+
+		// Clear PointLight culling
+		{
+			vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, clearPointLightCullingPipeline);
+
+			std::vector<VkDescriptorSet> boundSets{
+				static_cast<VkDescriptorSet>(clearPointLightCullingSet)
+			};
+
+			vkCmdBindDescriptorSets(cmd,
+				VK_PIPELINE_BIND_POINT_COMPUTE,
+				clearPointLightCullingPipelineLayout,
+				0, (uint32_t)boundSets.size(),
+				boundSets.data(),
+				0, nullptr
+			);
+
+			const uint32_t gridNum = lightClusterGridSize.x * lightClusterGridSize.y * lightClusterGridSize.z;
+			const uint32_t dispatchNum = (gridNum + 1024 - 1) / 1024;
+
+			vkCmdDispatch(cmd, dispatchNum, 1, 1);
 		}
 
 		// Point Light culling

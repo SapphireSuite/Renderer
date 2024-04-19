@@ -40,7 +40,7 @@ groupshared SA::AABB currLightClusterAABB;
 
 //---------- Outputs ----------
 
-RWStructuredBuffer<SA::ClusterPointLightList> culledPointLightGrid : register(u4);
+RWStructuredBuffer<SA::ClusterLightList> culledPointLightGrid : register(u4);
 
 
 //-------------------- Compute Shader --------------------
@@ -70,7 +70,7 @@ void main(uint _groupID : SV_GroupID, uint _groupThreadID : SV_GroupThreadID)
 	
 	const uint numBatches = (pLightNum + NUM_THREAD_X - 1) / NUM_THREAD_X;
 	
-	for (uint batchIndex = 0; batchIndex < numBatches && currLightNum < SA_MAX_POINT_LIGHT_PER_CLUSTER; ++batchIndex)
+	for (uint batchIndex = 0; batchIndex < numBatches && currLightNum < SA_MAX_LIGHT_PER_CLUSTER; ++batchIndex)
 	{
 		const uint lightIndex = batchIndex * NUM_THREAD_X + _groupThreadID;
 
@@ -84,7 +84,7 @@ void main(uint _groupID : SV_GroupID, uint _groupThreadID : SV_GroupThreadID)
 			uint offset;
 			InterlockedAdd(currLightNum, 1, offset);
 			
-			if (offset >= SA_MAX_POINT_LIGHT_PER_CLUSTER)
+			if (offset >= SA_MAX_LIGHT_PER_CLUSTER)
 				break;
 
 			culledPointLightGrid[currClusterIndex].lightIndices[offset] = lightIndex;
@@ -96,7 +96,7 @@ void main(uint _groupID : SV_GroupID, uint _groupThreadID : SV_GroupThreadID)
 	
 	if(_groupThreadID == 0)
 	{
-		culledPointLightGrid[currClusterIndex].num = min(currLightNum, SA_MAX_POINT_LIGHT_PER_CLUSTER);
+		culledPointLightGrid[currClusterIndex].num = min(currLightNum, SA_MAX_LIGHT_PER_CLUSTER);
 	}
 }
 

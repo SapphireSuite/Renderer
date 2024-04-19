@@ -29,22 +29,11 @@ namespace SA
 
 //{ Culling
 
-	#define SA_MAX_POINT_LIGHT_PER_CLUSTER 63
-
-	struct ClusterPointLightList
-	{
-		/// Number of lights in the cluster.
-		uint num;
-	
-		/// Light indices in the cluster.
-		uint lightIndices[SA_MAX_POINT_LIGHT_PER_CLUSTER];
-	};
-
 	#ifdef SA_CULLED_POINT_LIGHT_GRID_BUFFER_ID
 
 		#define SA_POINT_LIGHT_CULLING 1
 
-		StructuredBuffer<ClusterPointLightList> culledPointLightGrid : SA_REG_SPACE(t, SA_CULLED_POINT_LIGHT_GRID_BUFFER_ID, SA_POINT_LIGHT_SET);
+		StructuredBuffer<ClusterLightList> culledPointLightGrid : SA_REG_SPACE(t, SA_CULLED_POINT_LIGHT_GRID_BUFFER_ID, SA_POINT_LIGHT_SET);
 
 	#else
 
@@ -79,7 +68,7 @@ namespace SA
 
 		const uint clusterIndex = GetClusterIndex(_svPosition.xyz);
 
-		const ClusterPointLightList cluster = culledPointLightGrid[clusterIndex];
+		const ClusterLightList cluster = culledPointLightGrid[clusterIndex];
 
 		for(int i = 0; i < cluster.num; ++i)
 		{
