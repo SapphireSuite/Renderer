@@ -98,13 +98,13 @@ VK::PipelineLayout clearActiveLightClusterStatesPipelineLayout;
 VK::Pipeline clearActiveLightClusterStatesPipeline;
 VK::DescriptorPool activeLightClusterStatesDescPool;
 VK::DescriptorSetLayout activeLightClusterStatesDescSetLayout;
-VK::DescriptorSet activeLightClusterStatesSet;
+std::vector<VK::DescriptorSet> activeLightClusterStatesSets;
 VK::DescriptorPool activeLightClusterListDescPool;
 VK::DescriptorSetLayout activeLightClusterListDescSetLayout;
 VK::DescriptorSet activeLightClusterListSet;
 VK::PipelineLayout activeLightClusterStatesPipelineLayout;
 VK::Pipeline activeLightClusterStatesPipeline;
-VkImageView depthUAV = VK_NULL_HANDLE;
+VkImageView depthUAVs[3] = { VK_NULL_HANDLE };
 VK::PipelineLayout activeLightClusterListPipelineLayout;
 VK::Pipeline activeLightClusterListPipeline;
 VK::DescriptorPool pointLightCullingDescPool;
@@ -1576,13 +1576,14 @@ void Init()
 					VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
 				// Depth texture ImageView
+				for(int i = 0; i < 3; ++i)
 				{
 					const VkImageViewCreateInfo createInfo
 					{
 						.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
 						.pNext = nullptr,
 						.flags = 0,
-						.image = sceneTextures[0].resolvedDepth, // TODO: use triple buffering.
+						.image = sceneTextures[i].resolvedDepth,
 						.viewType = VK_IMAGE_VIEW_TYPE_2D,
 						.format = VK_FORMAT_D16_UNORM,
 						.components = VkComponentMapping{
@@ -1600,7 +1601,7 @@ void Init()
 						},
 					};
 
-					SA_VK_API(vkCreateImageView(device, &createInfo, nullptr, &depthUAV));
+					SA_VK_API(vkCreateImageView(device, &createInfo, nullptr, &depthUAVs[i]));
 				}
 
 				// DescPool.
@@ -1618,7 +1619,7 @@ void Init()
 						.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
 						.descriptorCount = 1
 						});
-					info.setNum = 1;
+					info.setNum = 3;
 
 					activeLightClusterStatesDescPool.Create(device, info);
 				}
@@ -1660,89 +1661,92 @@ void Init()
 
 				// Set
 				{
-					activeLightClusterStatesSet = activeLightClusterStatesDescPool.Allocate(device, activeLightClusterStatesDescSetLayout);
+					activeLightClusterStatesSets = activeLightClusterStatesDescPool.Allocate(device, { activeLightClusterStatesDescSetLayout, activeLightClusterStatesDescSetLayout, activeLightClusterStatesDescSetLayout });
 
-					std::vector<VkDescriptorImageInfo> imageInfos;
-					imageInfos.reserve(1);
-
-					std::vector<VkDescriptorBufferInfo> bufferInfos;
-					bufferInfos.reserve(3);
-
-					std::vector<VkWriteDescriptorSet> writes;
-					writes.reserve(4);
-
-					// LightCluserInfo
+					for (int i = 0; i < 3; ++i)
 					{
-						VkDescriptorBufferInfo& buffInfo = bufferInfos.emplace_back();
-						buffInfo.buffer = lightClusterInfoBuffer;
-						buffInfo.offset = 0;
-						buffInfo.range = VK_WHOLE_SIZE;
+						std::vector<VkDescriptorImageInfo> imageInfos;
+						imageInfos.reserve(1);
 
-						VkWriteDescriptorSet& descWrite = writes.emplace_back();
-						descWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-						descWrite.pNext = nullptr;
-						descWrite.dstSet = activeLightClusterStatesSet;
-						descWrite.dstBinding = 0;
-						descWrite.dstArrayElement = 0;
-						descWrite.descriptorCount = 1;
-						descWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-						descWrite.pBufferInfo = &buffInfo;
+						std::vector<VkDescriptorBufferInfo> bufferInfos;
+						bufferInfos.reserve(3);
+
+						std::vector<VkWriteDescriptorSet> writes;
+						writes.reserve(4);
+
+						// LightCluserInfo
+						{
+							VkDescriptorBufferInfo& buffInfo = bufferInfos.emplace_back();
+							buffInfo.buffer = lightClusterInfoBuffer;
+							buffInfo.offset = 0;
+							buffInfo.range = VK_WHOLE_SIZE;
+
+							VkWriteDescriptorSet& descWrite = writes.emplace_back();
+							descWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+							descWrite.pNext = nullptr;
+							descWrite.dstSet = activeLightClusterStatesSets[i];
+							descWrite.dstBinding = 0;
+							descWrite.dstArrayElement = 0;
+							descWrite.descriptorCount = 1;
+							descWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+							descWrite.pBufferInfo = &buffInfo;
+						}
+
+						// Camera buffer
+						{
+							VkDescriptorBufferInfo& buffInfo = bufferInfos.emplace_back();
+							buffInfo.buffer = cameraBuffers[0];
+							buffInfo.offset = 0;
+							buffInfo.range = VK_WHOLE_SIZE;
+
+							VkWriteDescriptorSet& descWrite = writes.emplace_back();
+							descWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+							descWrite.pNext = nullptr;
+							descWrite.dstSet = activeLightClusterStatesSets[i];
+							descWrite.dstBinding = 1;
+							descWrite.dstArrayElement = 0;
+							descWrite.descriptorCount = 1;
+							descWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+							descWrite.pBufferInfo = &buffInfo;
+						}
+
+						// Depth texture
+						{
+							VkDescriptorImageInfo& imageInfo = imageInfos.emplace_back();
+							imageInfo.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+							imageInfo.imageView = depthUAVs[i];
+
+							VkWriteDescriptorSet& write = writes.emplace_back();
+							write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+							write.pNext = nullptr;
+							write.dstSet = activeLightClusterStatesSets[i];
+							write.dstBinding = 2;
+							write.dstArrayElement = 0;
+							write.descriptorCount = 1;
+							write.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+							write.pImageInfo = &imageInfo;
+						}
+
+						// Output Active Clusters States
+						{
+							VkDescriptorBufferInfo& buffInfo = bufferInfos.emplace_back();
+							buffInfo.buffer = activeLightClusterStatesBuffer;
+							buffInfo.offset = 0;
+							buffInfo.range = VK_WHOLE_SIZE;
+
+							VkWriteDescriptorSet& descWrite = writes.emplace_back();
+							descWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+							descWrite.pNext = nullptr;
+							descWrite.dstSet = activeLightClusterStatesSets[i];
+							descWrite.dstBinding = 3;
+							descWrite.dstArrayElement = 0;
+							descWrite.descriptorCount = 1;
+							descWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+							descWrite.pBufferInfo = &buffInfo;
+						}
+
+						vkUpdateDescriptorSets(device, (uint32_t)writes.size(), writes.data(), 0, nullptr);
 					}
-
-					// Camera buffer
-					{
-						VkDescriptorBufferInfo& buffInfo = bufferInfos.emplace_back();
-						buffInfo.buffer = cameraBuffers[0];
-						buffInfo.offset = 0;
-						buffInfo.range = VK_WHOLE_SIZE;
-
-						VkWriteDescriptorSet& descWrite = writes.emplace_back();
-						descWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-						descWrite.pNext = nullptr;
-						descWrite.dstSet = activeLightClusterStatesSet;
-						descWrite.dstBinding = 1;
-						descWrite.dstArrayElement = 0;
-						descWrite.descriptorCount = 1;
-						descWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-						descWrite.pBufferInfo = &buffInfo;
-					}
-
-					// Depth texture
-					{
-						VkDescriptorImageInfo& imageInfo = imageInfos.emplace_back();
-						imageInfo.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
-						imageInfo.imageView = depthUAV;
-
-						VkWriteDescriptorSet& write = writes.emplace_back();
-						write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-						write.pNext = nullptr;
-						write.dstSet = activeLightClusterStatesSet;
-						write.dstBinding = 2;
-						write.dstArrayElement = 0;
-						write.descriptorCount = 1;
-						write.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
-						write.pImageInfo = &imageInfo;
-					}
-
-					// Output Active Clusters States
-					{
-						VkDescriptorBufferInfo& buffInfo = bufferInfos.emplace_back();
-						buffInfo.buffer = activeLightClusterStatesBuffer;
-						buffInfo.offset = 0;
-						buffInfo.range = VK_WHOLE_SIZE;
-
-						VkWriteDescriptorSet& descWrite = writes.emplace_back();
-						descWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-						descWrite.pNext = nullptr;
-						descWrite.dstSet = activeLightClusterStatesSet;
-						descWrite.dstBinding = 3;
-						descWrite.dstArrayElement = 0;
-						descWrite.descriptorCount = 1;
-						descWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-						descWrite.pBufferInfo = &buffInfo;
-					}
-
-					vkUpdateDescriptorSets(device, (uint32_t)writes.size(), writes.data(), 0, nullptr);
 				}
 
 				// PipelineLayout
@@ -2573,7 +2577,9 @@ void Uninit()
 		activeLightClusterStatesDescPool.Destroy(device);
 		activeLightClusterStatesPipelineLayout.Destroy(device);
 		activeLightClusterStatesPipeline.Destroy(device);
-		vkDestroyImageView(device, depthUAV, nullptr);
+		vkDestroyImageView(device, depthUAVs[0], nullptr);
+		vkDestroyImageView(device, depthUAVs[1], nullptr);
+		vkDestroyImageView(device, depthUAVs[2], nullptr);
 
 		activeLightClusterListBuffer.Destroy(device);
 		lightClusterIndirectArgsBuffer.Destroy(device);
@@ -2721,7 +2727,7 @@ void Loop()
 			vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, activeLightClusterStatesPipeline);
 
 			std::vector<VkDescriptorSet> boundSets{
-				static_cast<VkDescriptorSet>(activeLightClusterStatesSet)
+				static_cast<VkDescriptorSet>(activeLightClusterStatesSets[frameIndex])
 			};
 
 			vkCmdBindDescriptorSets(cmd,
