@@ -67,6 +67,8 @@ VK::Pipeline pipeline;
 VK::Pipeline pointLightDebugPipeline;
 RawStaticMesh sphereRaw;
 VK::StaticMesh sphereMesh;
+RawStaticMesh cubeRaw;
+VK::StaticMesh cubeMesh;
 RHI::ShaderDescriptor csBuildLightClusterGridDesc;
 RHI::ShaderDescriptor csClearActiveLightClusterStatesDesc;
 RHI::ShaderDescriptor csComputeActiveLightClusterStatesDesc;
@@ -81,6 +83,8 @@ VK::DescriptorPool cameraDescPool;
 VK::DescriptorSetLayout cameraDescSetLayout;
 std::vector<VK::DescriptorSet> cameraSets;
 VK::Buffer objectBuffer;
+VK::Buffer debugLightClusterGridBuffer;
+VK::Buffer debugLightClusterGridColorBuffer;
 VK::Buffer pointLightObjectBuffer;
 VK::Buffer pointLightDebugColorObjectBuffer;
 VK::DescriptorPool objectDescPool;
@@ -89,6 +93,7 @@ VK::DescriptorSet objectSet;
 VK::DescriptorPool pointLightObjectDescPool;
 VK::DescriptorSetLayout pointLightObjectDescSetLayout;
 VK::DescriptorSet pointLightObjectSet;
+VK::DescriptorSet LightClusterGridObjectSet;
 VK::Buffer lightClusterInfoBuffer;
 VK::Buffer lightClusterGridBuffer;
 VK::Buffer activeLightClusterStatesBuffer;
@@ -142,6 +147,8 @@ VkSampler sampler;
 uint32_t objNum = 1000;
 uint32_t pointLightNum = 10000;
 SA::Vec3ui lightClusterGridSize = { 32, 32, 32 };
+float zNear = 0.1f;
+float zFar = 10.0f;
 
 struct SceneTexture
 {
@@ -158,6 +165,7 @@ constexpr bool bDepthInverted = true;
 constexpr bool bMSAA = true;
 
 bool bPointLightDebug = false;
+bool bLightGridDebug = false;
 
 void GLFWErrorCallback(int32_t error, const char* description)
 {
@@ -469,127 +477,192 @@ void Init()
 		{
 			Assimp::Importer importer;
 			
-			const aiScene* scene = importer.ReadFile("Resources/Models/Shapes/sphere.obj", aiProcess_CalcTangentSpace);
-			const aiMesh* inMesh = scene->mMeshes[0];
 
-			std::vector<SA::Vec3f> vertices;
-			vertices.resize(inMesh->mNumVertices);
-			std::memcpy(vertices.data(), inMesh->mVertices, inMesh->mNumVertices * sizeof(SA::Vec3f));
-
-			std::vector<SA::Vec3f> normals;
-			normals.resize(inMesh->mNumVertices);
-			std::memcpy(normals.data(), inMesh->mNormals, inMesh->mNumVertices * sizeof(SA::Vec3f));
-
-			std::vector<SA::Vec3f> tangents;
-			tangents.resize(inMesh->mNumVertices);
-			std::memcpy(tangents.data(), inMesh->mTangents, inMesh->mNumVertices * sizeof(SA::Vec3f));
-
-			std::vector<SA::Vec2f> uvs;
-			uvs.resize(scene->mMeshes[0]->mNumVertices);
-
-			for (auto i = 0; i < inMesh->mNumVertices; ++i)
-				uvs[i] = SA::Vec2f(inMesh->mTextureCoords[0][i].x, inMesh->mTextureCoords[0][i].y);
-
-			sphereRaw.vertices.BuildVertexBuffer(
-				VertexComponent<SA::Vec3f>{
-					"POSITION",
-					std::move(vertices)
-				},
-
-				VertexComponent<SA::Vec3f>{
-					"NORMAL",
-					std::move(normals)
-				},
-
-				VertexComponent<SA::Vec3f>{
-					"TANGENT",
-					std::move(tangents)
-				},
-
-				VertexComponent<SA::Vec2f>{
-					"UV",
-					std::move(uvs)
-				}
-			);
-
-
-			std::vector<uint16_t> indices;
-			indices.resize(inMesh->mNumFaces * 3);
-
-			for (int i = 0; i < inMesh->mNumFaces; ++i)
+			// Sphere
 			{
-				indices[i * 3] = inMesh->mFaces[i].mIndices[0];
-				indices[i * 3 + 1] = inMesh->mFaces[i].mIndices[1];
-				indices[i * 3 + 2] = inMesh->mFaces[i].mIndices[2];
+				const aiScene* scene = importer.ReadFile("Resources/Models/Shapes/sphere.obj", aiProcess_CalcTangentSpace);
+				const aiMesh* inMesh = scene->mMeshes[0];
+
+				std::vector<SA::Vec3f> vertices;
+				vertices.resize(inMesh->mNumVertices);
+				std::memcpy(vertices.data(), inMesh->mVertices, inMesh->mNumVertices * sizeof(SA::Vec3f));
+
+				std::vector<SA::Vec3f> normals;
+				normals.resize(inMesh->mNumVertices);
+				std::memcpy(normals.data(), inMesh->mNormals, inMesh->mNumVertices * sizeof(SA::Vec3f));
+
+				std::vector<SA::Vec3f> tangents;
+				tangents.resize(inMesh->mNumVertices);
+				std::memcpy(tangents.data(), inMesh->mTangents, inMesh->mNumVertices * sizeof(SA::Vec3f));
+
+				std::vector<SA::Vec2f> uvs;
+				uvs.resize(scene->mMeshes[0]->mNumVertices);
+
+				for (auto i = 0; i < inMesh->mNumVertices; ++i)
+					uvs[i] = SA::Vec2f(inMesh->mTextureCoords[0][i].x, inMesh->mTextureCoords[0][i].y);
+
+				sphereRaw.vertices.BuildVertexBuffer(
+						VertexComponent<SA::Vec3f>{
+						"POSITION",
+						std::move(vertices)
+					},
+
+					VertexComponent<SA::Vec3f>{
+						"NORMAL",
+						std::move(normals)
+					},
+
+					VertexComponent<SA::Vec3f>{
+						"TANGENT",
+						std::move(tangents)
+					},
+
+					VertexComponent<SA::Vec2f>{
+						"UV",
+						std::move(uvs)
+					}
+				);
+
+
+				std::vector<uint16_t> indices;
+				indices.resize(inMesh->mNumFaces * 3);
+
+				for (int i = 0; i < inMesh->mNumFaces; ++i)
+				{
+					indices[i * 3] = inMesh->mFaces[i].mIndices[0];
+					indices[i * 3 + 1] = inMesh->mFaces[i].mIndices[1];
+					indices[i * 3 + 2] = inMesh->mFaces[i].mIndices[2];
+				}
+
+				sphereRaw.indices.U16(std::move(indices));
+
+				sphereMesh.Create(device, init, sphereRaw);
+
+				// Object
+				{
+
+					// Instanting
+					std::vector<SA::Mat4f> objectsMats;
+					objectsMats.resize(objNum);
+
+					for (auto& mat : objectsMats)
+						mat = SA::TransformPRSf(RandVec3Position(), RandQuat(), RandVec3UniScale()).Matrix();
+
+					objectBuffer.Create(device, sizeof(SA::Mat4f) * objNum, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+						VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, objectsMats.data());
+
+
+					// DescPool.
+					{
+						VK::DescriptorPoolInfos info;
+						info.poolSizes.emplace_back(VkDescriptorPoolSize{
+							.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+							.descriptorCount = 1
+							});
+						info.setNum = 1;
+
+						objectDescPool.Create(device, info);
+					}
+
+					// Layout
+					{
+						objectDescSetLayout.Create(device,
+							{
+								{
+									.binding = 0,
+									.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+									.descriptorCount = 1,
+									.stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
+									.pImmutableSamplers = nullptr
+								}
+							});
+					}
+
+					// Set
+					{
+						objectSet = objectDescPool.Allocate(device, objectDescSetLayout);
+
+
+						VkDescriptorBufferInfo buffInfo;
+						buffInfo.buffer = objectBuffer;
+						buffInfo.offset = 0;
+						buffInfo.range = VK_WHOLE_SIZE;
+
+						VkWriteDescriptorSet write;
+						write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+						write.pNext = nullptr;
+						write.dstSet = objectSet;
+						write.dstBinding = 0;
+						write.dstArrayElement = 0;
+						write.descriptorCount = 1;
+						write.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+						write.pBufferInfo = &buffInfo;
+
+						vkUpdateDescriptorSets(device, 1, &write, 0, nullptr);
+					}
+				}
 			}
 
-			sphereRaw.indices.U16(std::move(indices));
-
-			sphereMesh.Create(device, init, sphereRaw);
-
-
-			// Object
+			// Cube
+			if(true)
 			{
+				const aiScene* scene = importer.ReadFile("Resources/Models/Shapes/cube.obj", aiProcess_CalcTangentSpace);
+				const aiMesh* inMesh = scene->mMeshes[0];
 
-				// Instanting
-				std::vector<SA::Mat4f> objectsMats;
-				objectsMats.resize(objNum);
+				std::vector<SA::Vec3f> vertices;
+				vertices.resize(inMesh->mNumVertices);
+				std::memcpy(vertices.data(), inMesh->mVertices, inMesh->mNumVertices * sizeof(SA::Vec3f));
 
-				for (auto& mat : objectsMats)
-					mat = SA::TransformPRSf(RandVec3Position(), RandQuat(), RandVec3UniScale()).Matrix();
+				std::vector<SA::Vec3f> normals;
+				normals.resize(inMesh->mNumVertices);
+				std::memcpy(normals.data(), inMesh->mNormals, inMesh->mNumVertices * sizeof(SA::Vec3f));
 
-				objectBuffer.Create(device, sizeof(SA::Mat4f) * objNum, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
-					VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, objectsMats.data());
-				
+				std::vector<SA::Vec3f> tangents;
+				tangents.resize(inMesh->mNumVertices);
+				std::memcpy(tangents.data(), inMesh->mTangents, inMesh->mNumVertices * sizeof(SA::Vec3f));
 
-				// DescPool.
+				std::vector<SA::Vec2f> uvs;
+				uvs.resize(scene->mMeshes[0]->mNumVertices);
+
+				for (auto i = 0; i < inMesh->mNumVertices; ++i)
+					uvs[i] = SA::Vec2f(inMesh->mTextureCoords[0][i].x, inMesh->mTextureCoords[0][i].y);
+
+				cubeRaw.vertices.BuildVertexBuffer(
+						VertexComponent<SA::Vec3f>{
+						"POSITION",
+						std::move(vertices)
+					},
+
+						VertexComponent<SA::Vec3f>{
+						"NORMAL",
+						std::move(normals)
+					},
+
+						VertexComponent<SA::Vec3f>{
+						"TANGENT",
+						std::move(tangents)
+					},
+
+						VertexComponent<SA::Vec2f>{
+						"UV",
+						std::move(uvs)
+					}
+				);
+
+
+				std::vector<uint16_t> indices;
+				indices.resize(inMesh->mNumFaces * 3);
+
+				for (int i = 0; i < inMesh->mNumFaces; ++i)
 				{
-					VK::DescriptorPoolInfos info;
-					info.poolSizes.emplace_back(VkDescriptorPoolSize{
-						.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-						.descriptorCount = 1
-						});
-					info.setNum = 1;
-
-					objectDescPool.Create(device, info);
+					indices[i * 3] = inMesh->mFaces[i].mIndices[0];
+					indices[i * 3 + 1] = inMesh->mFaces[i].mIndices[1];
+					indices[i * 3 + 2] = inMesh->mFaces[i].mIndices[2];
 				}
 
-				// Layout
-				{
-					objectDescSetLayout.Create(device,
-					{
-						{
-							.binding = 0,
-							.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-							.descriptorCount = 1,
-							.stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
-							.pImmutableSamplers = nullptr
-						}
-					});
-				}
+				cubeRaw.indices.U16(std::move(indices));
 
-				// Set
-				{
-					objectSet = objectDescPool.Allocate(device, objectDescSetLayout);
-
-
-					VkDescriptorBufferInfo buffInfo;
-					buffInfo.buffer = objectBuffer;
-					buffInfo.offset = 0;
-					buffInfo.range = VK_WHOLE_SIZE;
-
-					VkWriteDescriptorSet write;
-					write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-					write.pNext = nullptr;
-					write.dstSet = objectSet;
-					write.dstBinding = 0;
-					write.dstArrayElement = 0;
-					write.descriptorCount = 1;
-					write.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-					write.pBufferInfo = &buffInfo;
-
-					vkUpdateDescriptorSets(device, 1, &write, 0, nullptr);
-				}
+				cubeMesh.Create(device, init, cubeRaw);
 			}
 		}
 
@@ -1284,8 +1357,8 @@ void Init()
 
 			LightClusterInfo lightClusterInfo{
 				.gridSize = lightClusterGridSize,
-				.clusterSize = lightClusterGridSize.z / std::logf(1000.0f / 0.1f),
-				.clusterBias = lightClusterGridSize.z * std::logf(0.1f) / std::logf(1000.0f / 0.1f),
+				.clusterSize = lightClusterGridSize.z / std::logf(zFar / zNear),
+				.clusterBias = lightClusterGridSize.z * std::logf(zNear) / std::logf(zFar / zNear),
 			};
 
 			lightClusterInfoBuffer.Create(device, 2 * sizeof(float) + 3 * sizeof(uint32_t), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
@@ -1293,6 +1366,12 @@ void Init()
 		}
 
 		culledPointLightGrid.Create(device, lightClusterGridSize.x* lightClusterGridSize.y* lightClusterGridSize.z * 64 * sizeof(uint32_t), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+		debugLightClusterGridBuffer.Create(device, lightClusterGridSize.x* lightClusterGridSize.y* lightClusterGridSize.z * sizeof(SA::Mat4f), VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+		
+		std::vector<SA::Vec4f> debugLightClusterGridColors;
+		debugLightClusterGridColors.resize(lightClusterGridSize.x * lightClusterGridSize.y * lightClusterGridSize.z, SA::Vec4f{ 0.0f, 1.0f, 0.0f, 1.0f });
+		debugLightClusterGridColorBuffer.Create(device, lightClusterGridSize.x * lightClusterGridSize.y * lightClusterGridSize.z * sizeof(SA::Vec4f), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, debugLightClusterGridColors.data());
 
 		// Light
 		{
@@ -1488,7 +1567,7 @@ void Init()
 						.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
 						.descriptorCount = 1
 						});
-					info.setNum = 1;
+					info.setNum = 2;
 
 					pointLightObjectDescPool.Create(device, info);
 				}
@@ -1558,6 +1637,53 @@ void Init()
 
 				vkUpdateDescriptorSets(device, static_cast<uint32_t>(writes.size()), writes.data(), 0, nullptr);
 			}
+
+			// Light Grid Debug
+			{
+				LightClusterGridObjectSet = pointLightObjectDescPool.Allocate(device, pointLightObjectDescSetLayout);
+
+				std::vector<VkDescriptorBufferInfo> bufferInfos;
+				bufferInfos.reserve(2);
+
+				std::vector<VkWriteDescriptorSet> writes;
+				writes.reserve(2);
+
+				{
+					VkDescriptorBufferInfo& buffInfo = bufferInfos.emplace_back();
+					buffInfo.buffer = debugLightClusterGridBuffer;
+					buffInfo.offset = 0;
+					buffInfo.range = VK_WHOLE_SIZE;
+
+					VkWriteDescriptorSet& write = writes.emplace_back();
+					write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+					write.pNext = nullptr;
+					write.dstSet = LightClusterGridObjectSet;
+					write.dstBinding = 0;
+					write.dstArrayElement = 0;
+					write.descriptorCount = 1;
+					write.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+					write.pBufferInfo = &buffInfo;
+				}
+
+				{
+					VkDescriptorBufferInfo& buffInfo = bufferInfos.emplace_back();
+					buffInfo.buffer = debugLightClusterGridColorBuffer;
+					buffInfo.offset = 0;
+					buffInfo.range = VK_WHOLE_SIZE;
+
+					VkWriteDescriptorSet& write = writes.emplace_back();
+					write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+					write.pNext = nullptr;
+					write.dstSet = LightClusterGridObjectSet;
+					write.dstBinding = 1;
+					write.dstArrayElement = 0;
+					write.descriptorCount = 1;
+					write.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+					write.pBufferInfo = &buffInfo;
+				}
+
+				vkUpdateDescriptorSets(device, static_cast<uint32_t>(writes.size()), writes.data(), 0, nullptr);
+			}
 		}
 
 
@@ -1567,7 +1693,7 @@ void Init()
 			// LightClusterGrid
 			{
 				lightClusterGridBuffer.Create(device, 2 * sizeof(SA::Vec4f) * lightClusterGridSize.x * lightClusterGridSize.y * lightClusterGridSize.z, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
-					VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+					VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
 				// DescPool.
 				{
@@ -2720,12 +2846,16 @@ void Uninit()
 		pointLightCullingShader.Destroy(device);
 
 		sphereMesh.Destroy(device);
+		cubeMesh.Destroy(device);
 
 		for (auto& cameraBuffer : cameraBuffers)
 			cameraBuffer.Destroy(device);
 
 		cameraDescSetLayout.Destroy(device);
 		cameraDescPool.Destroy(device);
+
+		debugLightClusterGridBuffer.Destroy(device);
+		debugLightClusterGridColorBuffer.Destroy(device);
 
 		pointLightDebugColorObjectBuffer.Destroy(device);
 		pointLightObjectBuffer.Destroy(device);
@@ -2835,7 +2965,7 @@ void Loop()
 	{
 		Camera_GPU cameraGPU;
 
-		cameraGPU.UpdatePerspective(cameraTr.Matrix(), 90, 0.1f, 1000.0f, SA::Vec2ui(1200u, 900u));
+		cameraGPU.UpdatePerspective(cameraTr.Matrix(), 90, zNear, zFar, SA::Vec2ui(1200u, 900u));
 
 		cameraBuffers[frameIndex].UploadData(device, &cameraGPU, sizeof(Camera_GPU));
 	}
@@ -2891,7 +3021,7 @@ void Loop()
 				0, nullptr
 			);
 
-			vkCmdDispatch(cmd, (lightClusterGridSize.x / 32) + (lightClusterGridSize.x % 32 == 0 ? 0 : 1), (lightClusterGridSize.y / 32) + lightClusterGridSize.y % 32 == 0 ? 0 : 1, lightClusterGridSize.z);
+			vkCmdDispatch(cmd, (lightClusterGridSize.x / 32) + (lightClusterGridSize.x % 32 == 0 ? 0 : 1), (lightClusterGridSize.y / 32) + (lightClusterGridSize.y % 32 == 0 ? 0 : 1), lightClusterGridSize.z);
 		}
 
 		// Clear Active Light Cluster State
@@ -3012,6 +3142,50 @@ void Loop()
 		sphereMesh.Draw(cmd, pointLightNum);
 	}
 
+	if(bLightGridDebug)
+	{
+		uint32_t gridNum = lightClusterGridSize.x * lightClusterGridSize.y * lightClusterGridSize.z;
+		uint32_t dataNum = 2 * gridNum;
+		uint32_t dataSize = sizeof(SA::Vec4f) * dataNum;
+		std::vector<SA::Vec4f> data;
+		data.resize(dataNum);
+
+		std::vector<SA::Mat4f> lightClusterGridMatrices;
+		lightClusterGridMatrices.resize(gridNum);
+
+		lightClusterGridBuffer.ReadbackData(device, data.data(), dataSize);
+
+		for (int i = 0; i < dataNum; i += 2)
+		{
+			SA::Vec3f min = data[i];
+			SA::Vec3f max = data[i + 1];
+
+			SA::Vec3f center = (max + min) * 0.5f;
+			SA::Vec3f extents = (max - min)/* * 0.5f*/;
+
+			lightClusterGridMatrices[i / 2] = SA::TrPRSf(center, SA::Quatf::Identity, extents).Matrix();
+		}
+
+		debugLightClusterGridBuffer.UploadData(device, lightClusterGridMatrices.data(), sizeof(SA::Mat4f) * gridNum);
+
+
+		vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pointLightDebugPipeline);
+
+		std::vector<VkDescriptorSet> boundSets{
+			static_cast<VkDescriptorSet>(cameraSets[frameIndex]),
+			static_cast<VkDescriptorSet>(LightClusterGridObjectSet),
+		};
+
+		vkCmdBindDescriptorSets(cmd,
+			VK_PIPELINE_BIND_POINT_GRAPHICS,
+			pointLightDebugPipLayout,
+			0, (uint32_t)boundSets.size(),
+			boundSets.data(),
+			0, nullptr);
+
+		cubeMesh.Draw(cmd, gridNum);
+	}
+
 	renderPass.End(cmd);
 
 	cmd.End();
@@ -3071,6 +3245,8 @@ int main()
 					cameraTr.position -= fixedTime * moveSpeed * cameraTr.Forward();
 				if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS)
 					bPointLightDebug = !bPointLightDebug;
+				if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS)
+					bLightGridDebug = !bLightGridDebug;
 
 				double mouseX = 0.0f;
 				double mouseY = 0.0f;
