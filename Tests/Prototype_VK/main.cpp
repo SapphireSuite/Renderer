@@ -58,9 +58,11 @@ VK::Shader pointLightCullingShader;
 VK::Shader depthOnlyVertexShader;
 VK::Shader vertexShader;
 VK::Shader fragmentShader;
+VK::Shader pointLightDebugFragmentShader;
 VK::PipelineLayout pipLayout;
 VK::Pipeline depthPrepassPipeline;
 VK::Pipeline pipeline;
+VK::Pipeline pointLightDebugPipeline;
 RawStaticMesh sphereRaw;
 VK::StaticMesh sphereMesh;
 RHI::ShaderDescriptor csBuildLightClusterGridDesc;
@@ -77,9 +79,11 @@ VK::DescriptorPool cameraDescPool;
 VK::DescriptorSetLayout cameraDescSetLayout;
 std::vector<VK::DescriptorSet> cameraSets;
 VK::Buffer objectBuffer;
+VK::Buffer pointLightObjectBuffer;
 VK::DescriptorPool objectDescPool;
 VK::DescriptorSetLayout objectDescSetLayout;
 VK::DescriptorSet objectSet;
+VK::DescriptorSet pointLightObjectSet;
 VK::Buffer lightClusterInfoBuffer;
 VK::Buffer lightClusterGridBuffer;
 VK::Buffer activeLightClusterStatesBuffer;
@@ -147,6 +151,8 @@ constexpr bool bDepth = true;
 constexpr bool bDepthPrepass = true;
 constexpr bool bDepthInverted = true;
 constexpr bool bMSAA = true;
+
+bool bPointLightDebug = false;
 
 void GLFWErrorCallback(int32_t error, const char* description)
 {
@@ -538,7 +544,7 @@ void Init()
 						.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
 						.descriptorCount = 1
 						});
-					info.setNum = 1;
+					info.setNum = 2;
 
 					objectDescPool.Create(device, info);
 				}
@@ -1143,6 +1149,29 @@ void Init()
 			}
 
 
+			// PointLight Debug Fragment
+			{
+				ShaderCompileInfo psInfo
+				{
+					.path = L"Resources/Shaders/Passes/MainPass.hlsl",
+					.entrypoint = "mainPS",
+					.target = "ps_6_5",
+				};
+
+				if (bDepthInverted)
+					psInfo.defines.push_back("SA_DEPTH_INVERTED=1");
+
+				psInfo.defines.push_back("SA_CAMERA_BUFFER_ID=0");
+				psInfo.defines.push_back("SA_OBJECT_BUFFER_ID=0");
+
+				sphereRaw.vertices.AppendDefines(psInfo.defines);
+
+				ShaderCompileResult psShaderRes = compiler.CompileSPIRV(psInfo);
+				fsDesc = psShaderRes.desc;
+
+				pointLightDebugFragmentShader.Create(device, psShaderRes.rawSPIRV);
+			}
+
 			compiler.Destroy();	
 		}
 
@@ -1256,6 +1285,9 @@ void Init()
 				std::vector<PointLight_GPU> pointLights;
 				pointLights.reserve(pointLightNum);
 
+				std::vector<SA::Mat4f> pLightObjectsMats;
+				pLightObjectsMats.reserve(pointLightNum);
+
 				for (uint32_t i = 0; i < pointLightNum; ++i)
 				{
 					PointLight_GPU light;
@@ -1265,10 +1297,15 @@ void Init()
 					light.radius = RandFloat(0.0f, 10.0f);
 
 					pointLights.push_back(light);
+
+					pLightObjectsMats.push_back(SA::TransformPRSf(light.position, SA::Quatf::Identity, SA::Vec3f{ light.radius }).Matrix());
 				}
 
 				pointLightBuffer.Create(device, sizeof(PointLight_GPU) * pointLightNum, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
 										VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, pointLights.data());
+
+				pointLightObjectBuffer.Create(device, sizeof(SA::Mat4f) * pointLightNum, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+					VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, pLightObjectsMats.data());
 			}
 
 
@@ -1402,6 +1439,29 @@ void Init()
 				}
 
 				vkUpdateDescriptorSets(device, (uint32_t)writes.size(), writes.data(), 0, nullptr);
+			}
+
+			// PointLightObjectSet
+			{
+				pointLightObjectSet = objectDescPool.Allocate(device, objectDescSetLayout);
+
+
+				VkDescriptorBufferInfo buffInfo;
+				buffInfo.buffer = pointLightObjectBuffer;
+				buffInfo.offset = 0;
+				buffInfo.range = VK_WHOLE_SIZE;
+
+				VkWriteDescriptorSet write;
+				write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+				write.pNext = nullptr;
+				write.dstSet = pointLightObjectSet;
+				write.dstBinding = 0;
+				write.dstArrayElement = 0;
+				write.descriptorCount = 1;
+				write.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+				write.pBufferInfo = &buffInfo;
+
+				vkUpdateDescriptorSets(device, 1, &write, 0, nullptr);
 			}
 		}
 
@@ -2468,6 +2528,12 @@ void Init()
 
 			pipeline.Create(device, pipelineCreateInfo);
 
+			rasterizerInfo.polygonMode = VK_POLYGON_MODE_LINE;
+			shaderStages[1].module = pointLightDebugFragmentShader;
+			pointLightDebugPipeline.Create(device, pipelineCreateInfo);
+			shaderStages[1].module = fragmentShader;
+			rasterizerInfo.polygonMode = VK_POLYGON_MODE_FILL;
+
 			if (bDepthPrepass)
 			{
 				depthStencilInfo.depthWriteEnable = VK_TRUE;
@@ -2539,6 +2605,7 @@ void Uninit()
 		cameraDescSetLayout.Destroy(device);
 		cameraDescPool.Destroy(device);
 
+		pointLightObjectBuffer.Destroy(device);
 		objectBuffer.Destroy(device);
 		objectDescSetLayout.Destroy(device);
 		objectDescPool.Destroy(device);
@@ -2800,6 +2867,26 @@ void Loop()
 
 	sphereMesh.Draw(cmd, objNum);
 
+	// Debug PointLights
+	if(bPointLightDebug)
+	{
+		vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pointLightDebugPipeline);
+
+		std::vector<VkDescriptorSet> boundSets{
+			static_cast<VkDescriptorSet>(cameraSets[frameIndex]),
+			static_cast<VkDescriptorSet>(pointLightObjectSet),
+		};
+
+		vkCmdBindDescriptorSets(cmd,
+			VK_PIPELINE_BIND_POINT_GRAPHICS,
+			pipLayout,
+			0, (uint32_t)boundSets.size(),
+			boundSets.data(),
+			0, nullptr);
+
+		sphereMesh.Draw(cmd, pointLightNum);
+	}
+
 	renderPass.End(cmd);
 
 	cmd.End();
@@ -2857,6 +2944,8 @@ int main()
 					cameraTr.position += fixedTime * moveSpeed * cameraTr.Forward();
 				if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
 					cameraTr.position -= fixedTime * moveSpeed * cameraTr.Forward();
+				if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS)
+					bPointLightDebug = !bPointLightDebug;
 
 				double mouseX = 0.0f;
 				double mouseY = 0.0f;
