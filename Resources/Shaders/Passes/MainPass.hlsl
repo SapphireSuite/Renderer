@@ -69,6 +69,8 @@ struct VertexOutput
 	float4 color : COLOR;
 	
 #endif
+	
+	uint instanceId : InstanceID;
 };
 
 
@@ -76,6 +78,7 @@ VertexOutput mainVS(SA::VertexInputAssembly _input,
 	uint _instanceId : SV_InstanceID)
 {
 	VertexOutput output;
+	output.instanceId = _instanceId;
 
 
 //{ Positions
@@ -234,6 +237,13 @@ PixelOutput mainPS(
 	PixelOutput output;
 
 //{ Base Color
+	
+#if SA_OBJECT_DEBUG_COLOR
+	
+	output.color = SA::objectDebugColorBuffer[_input.instanceId];
+	return output;
+	
+#endif
 	
 #if SA_VERTEX_UV
 	

@@ -58,8 +58,10 @@ VK::Shader pointLightCullingShader;
 VK::Shader depthOnlyVertexShader;
 VK::Shader vertexShader;
 VK::Shader fragmentShader;
+VK::Shader pointLightDebugVertexShader;
 VK::Shader pointLightDebugFragmentShader;
 VK::PipelineLayout pipLayout;
+VK::PipelineLayout pointLightDebugPipLayout;
 VK::Pipeline depthPrepassPipeline;
 VK::Pipeline pipeline;
 VK::Pipeline pointLightDebugPipeline;
@@ -80,9 +82,12 @@ VK::DescriptorSetLayout cameraDescSetLayout;
 std::vector<VK::DescriptorSet> cameraSets;
 VK::Buffer objectBuffer;
 VK::Buffer pointLightObjectBuffer;
+VK::Buffer pointLightDebugColorObjectBuffer;
 VK::DescriptorPool objectDescPool;
 VK::DescriptorSetLayout objectDescSetLayout;
 VK::DescriptorSet objectSet;
+VK::DescriptorPool pointLightObjectDescPool;
+VK::DescriptorSetLayout pointLightObjectDescSetLayout;
 VK::DescriptorSet pointLightObjectSet;
 VK::Buffer lightClusterInfoBuffer;
 VK::Buffer lightClusterGridBuffer;
@@ -544,7 +549,7 @@ void Init()
 						.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
 						.descriptorCount = 1
 						});
-					info.setNum = 2;
+					info.setNum = 1;
 
 					objectDescPool.Create(device, info);
 				}
@@ -1149,6 +1154,28 @@ void Init()
 			}
 
 
+			// PointLight Debug Vertex
+			{
+				ShaderCompileInfo vsInfo
+				{
+					.path = L"Resources/Shaders/Passes/MainPass.hlsl",
+					.entrypoint = "mainVS",
+					.target = "vs_6_5",
+				};
+
+				if (bDepthInverted)
+					vsInfo.defines.push_back("SA_DEPTH_INVERTED=1");
+
+				vsInfo.defines.push_back("SA_CAMERA_BUFFER_ID=0");
+				vsInfo.defines.push_back("SA_OBJECT_BUFFER_ID=0");
+
+				sphereRaw.vertices.AppendDefines(vsInfo.defines);
+
+				ShaderCompileResult vsShaderRes = compiler.CompileSPIRV(vsInfo);
+
+				pointLightDebugVertexShader.Create(device, vsShaderRes.rawSPIRV);
+			}
+
 			// PointLight Debug Fragment
 			{
 				ShaderCompileInfo psInfo
@@ -1163,11 +1190,11 @@ void Init()
 
 				psInfo.defines.push_back("SA_CAMERA_BUFFER_ID=0");
 				psInfo.defines.push_back("SA_OBJECT_BUFFER_ID=0");
+				psInfo.defines.push_back("SA_OBJECT_DEBUG_COLOR_ID=1");
 
 				sphereRaw.vertices.AppendDefines(psInfo.defines);
 
 				ShaderCompileResult psShaderRes = compiler.CompileSPIRV(psInfo);
-				fsDesc = psShaderRes.desc;
 
 				pointLightDebugFragmentShader.Create(device, psShaderRes.rawSPIRV);
 			}
@@ -1288,6 +1315,9 @@ void Init()
 				std::vector<SA::Mat4f> pLightObjectsMats;
 				pLightObjectsMats.reserve(pointLightNum);
 
+				std::vector<SA::Vec4f> pLightObjectsDebugColor;
+				pLightObjectsMats.reserve(pointLightNum);
+
 				for (uint32_t i = 0; i < pointLightNum; ++i)
 				{
 					PointLight_GPU light;
@@ -1299,6 +1329,7 @@ void Init()
 					pointLights.push_back(light);
 
 					pLightObjectsMats.push_back(SA::TransformPRSf(light.position, SA::Quatf::Identity, SA::Vec3f{ light.radius }).Matrix());
+					pLightObjectsDebugColor.push_back(SA::Vec4f(light.color, 1.0f));
 				}
 
 				pointLightBuffer.Create(device, sizeof(PointLight_GPU) * pointLightNum, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
@@ -1306,6 +1337,9 @@ void Init()
 
 				pointLightObjectBuffer.Create(device, sizeof(SA::Mat4f) * pointLightNum, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
 					VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, pLightObjectsMats.data());
+
+				pointLightDebugColorObjectBuffer.Create(device, sizeof(SA::Vec4f)* pointLightNum, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+					VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, pLightObjectsDebugColor.data());
 			}
 
 
@@ -1443,25 +1477,86 @@ void Init()
 
 			// PointLightObjectSet
 			{
-				pointLightObjectSet = objectDescPool.Allocate(device, objectDescSetLayout);
+				// DescPool.
+				{
+					VK::DescriptorPoolInfos info;
+					info.poolSizes.emplace_back(VkDescriptorPoolSize{
+						.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+						.descriptorCount = 1
+						});
+					info.poolSizes.emplace_back(VkDescriptorPoolSize{
+						.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+						.descriptorCount = 1
+						});
+					info.setNum = 1;
 
+					pointLightObjectDescPool.Create(device, info);
+				}
 
-				VkDescriptorBufferInfo buffInfo;
-				buffInfo.buffer = pointLightObjectBuffer;
-				buffInfo.offset = 0;
-				buffInfo.range = VK_WHOLE_SIZE;
+				// Layout
+				{
+					pointLightObjectDescSetLayout.Create(device,
+					{
+						{
+							.binding = 0,
+							.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+							.descriptorCount = 1,
+							.stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
+							.pImmutableSamplers = nullptr
+						},
+						{
+							.binding = 1,
+							.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+							.descriptorCount = 1,
+							.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+							.pImmutableSamplers = nullptr
+						}
+					});
+				}
 
-				VkWriteDescriptorSet write;
-				write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-				write.pNext = nullptr;
-				write.dstSet = pointLightObjectSet;
-				write.dstBinding = 0;
-				write.dstArrayElement = 0;
-				write.descriptorCount = 1;
-				write.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-				write.pBufferInfo = &buffInfo;
+				pointLightObjectSet = pointLightObjectDescPool.Allocate(device, pointLightObjectDescSetLayout);
 
-				vkUpdateDescriptorSets(device, 1, &write, 0, nullptr);
+				std::vector<VkDescriptorBufferInfo> bufferInfos;
+				bufferInfos.reserve(2);
+
+				std::vector<VkWriteDescriptorSet> writes;
+				writes.reserve(2);
+
+				{
+					VkDescriptorBufferInfo& buffInfo = bufferInfos.emplace_back();
+					buffInfo.buffer = pointLightObjectBuffer;
+					buffInfo.offset = 0;
+					buffInfo.range = VK_WHOLE_SIZE;
+
+					VkWriteDescriptorSet& write = writes.emplace_back();
+					write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+					write.pNext = nullptr;
+					write.dstSet = pointLightObjectSet;
+					write.dstBinding = 0;
+					write.dstArrayElement = 0;
+					write.descriptorCount = 1;
+					write.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+					write.pBufferInfo = &buffInfo;
+				}
+
+				{
+					VkDescriptorBufferInfo& buffInfo = bufferInfos.emplace_back();
+					buffInfo.buffer = pointLightDebugColorObjectBuffer;
+					buffInfo.offset = 0;
+					buffInfo.range = VK_WHOLE_SIZE;
+
+					VkWriteDescriptorSet& write = writes.emplace_back();
+					write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+					write.pNext = nullptr;
+					write.dstSet = pointLightObjectSet;
+					write.dstBinding = 1;
+					write.dstArrayElement = 0;
+					write.descriptorCount = 1;
+					write.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+					write.pBufferInfo = &buffInfo;
+				}
+
+				vkUpdateDescriptorSets(device, static_cast<uint32_t>(writes.size()), writes.data(), 0, nullptr);
 			}
 		}
 
@@ -2377,6 +2472,25 @@ void Init()
 			info.pPushConstantRanges = nullptr;
 
 			pipLayout.Create(device, info);
+
+			// Point Light Debug PipLayout
+			{
+				std::vector<VkDescriptorSetLayout> setLayouts{
+					static_cast<VkDescriptorSetLayout>(cameraDescSetLayout),
+					static_cast<VkDescriptorSetLayout>(pointLightObjectDescSetLayout),
+				};
+
+				VkPipelineLayoutCreateInfo info{};
+				info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+				info.pNext = nullptr;
+				info.flags = 0u;
+				info.setLayoutCount = static_cast<uint32_t>(setLayouts.size());
+				info.pSetLayouts = setLayouts.data();
+				info.pushConstantRangeCount = 0;
+				info.pPushConstantRanges = nullptr;
+
+				pointLightDebugPipLayout.Create(device, info);
+			}
 		}
 
 		// Pipeline
@@ -2529,8 +2643,12 @@ void Init()
 			pipeline.Create(device, pipelineCreateInfo);
 
 			rasterizerInfo.polygonMode = VK_POLYGON_MODE_LINE;
+			shaderStages[0].module = pointLightDebugVertexShader;
 			shaderStages[1].module = pointLightDebugFragmentShader;
+			pipelineCreateInfo.layout = pointLightDebugPipLayout;
 			pointLightDebugPipeline.Create(device, pipelineCreateInfo);
+			pipelineCreateInfo.layout = pipLayout;
+			shaderStages[0].module = vertexShader;
 			shaderStages[1].module = fragmentShader;
 			rasterizerInfo.polygonMode = VK_POLYGON_MODE_FILL;
 
@@ -2584,10 +2702,14 @@ void Uninit()
 	{
 		device.WaitIdle();
 
+		pointLightDebugPipeline.Destroy(device);
+		pointLightDebugPipLayout.Destroy(device);
 		pipeline.Destroy(device);
 		depthPrepassPipeline.Destroy(device);
 		pipLayout.Destroy(device);
 
+		pointLightDebugVertexShader.Destroy(device);
+		pointLightDebugFragmentShader.Destroy(device);
 		fragmentShader.Destroy(device);
 		vertexShader.Destroy(device);
 		depthOnlyVertexShader.Destroy(device);
@@ -2605,10 +2727,13 @@ void Uninit()
 		cameraDescSetLayout.Destroy(device);
 		cameraDescPool.Destroy(device);
 
+		pointLightDebugColorObjectBuffer.Destroy(device);
 		pointLightObjectBuffer.Destroy(device);
 		objectBuffer.Destroy(device);
 		objectDescSetLayout.Destroy(device);
 		objectDescPool.Destroy(device);
+		pointLightObjectDescPool.Destroy(device);
+		pointLightObjectDescSetLayout.Destroy(device);
 
 		albedo.Destroy(device);
 		vkDestroyImageView(device, albedoSRV, nullptr);
@@ -2879,7 +3004,7 @@ void Loop()
 
 		vkCmdBindDescriptorSets(cmd,
 			VK_PIPELINE_BIND_POINT_GRAPHICS,
-			pipLayout,
+			pointLightDebugPipLayout,
 			0, (uint32_t)boundSets.size(),
 			boundSets.data(),
 			0, nullptr);
