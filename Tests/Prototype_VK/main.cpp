@@ -151,11 +151,11 @@ VK::DescriptorSetLayout materialDescSetLayout;
 VK::DescriptorSet materialSet;
 VkSampler sampler;
 
-uint32_t objNum = 1000;
-uint32_t pointLightNum = 10000;
-SA::Vec3ui lightClusterGridSize = { 32, 32, 32 };
 float zNear = 0.1f;
 float zFar = 10.0f;
+uint32_t objNum = 1;
+uint32_t pointLightNum = 1;
+SA::Vec3ui lightClusterGridSize = { 2, 2, 1 };
 
 struct SceneTexture
 {
@@ -187,7 +187,7 @@ float RandFloat(float min, float max)
 
 SA::Vec3f RandVec3Position()
 {
-	return SA::Vec3f(RandFloat(-50, 50), RandFloat(-50, 50), RandFloat(-50, 50));
+	return SA::Vec3f(RandFloat(-10, 10), RandFloat(-10, 10), RandFloat(-10, 10));
 }
 
 SA::Quatf RandQuat()
@@ -548,13 +548,12 @@ void Init()
 
 				// Object
 				{
-
 					// Instanting
 					std::vector<SA::Mat4f> objectsMats;
 					objectsMats.resize(objNum);
 
 					for (auto& mat : objectsMats)
-						mat = SA::TransformPRSf(RandVec3Position(), RandQuat(), RandVec3UniScale()).Matrix();
+						mat = SA::TransformPRSf(SA::Vec3f(1.2, 1, 3.0), RandQuat(), SA::Vec3f::One).Matrix();
 
 					objectBuffer.Create(device, sizeof(SA::Mat4f) * objNum, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
 						VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, objectsMats.data());
@@ -1373,17 +1372,19 @@ void Init()
 			{
 				SA::Vec3ui gridSize;
 
-				float clusterSize;
+				float clusterScale;
 				float clusterBias;
+
+				uint32_t padding[3];
 			};
 
 			LightClusterInfo lightClusterInfo{
 				.gridSize = lightClusterGridSize,
-				.clusterSize = lightClusterGridSize.z / std::logf(zFar / zNear),
+				.clusterScale = lightClusterGridSize.z / std::logf(zFar / zNear),
 				.clusterBias = lightClusterGridSize.z * std::logf(zNear) / std::logf(zFar / zNear),
 			};
 
-			lightClusterInfoBuffer.Create(device, 2 * sizeof(float) + 3 * sizeof(uint32_t), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+			lightClusterInfoBuffer.Create(device, sizeof(LightClusterInfo), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
 				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &lightClusterInfo);
 		}
 
@@ -1422,10 +1423,13 @@ void Init()
 				for (uint32_t i = 0; i < pointLightNum; ++i)
 				{
 					PointLight_GPU light;
-					light.position = RandVec3Position();
+					light.position = SA::Vec3f(-0.5, 1, 3.0);
+					//light.position = RandVec3Position();
 					light.color = SA::Vec3f{ RandFloat(0.0f, 1.0f), RandFloat(0.0f, 1.0f), RandFloat(0.0f, 1.0f) };
-					light.intensity = RandFloat(0.0f, 10.0f);
-					light.radius = RandFloat(0.0f, 10.0f);
+					light.intensity = 1;
+					//light.intensity = RandFloat(0.0f, 10.0f);
+					light.radius = 1;
+					//light.radius = RandFloat(0.0f, 3.0f);
 
 					pointLights.push_back(light);
 
@@ -3381,7 +3385,7 @@ int main()
 	float accumulateTime = 0.0f;
 	auto start = std::chrono::steady_clock::now();
 
-	cameraTr.position.z = -2.0f;
+	cameraTr.position.z = 0.0f;
 
 	while(!glfwWindowShouldClose(window))
 	{
