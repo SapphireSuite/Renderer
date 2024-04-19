@@ -166,6 +166,7 @@ constexpr bool bMSAA = true;
 
 bool bPointLightDebug = false;
 bool bLightGridDebug = false;
+bool bShouldRefreshGrid = true;
 
 void GLFWErrorCallback(int32_t error, const char* description)
 {
@@ -2962,9 +2963,8 @@ void Loop()
 	const uint32_t frameIndex = swapchain.Begin(device);
 
 	// Update camera.
+	Camera_GPU cameraGPU;
 	{
-		Camera_GPU cameraGPU;
-
 		cameraGPU.UpdatePerspective(cameraTr.Matrix(), 90, zNear, zFar, SA::Vec2ui(1200u, 900u));
 
 		cameraBuffers[frameIndex].UploadData(device, &cameraGPU, sizeof(Camera_GPU));
@@ -3123,7 +3123,7 @@ void Loop()
 	sphereMesh.Draw(cmd, objNum);
 
 	// Debug PointLights
-	if(bPointLightDebug)
+	if (bPointLightDebug)
 	{
 		vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pointLightDebugPipeline);
 
@@ -3142,32 +3142,40 @@ void Loop()
 		sphereMesh.Draw(cmd, pointLightNum);
 	}
 
-	if(bLightGridDebug)
+	if (bLightGridDebug)
 	{
-		uint32_t gridNum = lightClusterGridSize.x * lightClusterGridSize.y * lightClusterGridSize.z;
-		uint32_t dataNum = 2 * gridNum;
-		uint32_t dataSize = sizeof(SA::Vec4f) * dataNum;
-		std::vector<SA::Vec4f> data;
-		data.resize(dataNum);
-
-		std::vector<SA::Mat4f> lightClusterGridMatrices;
-		lightClusterGridMatrices.resize(gridNum);
-
-		lightClusterGridBuffer.ReadbackData(device, data.data(), dataSize);
-
-		for (int i = 0; i < dataNum; i += 2)
+		const uint32_t gridNum = lightClusterGridSize.x * lightClusterGridSize.y * lightClusterGridSize.z;
+		
+		if (bShouldRefreshGrid)
 		{
-			SA::Vec3f min = data[i];
-			SA::Vec3f max = data[i + 1];
+			bShouldRefreshGrid = false;
 
-			SA::Vec3f center = (max + min) * 0.5f;
-			SA::Vec3f extents = (max - min)/* * 0.5f*/;
+			const uint32_t dataNum = 2 * gridNum;
+			const uint32_t dataSize = sizeof(SA::Vec4f) * dataNum;
+			std::vector<SA::Vec4f> data;
+			data.resize(dataNum);
 
-			lightClusterGridMatrices[i / 2] = SA::TrPRSf(center, SA::Quatf::Identity, extents).Matrix();
+			std::vector<SA::Mat4f> lightClusterGridMatrices;
+			lightClusterGridMatrices.resize(gridNum);
+
+			lightClusterGridBuffer.ReadbackData(device, data.data(), dataSize);
+
+			for (int i = 0; i < dataNum; i += 2)
+			{
+				SA::Vec3f min = data[i];
+				SA::Vec3f max = data[i + 1];
+
+				SA::Vec3f center = (max + min) * 0.5f;
+				SA::Vec3f extents = (max - min)/* * 0.5f*/;
+
+				// convert to world-space for debug.
+				center = cameraGPU.view * SA::Vec4f(center, 1.0f);
+
+				lightClusterGridMatrices[i / 2] = SA::TrPRSf(center, SA::Quatf::Identity, extents).Matrix();
+			}
+
+			debugLightClusterGridBuffer.UploadData(device, lightClusterGridMatrices.data(), sizeof(SA::Mat4f) * gridNum);
 		}
-
-		debugLightClusterGridBuffer.UploadData(device, lightClusterGridMatrices.data(), sizeof(SA::Mat4f) * gridNum);
-
 
 		vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pointLightDebugPipeline);
 
@@ -3185,6 +3193,10 @@ void Loop()
 
 		cubeMesh.Draw(cmd, gridNum);
 	}
+	else
+	{
+		bShouldRefreshGrid = true;
+	}
 
 	renderPass.End(cmd);
 
@@ -3196,6 +3208,9 @@ void Loop()
 int main()
 {
 	Init();
+
+	int prevPointLightDebugKeyState = GLFW_RELEASE;
+	int prevLightGridDebugKeyState = GLFW_RELEASE;
 
 	double oldMouseX = 0.0f;
 	double oldMouseY = 0.0f;
@@ -3243,10 +3258,13 @@ int main()
 					cameraTr.position += fixedTime * moveSpeed * cameraTr.Forward();
 				if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
 					cameraTr.position -= fixedTime * moveSpeed * cameraTr.Forward();
-				if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS)
+				if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS && prevPointLightDebugKeyState == GLFW_RELEASE)
 					bPointLightDebug = !bPointLightDebug;
-				if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS)
+				if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS && prevLightGridDebugKeyState == GLFW_RELEASE)
 					bLightGridDebug = !bLightGridDebug;
+
+				prevPointLightDebugKeyState = glfwGetKey(window, GLFW_KEY_P);
+				prevLightGridDebugKeyState = glfwGetKey(window, GLFW_KEY_O);
 
 				double mouseX = 0.0f;
 				double mouseY = 0.0f;
