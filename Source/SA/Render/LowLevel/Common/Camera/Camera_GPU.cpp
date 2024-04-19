@@ -9,15 +9,14 @@ namespace SA::RND
 		// View
 		{
 			view = _view;
-			//inverseView = _view.GetInversed();
+			inverseView = _view.GetInversed();
 		}
 
 		// Projection
 		{
-			Mat4f projection = Mat4f::MakePerspective(_FOV, _screenDims.x / _screenDims.y, _zNear, _zFar);
+			projection = Mat4f::MakePerspective(_FOV, _screenDims.x / _screenDims.y, _zNear, _zFar);
 			inverseProjection = projection.GetInversed();
 
-			Mat4f inverseView = _view.GetInversed();
 			invViewProj = projection * inverseView;
 
 			zNear = _zNear;

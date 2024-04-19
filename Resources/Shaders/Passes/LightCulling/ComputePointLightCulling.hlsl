@@ -106,7 +106,7 @@ bool SphereAABBCollision(SA::PointLight _plight, SA::AABB _aabb)
 	*	Convert light position to view space.
 	*	Calculation are done in view space.
 	*/
-	const float3 vsLightCenter = mul(camera.view, float4(_plight.position, 1.0)).xyz;
+	const float3 vsLightCenter = mul(camera.inverseView, float4(_plight.position, 1.0)).xyz;
 	
 	// Closest point in AABB.
 	const float3 closestAABB = clamp(vsLightCenter, _aabb.min, _aabb.max);

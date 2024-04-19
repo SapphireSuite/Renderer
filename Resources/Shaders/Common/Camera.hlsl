@@ -22,7 +22,7 @@ namespace SA
 		float4x4 view;
 
 		/// Camera inverse transformation matrix.
-		//float4x4 inverseView;
+		float4x4 inverseView;
 
 	//}
 
@@ -30,7 +30,7 @@ namespace SA
 	//{ Projection
 	
 		/// Camera projection matrix.
-		//float4x4 projection;
+		float4x4 projection;
 
 		/// Camera inverse projection matrix.
 		float4x4 inverseProjection;

@@ -22,7 +22,7 @@ namespace SA::RND
 		Mat4f view = Mat4f::Identity;
 
 		/// Camera inverse transformation matrix.
-		//Mat4f inverseView = Mat4f::Identity;
+		Mat4f inverseView = Mat4f::Identity;
 
 	//}
 
@@ -30,7 +30,7 @@ namespace SA::RND
 	//{ Projection
 
 		/// Camera projection matrix.
-		//Mat4f projection = Mat4f::Identity;
+		Mat4f projection = Mat4f::Identity;
 
 		/// Camera inverse projection matrix.
 		Mat4f inverseProjection = Mat4f::Identity;
