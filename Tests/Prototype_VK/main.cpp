@@ -3171,7 +3171,7 @@ void Loop()
 				// convert to world-space for debug.
 				center = cameraGPU.view * SA::Vec4f(center, 1.0f);
 
-				lightClusterGridMatrices[i / 2] = SA::TrPRSf(center, SA::Quatf::Identity, extents).Matrix();
+				lightClusterGridMatrices[i / 2] = SA::TrPRSf(center, cameraTr.rotation, extents).Matrix();
 			}
 
 			debugLightClusterGridBuffer.UploadData(device, lightClusterGridMatrices.data(), sizeof(SA::Mat4f) * gridNum);
