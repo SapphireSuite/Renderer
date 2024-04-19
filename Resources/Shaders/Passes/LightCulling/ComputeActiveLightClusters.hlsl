@@ -9,7 +9,6 @@
 
 #define NUM_THREAD_X 32
 #define NUM_THREAD_Y 32
-#define NUM_THREAD_Z 1
 
 Texture2D<float> depthTexture : register(t2);
 
@@ -21,7 +20,7 @@ RWStructuredBuffer<uint> activeClusterStates : register(u3);
 
 //-------------------- Compute Shader --------------------
 
-[numthreads(NUM_THREAD_X, NUM_THREAD_Y, NUM_THREAD_Z)]
+[numthreads(NUM_THREAD_X, NUM_THREAD_Y, 1)]
 void main(uint3 _dispatchThreadID : SV_DispatchThreadID)
 {
 	uint2 depthTextureSize;
@@ -33,6 +32,19 @@ void main(uint3 _dispatchThreadID : SV_DispatchThreadID)
 	
 	const float depthValue = depthTexture[_dispatchThreadID.xy];
 	
+	// Discard empty depth.
+#if SA_DEPTH_INVERTED
+
+	if(depthValue == 0.0f)
+		return;
+
+#else
+	
+	if (depthValue == 1.0f)
+		return;
+	
+#endif
+
 	const uint clusterIndex = SA::GetClusterIndex(float3(_dispatchThreadID.xy, depthValue));
 	
 	activeClusterStates[clusterIndex] = true;
