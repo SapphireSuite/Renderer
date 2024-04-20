@@ -153,9 +153,9 @@ VkSampler sampler;
 
 float zNear = 0.1f;
 float zFar = 10.0f;
-uint32_t objNum = 1;
-uint32_t pointLightNum = 1;
-SA::Vec3ui lightClusterGridSize = { 2, 2, 1 };
+uint32_t objNum = 2;
+uint32_t pointLightNum = 2;
+SA::Vec3ui lightClusterGridSize = { 2, 2, 2 };
 
 struct SceneTexture
 {
@@ -552,8 +552,13 @@ void Init()
 					std::vector<SA::Mat4f> objectsMats;
 					objectsMats.resize(objNum);
 
-					for (auto& mat : objectsMats)
-						mat = SA::TransformPRSf(SA::Vec3f(1.2, 1, 3.0), RandQuat(), SA::Vec3f::One).Matrix();
+					std::vector<SA::Vec3f> positions = { SA::Vec3f(1.2, 1, 3.0), SA::Vec3f(-1.5, 1, 3.0) };
+
+					//for (auto& mat : objectsMats)
+					for (int i = 0; i < objNum; ++i)
+					{
+						objectsMats[i] = SA::TransformPRSf(positions[i], RandQuat(), SA::Vec3f::One).Matrix();
+					}
 
 					objectBuffer.Create(device, sizeof(SA::Mat4f) * objNum, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
 						VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, objectsMats.data());
@@ -1420,10 +1425,12 @@ void Init()
 				std::vector<SA::Vec4f> pLightObjectsDebugColor;
 				pLightObjectsMats.reserve(pointLightNum);
 
+				std::vector<SA::Vec3f> positions = { SA::Vec3f(-0.25, 1, 3.0), SA::Vec3f(0, 2, 3.0) };
+
 				for (uint32_t i = 0; i < pointLightNum; ++i)
 				{
 					PointLight_GPU light;
-					light.position = SA::Vec3f(-0.5, 1, 3.0);
+					light.position = positions[i];
 					//light.position = RandVec3Position();
 					light.color = SA::Vec3f{ RandFloat(0.0f, 1.0f), RandFloat(0.0f, 1.0f), RandFloat(0.0f, 1.0f) };
 					light.intensity = 1;
