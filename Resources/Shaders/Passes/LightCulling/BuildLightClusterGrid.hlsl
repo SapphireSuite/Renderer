@@ -68,7 +68,7 @@ float3 ComputeScreenSpaceToViewSpace(float2 _ssPos)
 	const float4 clipPos = float4(texCoord * 2.0 - 1.0, 0.0, 1.0);
 	
 	// Convert to view-space
-	const float4 viewPos = mul(clipPos, camera.inverseProjection);
+	const float4 viewPos = mul(clipPos, transpose(camera.inverseProjection)); // TODO: why transpose?
 	
 	// Fix perspective
 	return viewPos.xyz / viewPos.w;
