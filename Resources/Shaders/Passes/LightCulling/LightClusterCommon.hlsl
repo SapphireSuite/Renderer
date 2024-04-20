@@ -67,7 +67,7 @@ namespace SA
 		pixel.z = 1.0f - pixel.z;
 	#endif
 		
-		const uint clusterZSlice = log(pixel.z) * lightClusterInfo.clusterScale - lightClusterInfo.clusterBias;
+		const uint clusterZSlice = log(pixel.z * (camera.zFar - camera.zNear)) * lightClusterInfo.clusterScale - lightClusterInfo.clusterBias;
 
 		const uint2 clusterXY = uint2(pixel.xy / SA::ComputeTilePixelSize());
 	
