@@ -152,10 +152,10 @@ VK::DescriptorSet materialSet;
 VkSampler sampler;
 
 float zNear = 0.1f;
-float zFar = 10.0f;
-uint32_t objNum = 2;
-uint32_t pointLightNum = 2;
-SA::Vec3ui lightClusterGridSize = { 2, 2, 2 };
+float zFar = 1000.0f;
+uint32_t objNum = 1000;
+uint32_t pointLightNum = 10000;
+SA::Vec3ui lightClusterGridSize = { 12, 9, 24 };
 
 struct SceneTexture
 {
@@ -187,7 +187,7 @@ float RandFloat(float min, float max)
 
 SA::Vec3f RandVec3Position()
 {
-	return SA::Vec3f(RandFloat(-10, 10), RandFloat(-10, 10), RandFloat(-10, 10));
+	return SA::Vec3f(RandFloat(-20, 20), RandFloat(-20, 20), RandFloat(-20, 20));
 }
 
 SA::Quatf RandQuat()
@@ -553,13 +553,8 @@ void Init()
 					std::vector<SA::Mat4f> objectsMats;
 					objectsMats.resize(objNum);
 
-					std::vector<SA::Vec3f> positions = { SA::Vec3f(1.2, 1, 3.0), SA::Vec3f(-1.5, 1, 3.0) };
-
-					//for (auto& mat : objectsMats)
-					for (int i = 0; i < objNum; ++i)
-					{
-						objectsMats[i] = SA::TransformPRSf(positions[i], RandQuat(), SA::Vec3f::One).Matrix();
-					}
+					for (auto& mat : objectsMats)
+						mat = SA::TransformPRSf(RandVec3Position(), RandQuat(), RandVec3UniScale()).Matrix();
 
 					objectBuffer.Create(device, sizeof(SA::Mat4f) * objNum, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
 						VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, objectsMats.data());
@@ -1427,18 +1422,13 @@ void Init()
 				std::vector<SA::Vec4f> pLightObjectsDebugColor;
 				pLightObjectsMats.reserve(pointLightNum);
 
-				std::vector<SA::Vec3f> positions = { SA::Vec3f(-0.25, 1, 3.0), SA::Vec3f(0, 2, 3.0) };
-
 				for (uint32_t i = 0; i < pointLightNum; ++i)
 				{
 					PointLight_GPU light;
-					light.position = positions[i];
-					//light.position = RandVec3Position();
+					light.position = RandVec3Position();
 					light.color = SA::Vec3f{ RandFloat(0.0f, 1.0f), RandFloat(0.0f, 1.0f), RandFloat(0.0f, 1.0f) };
-					light.intensity = 1;
-					//light.intensity = RandFloat(0.0f, 10.0f);
-					light.radius = 1;
-					//light.radius = RandFloat(0.0f, 3.0f);
+					light.intensity = RandFloat(0.0f, 10.0f);
+					light.radius = RandFloat(0.0f, 3.0f);
 
 					pointLights.push_back(light);
 
