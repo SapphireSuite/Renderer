@@ -239,9 +239,17 @@ namespace SA::RND::VK
 						.finalLayout = VK_IMAGE_LAYOUT_UNDEFINED,	// Set later.
 					});
 
-					auto currLayoutIt = textureToLayoutMap.find(attach.texture);
-					if (currLayoutIt != textureToLayoutMap.end())
-						attachDesc.initialLayout = currLayoutIt->second;
+					// Initial layout forced.
+					if (attach.initialLayout != VK_IMAGE_LAYOUT_UNDEFINED)
+					{
+						attachDesc.initialLayout = attach.initialLayout;
+					}
+					else
+					{
+						auto currLayoutIt = textureToLayoutMap.find(attach.texture);
+						if (currLayoutIt != textureToLayoutMap.end())
+							attachDesc.initialLayout = currLayoutIt->second;
+					}
 
 					attachDesc.finalLayout = Intl::FindNextImageLayout(_info.subpasses, subpassIt, attach.texture, desc, attachDesc.initialLayout, bHasStencilFormat);
 					textureToLayoutMap[attach.texture] = attachDesc.finalLayout;

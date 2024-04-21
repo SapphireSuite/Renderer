@@ -388,6 +388,7 @@ void Init()
 
 							if (bDepthPrepass)
 							{
+								depthRT.initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
 								depthRT.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
 								depthRT.accessMode = AttachmentAccessMode::ReadOnly;
 							}
