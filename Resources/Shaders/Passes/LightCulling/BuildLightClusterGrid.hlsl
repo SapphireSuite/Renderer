@@ -67,7 +67,9 @@ float3 ComputeScreenSpaceToViewSpace(float2 _ssPos)
 	// Convert to clip space
 	float4 clipPos = float4(texCoord * 2.0 - 1.0, 0.0, 1.0);
 	
-	clipPos.y = -clipPos.y; // TODO: why reverse Y-axis?
+	// Viewport is flipped so Y-axis needs to be reversed.
+	clipPos.y = -clipPos.y;
+	
 	// Convert to view-space
 	const float4 viewPos = mul(clipPos, transpose(camera.inverseProjection)); // TODO: why transpose?
 	
