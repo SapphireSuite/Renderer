@@ -60,13 +60,13 @@ namespace SA
 		return ComputeBRDF(_data, lData);
 	}
 
-	float3 ComputePointLightsIllumination(float4 _svPosition, IlluminationData _data)
+	float3 ComputePointLightsIllumination(float2 _pixel, float _svDepth, IlluminationData _data)
 	{
 		float3 sum = float3(0.0f, 0.0f, 0.0f);
 
 	#if SA_POINT_LIGHT_CULLING
 
-		const uint clusterIndex = GetClusterIndex(_svPosition.xyz);
+		const uint clusterIndex = GetClusterIndex(_pixel, _svDepth);
 
 		const ClusterLightList cluster = culledPointLightGrid[clusterIndex];
 

@@ -61,15 +61,11 @@ namespace SA
 	*
 	*	\return Cluster index.
 	*/
-	uint GetClusterIndex(float3 pixel)
+	uint GetClusterIndex(float2 _pixel, float _vsDepth)
 	{
-	#if SA_DEPTH_INVERTED
-		pixel.z = 1.0f - pixel.z;
-	#endif
-		
-		const uint clusterZSlice = log(pixel.z * (camera.zFar - camera.zNear)) * lightClusterInfo.clusterScale - lightClusterInfo.clusterBias;
+		const uint clusterZSlice = log(_vsDepth) * lightClusterInfo.clusterScale - lightClusterInfo.clusterBias;
 
-		const uint2 clusterXY = uint2(pixel.xy / SA::ComputeTilePixelSize());
+		const uint2 clusterXY = uint2(_pixel / SA::ComputeTilePixelSize());
 	
 		const uint clusterIndex = clusterXY.x + clusterXY.y * lightClusterInfo.gridSize.x + clusterZSlice * lightClusterInfo.gridSize.x * lightClusterInfo.gridSize.y;
 

@@ -1200,6 +1200,7 @@ void Init()
 				//vsInfo.defines.push_back("SA_DIRECTIONAL_LIGHT_BUFFER_ID=0");
 				//vsInfo.defines.push_back("SA_DIRECTIONAL_LIGHT_SET=2");
 				vsInfo.defines.push_back("SA_POINT_LIGHT_BUFFER_ID=1");
+				vsInfo.defines.push_back("SA_CULLED_POINT_LIGHT_GRID_BUFFER_ID=2");
 				vsInfo.defines.push_back("SA_POINT_LIGHT_SET=2");
 
 				vsInfo.defines.push_back("SA_MATERIAL_ALBEDO_ID=0");

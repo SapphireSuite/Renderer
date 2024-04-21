@@ -45,7 +45,7 @@ void main(uint3 _dispatchThreadID : SV_DispatchThreadID)
 	
 #endif
 
-	const uint clusterIndex = SA::GetClusterIndex(float3(_dispatchThreadID.xy, depthValue));
+	const uint clusterIndex = SA::GetClusterIndex(_dispatchThreadID.xy, depthValue);
 	
 	activeClusterStates[clusterIndex] = true;
 }
