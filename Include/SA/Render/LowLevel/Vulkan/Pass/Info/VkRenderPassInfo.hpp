@@ -14,6 +14,7 @@ namespace SA::RND::VK
 {
 	struct AttachmentInfo : public AttachmentInfoBase<Texture>
 	{
+		VkImageLayout initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 		VkAttachmentLoadOp loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 	};
 

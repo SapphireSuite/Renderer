@@ -151,11 +151,13 @@ VK::DescriptorSetLayout materialDescSetLayout;
 VK::DescriptorSet materialSet;
 VkSampler sampler;
 
+float zNear = 0.1f;
+float zFar = 1000.0f;
 uint32_t objNum = 1000;
 uint32_t pointLightNum = 10000;
-SA::Vec3ui lightClusterGridSize = { 32, 32, 32 };
-float zNear = 0.1f;
-float zFar = 10.0f;
+SA::Vec3ui lightClusterGridSize = { 12, 9, 128 };
+std::vector<PointLight_GPU> pointLights;
+std::vector<SA::Mat4f> pLightObjectsMats;
 
 struct SceneTexture
 {
@@ -187,7 +189,7 @@ float RandFloat(float min, float max)
 
 SA::Vec3f RandVec3Position()
 {
-	return SA::Vec3f(RandFloat(-50, 50), RandFloat(-50, 50), RandFloat(-50, 50));
+	return SA::Vec3f(RandFloat(-20, 20), RandFloat(-20, 20), RandFloat(-20, 20));
 }
 
 SA::Quatf RandQuat()
@@ -388,6 +390,7 @@ void Init()
 
 							if (bDepthPrepass)
 							{
+								depthRT.initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
 								depthRT.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
 								depthRT.accessMode = AttachmentAccessMode::ReadOnly;
 							}
@@ -548,7 +551,6 @@ void Init()
 
 				// Object
 				{
-
 					// Instanting
 					std::vector<SA::Mat4f> objectsMats;
 					objectsMats.resize(objNum);
@@ -1196,6 +1198,7 @@ void Init()
 				//vsInfo.defines.push_back("SA_DIRECTIONAL_LIGHT_BUFFER_ID=0");
 				//vsInfo.defines.push_back("SA_DIRECTIONAL_LIGHT_SET=2");
 				vsInfo.defines.push_back("SA_POINT_LIGHT_BUFFER_ID=1");
+				vsInfo.defines.push_back("SA_CULLED_POINT_LIGHT_GRID_BUFFER_ID=2");
 				vsInfo.defines.push_back("SA_POINT_LIGHT_SET=2");
 
 				vsInfo.defines.push_back("SA_MATERIAL_ALBEDO_ID=0");
@@ -1373,17 +1376,19 @@ void Init()
 			{
 				SA::Vec3ui gridSize;
 
-				float clusterSize;
+				float clusterScale;
 				float clusterBias;
+
+				uint32_t padding[3];
 			};
 
 			LightClusterInfo lightClusterInfo{
 				.gridSize = lightClusterGridSize,
-				.clusterSize = lightClusterGridSize.z / std::logf(zFar / zNear),
+				.clusterScale = lightClusterGridSize.z / std::logf(zFar / zNear),
 				.clusterBias = lightClusterGridSize.z * std::logf(zNear) / std::logf(zFar / zNear),
 			};
 
-			lightClusterInfoBuffer.Create(device, 2 * sizeof(float) + 3 * sizeof(uint32_t), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+			lightClusterInfoBuffer.Create(device, sizeof(LightClusterInfo), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
 				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &lightClusterInfo);
 		}
 
@@ -1410,14 +1415,12 @@ void Init()
 
 			// Point lights Buffer
 			{
-				std::vector<PointLight_GPU> pointLights;
 				pointLights.reserve(pointLightNum);
 
-				std::vector<SA::Mat4f> pLightObjectsMats;
 				pLightObjectsMats.reserve(pointLightNum);
 
 				std::vector<SA::Vec4f> pLightObjectsDebugColor;
-				pLightObjectsMats.reserve(pointLightNum);
+				pLightObjectsDebugColor.reserve(pointLightNum);
 
 				for (uint32_t i = 0; i < pointLightNum; ++i)
 				{
@@ -1425,7 +1428,7 @@ void Init()
 					light.position = RandVec3Position();
 					light.color = SA::Vec3f{ RandFloat(0.0f, 1.0f), RandFloat(0.0f, 1.0f), RandFloat(0.0f, 1.0f) };
 					light.intensity = RandFloat(0.0f, 10.0f);
-					light.radius = RandFloat(0.0f, 10.0f);
+					light.radius = RandFloat(0.0f, 3.0f);
 
 					pointLights.push_back(light);
 
@@ -3103,6 +3106,23 @@ void Loop()
 		cameraBuffers[frameIndex].UploadData(device, &cameraGPU, sizeof(Camera_GPU));
 	}
 
+	// Update light positions
+	if(true)
+	{
+		static SA::Mat4f rot = SA::Mat4f::MakeRotation(SA::Quatf::FromEuler({0, 0.0025f * 10.0f, 0.0f}));
+
+		for(int i = 0; i < pointLightNum; ++i)
+		{
+			auto& mat = pLightObjectsMats[i];
+			mat = rot * mat;
+
+			pointLights[i].position = SA::Vec3f(mat.e03, mat.e13, mat.e23);
+		}
+
+		pointLightObjectBuffer.UploadData(device, pLightObjectsMats.data(), sizeof(SA::Mat4f) * pointLightNum);
+		pointLightBuffer.UploadData(device, pointLights.data(), sizeof(PointLight_GPU) * pointLightNum);
+	}
+
 	VK::CommandBuffer& cmd = cmdBuffers[frameIndex];
 	VK::FrameBuffer& fbuff = frameBuffers[frameIndex];
 	VK::FrameBuffer& depthPrepassFbuff = depthPrepassFrameBuffers[frameIndex];
@@ -3138,6 +3158,40 @@ void Loop()
 
 	// Light Culling
 	{
+		// Barrier
+		{
+			VkBufferMemoryBarrier barrier1{
+				.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
+				.pNext = nullptr,
+				.srcAccessMask = VK_ACCESS_SHADER_READ_BIT,
+				.dstAccessMask = VK_ACCESS_SHADER_WRITE_BIT,
+				.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+				.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+				.buffer = lightClusterGridBuffer,
+				.offset = 0,
+				.size = VK_WHOLE_SIZE,
+			};
+
+			VkBufferMemoryBarrier barrier2{
+				.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
+				.pNext = nullptr,
+				.srcAccessMask = VK_ACCESS_SHADER_READ_BIT,
+				.dstAccessMask = VK_ACCESS_SHADER_WRITE_BIT,
+				.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+				.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+				.buffer = activeLightClusterStatesBuffer,
+				.offset = 0,
+				.size = VK_WHOLE_SIZE,
+			};
+
+			VkBufferMemoryBarrier barriers[] = { barrier1, barrier2 };
+
+			VkPipelineStageFlags srcStageMask = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+			VkPipelineStageFlags dstStageMask = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+
+			vkCmdPipelineBarrier(cmd, srcStageMask, dstStageMask, 0, 0, nullptr, 2, barriers, 0, nullptr);
+		}
+
 		// Build LightClusterGrid: TODO: Can be called only once at init (and refresh only when camera projection fields change).
 		{
 			vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, lightClusterGridPipeline);
@@ -3177,6 +3231,26 @@ void Loop()
 			vkCmdDispatch(cmd, (fullGirdSize / 32) + (fullGirdSize % 32 == 0 ? 0 : 1), 1, 1);
 		}
 
+		// Barrier
+		{
+			VkBufferMemoryBarrier barrier{
+				.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
+				.pNext = nullptr,
+				.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT,
+				.dstAccessMask = VK_ACCESS_SHADER_READ_BIT,
+				.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+				.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+				.buffer = lightClusterGridBuffer,
+				.offset = 0,
+				.size = VK_WHOLE_SIZE,
+			};
+
+			VkPipelineStageFlags srcStageMask = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+			VkPipelineStageFlags dstStageMask = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+
+			vkCmdPipelineBarrier(cmd, srcStageMask, dstStageMask, 0, 0, nullptr, 1, &barrier, 0, nullptr);
+		}
+
 		// Compute ActiveLightClusters
 		{
 			vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, activeLightClusterStatesPipeline);
@@ -3194,6 +3268,58 @@ void Loop()
 			);
 
 			vkCmdDispatch(cmd, (1200 / 32) + 1, (900 / 32) + 1, 1);
+		}
+
+		// Barrier
+		{
+			VkBufferMemoryBarrier barrier1{
+				.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
+				.pNext = nullptr,
+				.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT,
+				.dstAccessMask = VK_ACCESS_SHADER_READ_BIT,
+				.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+				.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+				.buffer = activeLightClusterStatesBuffer,
+				.offset = 0,
+				.size = VK_WHOLE_SIZE,
+			};
+
+			VkBufferMemoryBarrier barrier2{
+				.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
+				.pNext = nullptr,
+				.srcAccessMask = VK_ACCESS_SHADER_READ_BIT,
+				.dstAccessMask = VK_ACCESS_SHADER_WRITE_BIT,
+				.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+				.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+				.buffer = activeLightClusterListBuffer,
+				.offset = 0,
+				.size = VK_WHOLE_SIZE,
+			};
+
+			VkBufferMemoryBarrier barriers[] = { barrier1, barrier2 };
+
+			VkPipelineStageFlags srcStageMask = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+			VkPipelineStageFlags dstStageMask = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+
+			vkCmdPipelineBarrier(cmd, srcStageMask, dstStageMask, 0, 0, nullptr, 2, barriers, 0, nullptr);
+
+
+			VkBufferMemoryBarrier barrier3{
+				.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
+				.pNext = nullptr,
+				.srcAccessMask = VK_ACCESS_SHADER_READ_BIT,
+				.dstAccessMask = VK_ACCESS_SHADER_WRITE_BIT,
+				.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+				.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+				.buffer = culledPointLightGrid,
+				.offset = 0,
+				.size = VK_WHOLE_SIZE,
+			};
+
+			VkPipelineStageFlags srcStageMask2 = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+			VkPipelineStageFlags dstStageMask2 = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+
+			vkCmdPipelineBarrier(cmd, srcStageMask2, dstStageMask2, 0, 0, nullptr, 1, &barrier3, 0, nullptr);
 		}
 
 		// Build Active Light Cluster List
@@ -3237,6 +3363,26 @@ void Loop()
 			vkCmdDispatch(cmd, dispatchNum, 1, 1);
 		}
 
+		// Barrier
+		{
+			VkBufferMemoryBarrier barrier{
+				.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
+				.pNext = nullptr,
+				.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT,
+				.dstAccessMask = VK_ACCESS_SHADER_READ_BIT,
+				.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+				.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+				.buffer = activeLightClusterListBuffer,
+				.offset = 0,
+				.size = VK_WHOLE_SIZE,
+			};
+
+			VkPipelineStageFlags srcStageMask = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+			VkPipelineStageFlags dstStageMask = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+
+			vkCmdPipelineBarrier(cmd, srcStageMask, dstStageMask, 0, 0, nullptr, 1, &barrier, 0, nullptr);
+		}
+
 		// Point Light culling
 		{
 			vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, pointLightCullingPipeline);
@@ -3254,6 +3400,26 @@ void Loop()
 			);
 
 			vkCmdDispatchIndirect(cmd, lightClusterIndirectArgsBuffer, 0);
+		}
+
+		// Barrier
+		{
+			VkBufferMemoryBarrier barrier{
+				.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
+				.pNext = nullptr,
+				.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT,
+				.dstAccessMask = VK_ACCESS_SHADER_READ_BIT,
+				.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+				.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+				.buffer = culledPointLightGrid,
+				.offset = 0,
+				.size = VK_WHOLE_SIZE,
+			};
+
+			VkPipelineStageFlags srcStageMask = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+			VkPipelineStageFlags dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+
+			vkCmdPipelineBarrier(cmd, srcStageMask, dstStageMask, 0, 0, nullptr, 1, &barrier, 0, nullptr);
 		}
 	}
 
@@ -3381,7 +3547,7 @@ int main()
 	float accumulateTime = 0.0f;
 	auto start = std::chrono::steady_clock::now();
 
-	cameraTr.position.z = -2.0f;
+	cameraTr.position.z = 0.0f;
 
 	while(!glfwWindowShouldClose(window))
 	{

@@ -30,22 +30,30 @@ void main(uint3 _dispatchThreadID : SV_DispatchThreadID)
 		_dispatchThreadID.y >= depthTextureSize.y)
 		return;
 	
-	const float depthValue = depthTexture[_dispatchThreadID.xy];
+	float sampledDepth = depthTexture[_dispatchThreadID.xy];
 	
 	// Discard empty depth.
 #if SA_DEPTH_INVERTED
 
-	if(depthValue == 0.0f)
+	if(sampledDepth == 0.0f)
 		return;
+
+	sampledDepth = 1.0f - sampledDepth;
 
 #else
 	
-	if (depthValue == 1.0f)
+	if (sampledDepth == 1.0f)
 		return;
 	
 #endif
 
-	const uint clusterIndex = SA::GetClusterIndex(float3(_dispatchThreadID.xy, depthValue));
+	// Convert to view-space depth position.
+	const float4 viewDepthPosition = mul(camera.inverseProjection, float4(0.0f, 0.0f, sampledDepth, 1.0f));
+	
+	// Fix perspective.
+	const float vsDepth = viewDepthPosition.z / viewDepthPosition.w;
+
+	const uint clusterIndex = SA::GetClusterIndex(_dispatchThreadID.xy, vsDepth);
 	
 	activeClusterStates[clusterIndex] = true;
 }

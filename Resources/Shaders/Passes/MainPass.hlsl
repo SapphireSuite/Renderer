@@ -25,6 +25,13 @@ struct VertexOutput
 	/// Camera view position.
 	float3 viewPosition : VIEW_POSITION;
 
+	#if SA_POINT_LIGHT_CULLING
+
+		/// View-space depth.
+		float vsDepth : VS_DEPTH;
+
+	#endif
+
 #endif
 	
 //}
@@ -103,6 +110,12 @@ VertexOutput mainVS(SA::VertexInputAssembly _input,
 	output.svPosition = SA::ComputeObjectViewPosition(output.worldPosition);
 
 	output.viewPosition = SA::GetCameraViewPosition();
+
+	#if SA_POINT_LIGHT_CULLING
+
+		output.vsDepth = mul(camera.inverseView, float4(output.worldPosition, 1.0)).z;
+
+	#endif
 
 #else
 
@@ -307,7 +320,7 @@ PixelOutput mainPS(
 	
 	#if SA_POINT_LIGHTS
 	
-		output.color.rgb += SA::ComputePointLightsIllumination(_input.svPosition, illuData);
+		output.color.rgb += SA::ComputePointLightsIllumination(_input.svPosition.xy, _input.vsDepth, illuData);
 
 	#endif // SA_POINT_LIGHTS
 	

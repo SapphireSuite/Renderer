@@ -91,7 +91,9 @@ void main(uint _groupID : SV_GroupID, uint _groupThreadID : SV_GroupThreadID)
 		}
 	}
 	
-	
+	GroupMemoryBarrierWithGroupSync();
+
+
 	//---------- Output ----------
 	
 	if(_groupThreadID == 0)
