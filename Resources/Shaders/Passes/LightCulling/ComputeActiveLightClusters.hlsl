@@ -30,13 +30,15 @@ void main(uint3 _dispatchThreadID : SV_DispatchThreadID)
 		_dispatchThreadID.y >= depthTextureSize.y)
 		return;
 	
-	const float sampledDepth = depthTexture[_dispatchThreadID.xy];
+	float sampledDepth = depthTexture[_dispatchThreadID.xy];
 	
 	// Discard empty depth.
 #if SA_DEPTH_INVERTED
 
 	if(sampledDepth == 0.0f)
 		return;
+
+	sampledDepth = 1.0f - sampledDepth;
 
 #else
 	
