@@ -60,6 +60,8 @@ void main(uint _groupThreadID : SV_GroupThreadID)
 		}
 	}
 	
+	GroupMemoryBarrierWithGroupSync();
+
 	
 	//---------- Output ----------
 	
