@@ -3141,6 +3141,40 @@ void Loop()
 
 	// Light Culling
 	{
+		// Barrier
+		{
+			VkBufferMemoryBarrier barrier1{
+				.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
+				.pNext = nullptr,
+				.srcAccessMask = VK_ACCESS_SHADER_READ_BIT,
+				.dstAccessMask = VK_ACCESS_SHADER_WRITE_BIT,
+				.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+				.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+				.buffer = lightClusterGridBuffer,
+				.offset = 0,
+				.size = VK_WHOLE_SIZE,
+			};
+
+			VkBufferMemoryBarrier barrier2{
+				.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
+				.pNext = nullptr,
+				.srcAccessMask = VK_ACCESS_SHADER_READ_BIT,
+				.dstAccessMask = VK_ACCESS_SHADER_WRITE_BIT,
+				.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+				.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+				.buffer = activeLightClusterStatesBuffer,
+				.offset = 0,
+				.size = VK_WHOLE_SIZE,
+			};
+
+			VkBufferMemoryBarrier barriers[] = { barrier1, barrier2 };
+
+			VkPipelineStageFlags srcStageMask = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+			VkPipelineStageFlags dstStageMask = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+
+			vkCmdPipelineBarrier(cmd, srcStageMask, dstStageMask, 0, 0, nullptr, 2, barriers, 0, nullptr);
+		}
+
 		// Build LightClusterGrid: TODO: Can be called only once at init (and refresh only when camera projection fields change).
 		{
 			vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, lightClusterGridPipeline);
@@ -3180,6 +3214,26 @@ void Loop()
 			vkCmdDispatch(cmd, (fullGirdSize / 32) + (fullGirdSize % 32 == 0 ? 0 : 1), 1, 1);
 		}
 
+		// Barrier
+		{
+			VkBufferMemoryBarrier barrier{
+				.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
+				.pNext = nullptr,
+				.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT,
+				.dstAccessMask = VK_ACCESS_SHADER_READ_BIT,
+				.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+				.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+				.buffer = lightClusterGridBuffer,
+				.offset = 0,
+				.size = VK_WHOLE_SIZE,
+			};
+
+			VkPipelineStageFlags srcStageMask = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+			VkPipelineStageFlags dstStageMask = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+
+			vkCmdPipelineBarrier(cmd, srcStageMask, dstStageMask, 0, 0, nullptr, 1, &barrier, 0, nullptr);
+		}
+
 		// Compute ActiveLightClusters
 		{
 			vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, activeLightClusterStatesPipeline);
@@ -3197,6 +3251,58 @@ void Loop()
 			);
 
 			vkCmdDispatch(cmd, (1200 / 32) + 1, (900 / 32) + 1, 1);
+		}
+
+		// Barrier
+		{
+			VkBufferMemoryBarrier barrier1{
+				.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
+				.pNext = nullptr,
+				.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT,
+				.dstAccessMask = VK_ACCESS_SHADER_READ_BIT,
+				.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+				.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+				.buffer = activeLightClusterStatesBuffer,
+				.offset = 0,
+				.size = VK_WHOLE_SIZE,
+			};
+
+			VkBufferMemoryBarrier barrier2{
+				.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
+				.pNext = nullptr,
+				.srcAccessMask = VK_ACCESS_SHADER_READ_BIT,
+				.dstAccessMask = VK_ACCESS_SHADER_WRITE_BIT,
+				.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+				.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+				.buffer = activeLightClusterListBuffer,
+				.offset = 0,
+				.size = VK_WHOLE_SIZE,
+			};
+
+			VkBufferMemoryBarrier barriers[] = { barrier1, barrier2 };
+
+			VkPipelineStageFlags srcStageMask = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+			VkPipelineStageFlags dstStageMask = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+
+			vkCmdPipelineBarrier(cmd, srcStageMask, dstStageMask, 0, 0, nullptr, 2, barriers, 0, nullptr);
+
+
+			VkBufferMemoryBarrier barrier3{
+				.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
+				.pNext = nullptr,
+				.srcAccessMask = VK_ACCESS_SHADER_READ_BIT,
+				.dstAccessMask = VK_ACCESS_SHADER_WRITE_BIT,
+				.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+				.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+				.buffer = culledPointLightGrid,
+				.offset = 0,
+				.size = VK_WHOLE_SIZE,
+			};
+
+			VkPipelineStageFlags srcStageMask2 = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+			VkPipelineStageFlags dstStageMask2 = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+
+			vkCmdPipelineBarrier(cmd, srcStageMask2, dstStageMask2, 0, 0, nullptr, 1, &barrier3, 0, nullptr);
 		}
 
 		// Build Active Light Cluster List
@@ -3240,6 +3346,26 @@ void Loop()
 			vkCmdDispatch(cmd, dispatchNum, 1, 1);
 		}
 
+		// Barrier
+		{
+			VkBufferMemoryBarrier barrier{
+				.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
+				.pNext = nullptr,
+				.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT,
+				.dstAccessMask = VK_ACCESS_SHADER_READ_BIT,
+				.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+				.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+				.buffer = activeLightClusterListBuffer,
+				.offset = 0,
+				.size = VK_WHOLE_SIZE,
+			};
+
+			VkPipelineStageFlags srcStageMask = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+			VkPipelineStageFlags dstStageMask = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+
+			vkCmdPipelineBarrier(cmd, srcStageMask, dstStageMask, 0, 0, nullptr, 1, &barrier, 0, nullptr);
+		}
+
 		// Point Light culling
 		{
 			vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, pointLightCullingPipeline);
@@ -3257,6 +3383,26 @@ void Loop()
 			);
 
 			vkCmdDispatchIndirect(cmd, lightClusterIndirectArgsBuffer, 0);
+		}
+
+		// Barrier
+		{
+			VkBufferMemoryBarrier barrier{
+				.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
+				.pNext = nullptr,
+				.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT,
+				.dstAccessMask = VK_ACCESS_SHADER_READ_BIT,
+				.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+				.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+				.buffer = culledPointLightGrid,
+				.offset = 0,
+				.size = VK_WHOLE_SIZE,
+			};
+
+			VkPipelineStageFlags srcStageMask = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+			VkPipelineStageFlags dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+
+			vkCmdPipelineBarrier(cmd, srcStageMask, dstStageMask, 0, 0, nullptr, 1, &barrier, 0, nullptr);
 		}
 	}
 
