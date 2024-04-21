@@ -156,6 +156,8 @@ float zFar = 1000.0f;
 uint32_t objNum = 1000;
 uint32_t pointLightNum = 10000;
 SA::Vec3ui lightClusterGridSize = { 12, 9, 24 };
+std::vector<PointLight_GPU> pointLights;
+std::vector<SA::Mat4f> pLightObjectsMats;
 
 struct SceneTexture
 {
@@ -1413,14 +1415,12 @@ void Init()
 
 			// Point lights Buffer
 			{
-				std::vector<PointLight_GPU> pointLights;
 				pointLights.reserve(pointLightNum);
 
-				std::vector<SA::Mat4f> pLightObjectsMats;
 				pLightObjectsMats.reserve(pointLightNum);
 
 				std::vector<SA::Vec4f> pLightObjectsDebugColor;
-				pLightObjectsMats.reserve(pointLightNum);
+				pLightObjectsDebugColor.reserve(pointLightNum);
 
 				for (uint32_t i = 0; i < pointLightNum; ++i)
 				{
@@ -3104,6 +3104,23 @@ void Loop()
 		cameraGPU.UpdatePerspective(cameraTr.Matrix(), 90, zNear, zFar, SA::Vec2ui(1200u, 900u));
 
 		cameraBuffers[frameIndex].UploadData(device, &cameraGPU, sizeof(Camera_GPU));
+	}
+
+	// Update light positions
+	if(true)
+	{
+		static SA::Mat4f rot = SA::Mat4f::MakeRotation(SA::Quatf::FromEuler({0, 0.0025f * 10.0f, 0.0f}));
+
+		for(int i = 0; i < pointLightNum; ++i)
+		{
+			auto& mat = pLightObjectsMats[i];
+			mat = rot * mat;
+
+			pointLights[i].position = SA::Vec3f(mat.e03, mat.e13, mat.e23);
+		}
+
+		pointLightObjectBuffer.UploadData(device, pLightObjectsMats.data(), sizeof(SA::Mat4f) * pointLightNum);
+		pointLightBuffer.UploadData(device, pointLights.data(), sizeof(PointLight_GPU) * pointLightNum);
 	}
 
 	VK::CommandBuffer& cmd = cmdBuffers[frameIndex];
