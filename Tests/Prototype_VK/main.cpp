@@ -155,7 +155,7 @@ float zNear = 0.1f;
 float zFar = 1000.0f;
 uint32_t objNum = 1000;
 uint32_t pointLightNum = 10000;
-SA::Vec3ui lightClusterGridSize = { 12, 9, 24 };
+SA::Vec3ui lightClusterGridSize = { 12, 9, 128 };
 std::vector<PointLight_GPU> pointLights;
 std::vector<SA::Mat4f> pLightObjectsMats;
 
