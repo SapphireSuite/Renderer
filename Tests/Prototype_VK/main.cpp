@@ -176,6 +176,7 @@ constexpr bool bMSAA = true;
 bool bPointLightDebug = false;
 bool bLightGridDebug = false;
 bool bShouldRefreshGrid = true;
+bool bShouldRotateLights = true;
 
 void GLFWErrorCallback(int32_t error, const char* description)
 {
@@ -3107,7 +3108,7 @@ void Loop()
 	}
 
 	// Update light positions
-	if(true)
+	if(bShouldRotateLights)
 	{
 		static SA::Mat4f rot = SA::Mat4f::MakeRotation(SA::Quatf::FromEuler({0, 0.0025f * 10.0f, 0.0f}));
 
@@ -3532,6 +3533,7 @@ int main()
 
 	int prevPointLightDebugKeyState = GLFW_RELEASE;
 	int prevLightGridDebugKeyState = GLFW_RELEASE;
+	int prevRotateLightKeyState = GLFW_RELEASE;
 
 	double oldMouseX = 0.0f;
 	double oldMouseY = 0.0f;
@@ -3583,9 +3585,12 @@ int main()
 					bPointLightDebug = !bPointLightDebug;
 				if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS && prevLightGridDebugKeyState == GLFW_RELEASE)
 					bLightGridDebug = !bLightGridDebug;
+				if (glfwGetKey(window, GLFW_KEY_I) == GLFW_PRESS && prevRotateLightKeyState == GLFW_RELEASE)
+					bShouldRotateLights = !bShouldRotateLights;
 
 				prevPointLightDebugKeyState = glfwGetKey(window, GLFW_KEY_P);
 				prevLightGridDebugKeyState = glfwGetKey(window, GLFW_KEY_O);
+				prevRotateLightKeyState = glfwGetKey(window, GLFW_KEY_I);
 
 				double mouseX = 0.0f;
 				double mouseY = 0.0f;
