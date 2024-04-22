@@ -3492,6 +3492,7 @@ void Loop()
 
 				// convert to world-space for debug.
 				center = cameraGPU.view * SA::Vec4f(center, 1.0f);
+				extents = SA::Vec3f(abs(extents.x), abs(extents.y), abs(extents.z));
 
 				lightClusterGridMatrices[i / 2] = SA::TrPRSf(center, cameraTr.rotation, extents).Matrix();
 			}
