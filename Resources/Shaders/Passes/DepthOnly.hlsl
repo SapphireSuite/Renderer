@@ -37,7 +37,7 @@ VertexOutput mainVS(SA::VertexInputAssembly _input,
 	
 #if SA_CAMERA_BUFFER
 
-	output.svPosition = SA::ComputeObjectViewPosition(worldPosition);
+	output.svPosition = SA::ComputeObjectViewProjPosition(worldPosition);
 	
 #else
 	

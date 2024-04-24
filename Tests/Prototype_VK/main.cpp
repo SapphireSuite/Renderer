@@ -440,8 +440,8 @@ void Init()
 						VkSubpassDescriptionDepthStencilResolve depthResolveInfo{
 							.sType = VK_STRUCTURE_TYPE_SUBPASS_DESCRIPTION_DEPTH_STENCIL_RESOLVE,
 							.pNext = nullptr,
-							.depthResolveMode = VK_RESOLVE_MODE_AVERAGE_BIT,
-							.stencilResolveMode = VK_RESOLVE_MODE_AVERAGE_BIT,
+							.depthResolveMode = VK_RESOLVE_MODE_MAX_BIT,
+							.stencilResolveMode = VK_RESOLVE_MODE_MAX_BIT,
 							.pDepthStencilResolveAttachment = &resolvedDepthAttachmentRef
 						};
 

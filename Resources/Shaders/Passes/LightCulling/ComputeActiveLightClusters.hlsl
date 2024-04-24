@@ -46,14 +46,11 @@ void main(uint3 _dispatchThreadID : SV_DispatchThreadID)
 		return;
 	
 #endif
-
-	// Convert to view-space depth position.
-	const float4 viewDepthPosition = mul(camera.inverseProjection, float4(0.0f, 0.0f, sampledDepth, 1.0f));
 	
-	// Fix perspective.
-	const float vsDepth = viewDepthPosition.z / viewDepthPosition.w;
-
-	const uint clusterIndex = SA::GetClusterIndex(_dispatchThreadID.xy, vsDepth);
+	// Reconstruct view position.
+	const float3 viewPosition = SA::ComputeScreenSpaceToViewSpace(float3(_dispatchThreadID.xy, sampledDepth));
+	
+	const uint clusterIndex = SA::ComputeLightClusterIndex(viewPosition);
 	
 	activeClusterStates[clusterIndex] = true;
 }

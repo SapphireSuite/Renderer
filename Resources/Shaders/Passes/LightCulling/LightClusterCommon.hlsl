@@ -48,27 +48,41 @@ namespace SA
 	
 #if SA_CAMERA_BUFFER
 
-	float2 ComputeTilePixelSize()
+	float2 ComputeLightClusterTilePixelSize()
 	{
 		return camera.screen / float2(lightClusterInfo.gridSize.x, lightClusterInfo.gridSize.y);
 	}
 
-	
 	/**
-	*	\brief Get cluster index from pixel position.
+	*	\brief Compute cluster index from view-space position.
 	*
-	*	\param[in] _pixel Pixel position.
-	*
-	*	\return Cluster index.
+	*	\param[in] _vsPosition View-space position.
 	*/
-	uint GetClusterIndex(float2 _pixel, float _vsDepth)
+	uint ComputeLightClusterIndex(float3 _vsPosition)
 	{
-		const uint clusterZSlice = log(_vsDepth) * lightClusterInfo.clusterScale - lightClusterInfo.clusterBias;
-
-		const uint2 clusterXY = uint2(_pixel / SA::ComputeTilePixelSize());
+	//{ Compute Grid slice
 	
-		const uint clusterIndex = clusterXY.x + clusterXY.y * lightClusterInfo.gridSize.x + clusterZSlice * lightClusterInfo.gridSize.x * lightClusterInfo.gridSize.y;
+		const uint clusterZSlice = log(_vsPosition.z) * lightClusterInfo.clusterScale - lightClusterInfo.clusterBias;
+	
+		const float clusterFar = camera.zNear * pow(camera.zFar / camera.zNear, (clusterZSlice + 1) / float(lightClusterInfo.gridSize.z));
 
+		const float2 clusterSliceExtent = float2(clusterFar * camera.inverseProjection._m00, clusterFar * camera.inverseProjection._m11);
+		const float2 clusterSliceRange = 2 * clusterSliceExtent;
+		
+		const float2 clusterSliceSize = clusterSliceRange / float2(lightClusterInfo.gridSize.x, lightClusterInfo.gridSize.y);
+
+	//}
+	
+	
+	//{ Compute Current Cluster Index
+	
+		const uint clusterXSlice = (_vsPosition.x + clusterSliceExtent.x) / clusterSliceSize.x;
+		const uint clusterYSlice = lightClusterInfo.gridSize.y - (_vsPosition.y + clusterSliceExtent.y) / clusterSliceSize.y;
+	
+		const uint clusterIndex = clusterXSlice + clusterYSlice * lightClusterInfo.gridSize.x + clusterZSlice * lightClusterInfo.gridSize.x * lightClusterInfo.gridSize.y;
+	
+	//}
+	
 		return clusterIndex;
 	}
 	

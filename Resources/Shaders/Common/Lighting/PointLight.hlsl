@@ -60,13 +60,17 @@ namespace SA
 		return ComputeBRDF(_data, lData);
 	}
 
-	float3 ComputePointLightsIllumination(float2 _pixel, float _svDepth, IlluminationData _data)
+	#if SA_POINT_LIGHT_CULLING
+	
+	float3 ComputePointLightsIllumination(float3 _vsPosition, IlluminationData _data)
 	{
 		float3 sum = float3(0.0f, 0.0f, 0.0f);
 
-	#if SA_POINT_LIGHT_CULLING
+		uint num;
+		uint stride;
+		pointLights.GetDimensions(num, stride);
 
-		const uint clusterIndex = GetClusterIndex(_pixel, _svDepth);
+		const uint clusterIndex = ComputeLightClusterIndex(_vsPosition);
 
 		const ClusterLightList cluster = culledPointLightGrid[clusterIndex];
 
@@ -75,7 +79,14 @@ namespace SA
 			sum += ComputePointLightIllumination(_data, pointLights[cluster.lightIndices[i]]);
 		}
 
-	#else // SA_POINT_LIGHT_CULLING
+		return sum;
+	}
+
+	#else
+
+	float3 ComputePointLightsIllumination(IlluminationData _data)
+	{
+		float3 sum = float3(0.0f, 0.0f, 0.0f);
 
 		uint num;
 		uint stride;
@@ -86,10 +97,10 @@ namespace SA
 			sum += ComputePointLightIllumination(_data, pointLights[i]);
 		}
 
-	#endif
-
 		return sum;
 	}
+
+	#endif
 }
 
 #else // SA_POINT_LIGHT_BUFFER_ID

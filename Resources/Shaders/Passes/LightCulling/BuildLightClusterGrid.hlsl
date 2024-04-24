@@ -20,7 +20,6 @@ RWStructuredBuffer<SA::AABB> lightClusterAABBs : register(u2);
 
 //-------------------- Compute Shader --------------------
 
-float2 ComputeScreenSpaceToViewSpace(float2 _ssPos);
 float3 LineIntersectionWithZPlane(float2 _dirXY, float _zPlane);
 
 [numthreads(NUM_THREAD_X, NUM_THREAD_Y, NUM_THREAD_Z)]
@@ -31,15 +30,15 @@ void main(uint3 _dispatchThreadID : SV_DispatchThreadID)
 		_dispatchThreadID.z >= lightClusterInfo.gridSize.z)
 		return;
 	
-	const float2 tilePixelSize = SA::ComputeTilePixelSize();
+	const float2 tilePixelSize = SA::ComputeLightClusterTilePixelSize();
 	
 	// Compute Screen-Space min, max.
 	const float2 ssMin = float2(_dispatchThreadID.x, _dispatchThreadID.y) * tilePixelSize;
 	const float2 ssMax = float2(_dispatchThreadID.x + 1, _dispatchThreadID.y + 1) * tilePixelSize;
 	
 	// Compute View-Space min, max.
-	const float2 vsMin = ComputeScreenSpaceToViewSpace(ssMin);
-	const float2 vsMax = ComputeScreenSpaceToViewSpace(ssMax);
+	const float2 vsMin = SA::ComputeScreenSpaceToViewSpace2D(ssMin);
+	const float2 vsMax = SA::ComputeScreenSpaceToViewSpace2D(ssMax);
 
 	// Compute View-Space cluster near, far.
 	const float clusterNear = camera.zNear * pow(camera.zFar / camera.zNear, _dispatchThreadID.z / float(lightClusterInfo.gridSize.z));
@@ -55,24 +54,6 @@ void main(uint3 _dispatchThreadID : SV_DispatchThreadID)
 	const uint clusterIndex = _dispatchThreadID.x + _dispatchThreadID.y * min(NUM_THREAD_X, lightClusterInfo.gridSize.x) + _dispatchThreadID.z * min(NUM_THREAD_X, lightClusterInfo.gridSize.x) * min(NUM_THREAD_Y, lightClusterInfo.gridSize.y);
 	lightClusterAABBs[clusterIndex].min = clusterMinAABB;
 	lightClusterAABBs[clusterIndex].max = clusterMaxAABB;
-}
-
-float2 ComputeScreenSpaceToViewSpace(float2 _ssPos)
-{
-	// Convert to NDC
-	const float2 texCoord = _ssPos / camera.screen;
-	
-	// Convert to clip space
-	float4 clipPos = float4(texCoord * 2.0 - 1.0, 0.0, 1.0);
-	
-	// Viewport is flipped so Y-axis needs to be reversed.
-	clipPos.y = -clipPos.y;
-	
-	// Convert to view-space
-	const float4 viewPos = mul(clipPos, camera.inverseProjection);
-	
-	// Fix perspective
-	return viewPos.xy / viewPos.w;
 }
 
 float3 LineIntersectionWithZPlane(float2 _dirXY, float _zPlane)
