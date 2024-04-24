@@ -14,7 +14,7 @@ namespace SA::RND
 
 		// Projection
 		{
-			projection = Mat4f::MakePerspective(_FOV, _screenDims.x / _screenDims.y, _zNear, _zFar);
+			projection = Mat4f::MakePerspective(_FOV, _screenDims.x / float(_screenDims.y), _zNear, _zFar);
 			inverseProjection = projection.GetInversed();
 
 			invViewProj = projection * inverseView;
