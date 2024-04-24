@@ -20,8 +20,8 @@ RWStructuredBuffer<SA::AABB> lightClusterAABBs : register(u2);
 
 //-------------------- Compute Shader --------------------
 
-float3 ComputeScreenSpaceToViewSpace(float2 _ssPos);
-float3 LineIntersectionWithZPlane(/*float3 _start, */float3 _end, float _zPlane);
+float2 ComputeScreenSpaceToViewSpace(float2 _ssPos);
+float3 LineIntersectionWithZPlane(float2 _dirXY, float _zPlane);
 
 [numthreads(NUM_THREAD_X, NUM_THREAD_Y, NUM_THREAD_Z)]
 void main(uint3 _dispatchThreadID : SV_DispatchThreadID)
@@ -38,8 +38,8 @@ void main(uint3 _dispatchThreadID : SV_DispatchThreadID)
 	const float2 ssMax = float2(_dispatchThreadID.x + 1, _dispatchThreadID.y + 1) * tilePixelSize;
 	
 	// Compute View-Space min, max.
-	const float3 vsMin = ComputeScreenSpaceToViewSpace(ssMin);
-	const float3 vsMax = ComputeScreenSpaceToViewSpace(ssMax);
+	const float2 vsMin = ComputeScreenSpaceToViewSpace(ssMin);
+	const float2 vsMax = ComputeScreenSpaceToViewSpace(ssMax);
 
 	// Compute View-Space cluster near, far.
 	const float clusterNear = camera.zNear * pow(camera.zFar / camera.zNear, _dispatchThreadID.z / float(lightClusterInfo.gridSize.z));
@@ -57,7 +57,7 @@ void main(uint3 _dispatchThreadID : SV_DispatchThreadID)
 	lightClusterAABBs[clusterIndex].max = clusterMaxAABB;
 }
 
-float3 ComputeScreenSpaceToViewSpace(float2 _ssPos)
+float2 ComputeScreenSpaceToViewSpace(float2 _ssPos)
 {
 	// Convert to NDC
 	const float2 texCoord = _ssPos / camera.screen;
@@ -69,42 +69,34 @@ float3 ComputeScreenSpaceToViewSpace(float2 _ssPos)
 	clipPos.y = -clipPos.y;
 	
 	// Convert to view-space
-	const float4 viewPos = mul(clipPos, transpose(camera.inverseProjection)); // TODO: why transpose?
+	const float4 viewPos = mul(clipPos, camera.inverseProjection);
 	
 	// Fix perspective
-	return viewPos.xyz / viewPos.w;
+	return viewPos.xy / viewPos.w;
 }
 
-// Simplification as _start is always float3(0, 0, 0) (camera origin).
-float3 LineIntersectionWithZPlane(/*float3 _start, */float3 _end, float _zPlane)
+float3 LineIntersectionWithZPlane(float2 _dirXY, float _zPlane)
 {
-	// Fixed Z-based normal.
-	const float3 normal = float3(0, 0, 1);
-	
-	// Simplification: not needed.
-	//const float3 dir = _end - _start;
-	
 	/**
 	*	Intersection formula between line and plane.
-	*	t = (zPlane - dot(normal, start)) / dot(normal, dir)
+	*	dir = _end - _start;
+	*	t = (zPlane - dot(normal, start)) / dot(normal, dir);
+	*	intersection = start + dir * t;
 	*
 	*	Simplifications:
-	*	> dot(normal, start) == dot(normal, float3(0, 0, 0)) == 0
-	*	> dir == _end
-	*/
-	const float t = _zPlane / dot(normal, _end);
-	
-	/**
-	*	Compute actual intersection point formula:
-	*	intersection = start + dir * t
+	*	> start == float3(0, 0, 0);
+	*	> dir == _end;
+	*	> normal == float3(0, 0, 1);
+	*	> dot(normal, start) == dot(normal, float3(0, 0, 0)) == 0;
+	*	> dot(normal, dir) == dot(normal, _end) == _end.z;
 	*
-	*	Simplifications:
-	*	> start == float3(0, 0, 0)
-	*	> dir == _end
+	*	> end.z = 1 / camera.inverseProjection._m33;
+	*	> t = zPlane / end.z == zPlane * camera.inverseProjection._m33;
 	*/
-	const float3 intersection = _end * t;
 	
-	return intersection;
+	const float t = _zPlane * camera.inverseProjection._m33;
+	
+	return float3(_dirXY * t, _zPlane);
 }
 
 #endif // SAPPHIRE_RENDER_SHADER_BUILD_LIGHT_CLUSTER_GRID_GUARD
